@@ -24,6 +24,7 @@ class RegularGridKernel:
       f['data'] = self.grid
       f['data'].attrs['origin']=self.originCoords
       f['data'].attrs['steps']=self.dimensionsSteps
+      f['data'].attrs['format']="grid"
   
   def readHDF5(filename):
     with h5py.File(filename, 'r') as f:
