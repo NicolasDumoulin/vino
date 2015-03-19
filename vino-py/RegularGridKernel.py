@@ -2,6 +2,7 @@
 
 import numpy as np
 import h5py
+from hdf5common import HDF5Writer
 
 class RegularGridKernel:
   def __init__(self, originCoords, dimensionsSteps, dimensionsExtents):
@@ -17,15 +18,14 @@ class RegularGridKernel:
     return self.grid[coords]
   
   def writeHDF5(self, filename):
-    with h5py.File(filename, 'w') as f:
-      metadata = f.create_group('metadata')
-      metadata['problem/model']=[["name","foo"]]
-      metadata['algorithm']=[["name","greatAlgo"]]
-      f['data'] = self.grid
-      f['data'].attrs['origin']=self.originCoords
-      f['data'].attrs['steps']=self.dimensionsSteps
-      f['data'].attrs['format']="grid"
-  
+    with HDF5Writer(filename) as w:
+      w.writeMetadata([["name","foo"]], [["name","greatAlgo"]])
+      w.writeData(self.grid, {
+        'origin' : self.originCoords,
+        'steps' : self.dimensionsSteps,
+        'format' : 'grid'
+          })
+ 
   def readHDF5(filename):
     with h5py.File(filename, 'r') as f:
       pass
