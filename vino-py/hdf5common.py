@@ -24,7 +24,6 @@ class HDF5Writer:
       self.f['data'].attrs[key] = value
 
   def writeData(self, data, attrs, **datasets_options):
-    print(datasets_options)
     self.f.create_dataset('data', data=data, **datasets_options)
     for key,value in attrs.iteritems():
       self.f['data'].attrs[key] = value
