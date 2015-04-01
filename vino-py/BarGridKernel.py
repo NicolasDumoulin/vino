@@ -2,14 +2,21 @@
 
 import numpy as np
 import h5py
-from hdf5common import HDF5Writer
+from hdf5common import HDF5Writer, HDF5Reader
 import re
 
 class BarGridKernel:
-  def __init__(self, originCoords, dimensionsSteps):
+  def __init__(self, originCoords, dimensionsSteps, data = []):
     self.originCoords = originCoords
     self.dimensionsSteps = dimensionsSteps
-    self.bars = []
+    self.bars = data
+    
+  @staticmethod
+  def initFromHDF5(hdf5Attributes, data):
+    '''
+    Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
+    '''
+    return BarGridKernel(hdf5Attributes['origin'], hdf5Attributes['steps'], data)
     
   def addBar(self, coords, inf, sup):
     self.bars.append(coords[:] + [inf,sup])
@@ -24,15 +31,13 @@ class BarGridKernel:
         'origin' : self.originCoords,
         'steps' : self.dimensionsSteps,
         'format' : 'bars'
-          }, **datasets_options)
-  
-  def readHDF5(filename):
-    with h5py.File(filename, 'r') as f:
-      pass
-    # TODO
+          }, **datasets_options)   
   
   @staticmethod
   def readPatrickSaintPierre(filename):
+    '''
+    Returns an object of class BarGridKernel loaded from an output file from the software of Patric Saint-Pierre.
+    '''
     modelMetadata=[]
     bgk = None
     with open(filename, 'r') as f:
@@ -70,8 +75,28 @@ if __name__ == "__main__":
   grid.addBar([2,3],3,4)
   #grid.writeHDF5('test.h5')
   
-  grid = BarGridKernel.readPatrickSaintPierre('../../exemples noyaux/4D_005.txt')
+  import time
+  startTime = time.time()
+  grid = BarGridKernel.readPatrickSaintPierre('../../exemples noyaux/4D_005_light.txt')
+  readTime = time.time() - startTime
+  print('reading in '+str(readTime)+'s')
+  startTime = time.time()
   grid.writeHDF5('test.h5')
+  hdf5Time = time.time() - startTime
+  print('writing hdf5 in '+str(hdf5Time)+'s')
+  startTime = time.time()
   grid.writeHDF5('test_gzip9.h5', compression="gzip", compression_opts=9)
+  hdf5GzipTime = time.time() - startTime
+  print('writing hdf5/gzip in '+str(hdf5GzipTime)+'s')
+  startTime = time.time()
   grid.writeHDF5('test_lzf.h5', compression="lzf")
+  hdf5LzfTime = time.time() - startTime
+  print('writing hdf5/lzf in '+str(hdf5LzfTime)+'s')
+  startTime = time.time()
+  reloadedKernel = hdf5common.readKernel('test.h5')
+  hdf5ReadTime = time.time() - startTime
+  print('reading hdf5 in '+str(hdf5ReadTime)+'s')
   
+ 
+  
+ 
