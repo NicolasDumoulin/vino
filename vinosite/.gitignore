@@ -1,0 +1,8 @@
+Thumbs.db
+*.pyc
+media
+secret.txt
+db.sqlite3
+vinosite/local_settings.py
+sharekernel/migrations
+

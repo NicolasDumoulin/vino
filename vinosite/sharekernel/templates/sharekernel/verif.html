@@ -1,0 +1,68 @@
+<h3>Your file seems ok to be uploaded.</h3>
+<h3>Could you check the information below :</h3>
+
+<h2>Metadata for the viability problem description</h2>
+<h3>Category : {{category.category_text}}</h3>
+<h3>Title : {{viabilityproblem.title}}</h3>
+<h3>Issue : {{viabilityproblem.issue}}</h3>
+<h3>State Dimension : {{viabilityproblem.statedimension}}</h3>
+<h3>State Name And Abbreviation : {{viabilityproblem.statenameandabbreviation}}</h3>
+<h3>Control Dimension : {{viabilityproblem.controldimension}}</h3>
+<h3>Control Name And Abbreviation : {{viabilityproblem.controlnameandabbreviation}}</h3>
+<h3>Dynamics Description : {{viabilityproblem.dynamicsdescription}}</h3>
+<h3>Admissible Control Description : {{viabilityproblem.admissiblecontroldescription}}</h3>
+<h3>Dynamics Parameters : {{viabilityproblem.dynamicsparameters}}</h3>
+<h3>State Constraint Description : {{viabilityproblem.stateconstraintdescription}}</h3>
+<h3>State Constraint Parameters : {{viabilityproblem.stateconstraintparameters}}</h3>
+<h3>Target Description : {{viabilityproblem.targetdescription}}</h3>
+<h3>Target Parameters :  {{viabilityproblem.targetparameters}} </h3>
+
+<h2>Metadata for the parameter values </h2>
+<h3>DynamicsParameterValues : {{parameters.dynamicsparametervalues}} </h3>
+<h3>StateConstraintParameterValues : {{parameters.stateconstraintparametervalues}} </h3>
+<h3>TargetParameterValues : {{parameters.targetparametervalues}} </h3>
+
+<h2>Metadata for the software </h2>
+<h3>Program Name : {{algorithm.name}}</h3>
+<h3>Program Author : {{algorithm.author}}</h3> 
+<h3>Version : {{algorithm.version}}</h3>
+<h3>Publication : {{algorithm.publication}}  </h3>
+<h3>Software Web Site : {{algorithm.softwarewebsite}}</h3>
+<h3>Software Contact : {{algorithm.softwarecontact}}</h3>
+<h3>Software Parameters : {{algorithm.softwareparameters}}</h3>
+
+<h2>Metadata for the result format </h2>
+<h3>Format Name : {{resultformat.name}}</h3>
+<h3>Format Description : {{resultformat.description}}</h3> 
+<h3>Format Parameter List : {{resultformat.parameterlist}}</h3>
+
+
+<h2>Metadata for the results </h2>
+<h3>Result Author : {{results.author}}</h3>
+<h3>Result Submission Date : {{results.submissiondate}}</h3>
+<h3>Result Contact Email : {{results.contactemail}}</h3>
+<h3>Software Parameter Values : {{results.softwareparametervalues}}</h3>
+<h3>Format Parameter Values : {{results.formatparametervalues}}</h3>
+
+
+
+<h2>Metadata for the data file description</h2> 
+
+
+Enter the path of your file again for the upload : 
+<form action="{% url 'sharekernel:recorded' %}" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+
+            <p>{{ form.non_field_errors }}</p>
+           <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+           <p>
+                {{ form.docfile.errors }}
+                {{ form.docfile }}
+            </p>
+
+<input type="submit" value="I have checked the information are correct" />
+
+</form>
+
+<br>
+The information are not correct, I go back to the <a href="/sharekernel/kernelupload/">upload page.</a>

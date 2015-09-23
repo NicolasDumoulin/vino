@@ -1,0 +1,137 @@
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
+
+
+<body>
+	<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="/sharekernel/">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+<h4>{{viabilityproblem.category.category_text}}</h4>
+
+<h2>{{viabilityproblem.title}}</h2>
+
+<h4> Model :</h4>
+Dimension of the state space : {{viabilityproblem.statedimension}}
+
+<ul>
+{% for i in stanaab%}
+<li>  {{i}}</li>
+{% endfor %}
+</ul>
+
+Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
+
+<ul>
+{% for i in connaab%}
+<li>  {{i}}</li>
+{% endfor %}
+</ul>
+
+
+			<div class="little_block"><h4> Dynamics :</h4>
+
+{% for i in dyndes%}
+{{ i }}<br>
+{% endfor %}
+<br>
+{% for i in adcondes%}
+{{ i }}<br>
+{% endfor %}
+<br>
+Parameters : 
+<ul>
+{% for i in dynparval %}
+<li> {{i}}</li>
+{% endfor %}
+</ul>
+
+
+
+
+
+ 
+ 				</div>
+			<div class="little_block">  
+<h4> Constraints :</h4>
+
+{% for i in stacondes%}
+{{ i }}<br>
+{% endfor %}
+<br>
+Parameters : 
+<ul>
+{% for i in staconparval %}
+<li> {{i}}</li>
+{% endfor %}
+</ul>
+
+
+
+			 </div>
+			<div class="little_block">  
+<h4> Target :</h4>
+
+{% for i in tardes%}
+{{ i }}<br>
+{% endfor %}
+<br><br>
+Parameters :  
+<ul>
+{% for i in tarparval %}
+<li> {{i}}</li>
+{% endfor %}
+</ul>
+
+			 </div>
+
+			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
+			<div class="spacer"></div>
+<h2>Calculation informations</h2>
+
+
+<h3>Software Name : {{ algorithm.name }}<br></h3>
+<h3>Author :   {{ algorithm.author }}<br></h3>
+<h3>Version :   {{ algorithm.version }}<br></h3>
+<h3>Publication :   {{ algorithm.publication }}<br></h3>
+<h3>Software Web Site :  {{ algorithm.softwarewebsite }}<br></h3>
+<h3>Contact :   {{ algorithm.softwarecontact }}<br></h3>
+<h3>Sofware Parameters :   {{ algorithm.softwareparameters }}<br></h3>
+
+
+
+<table >
+	<tr> 
+
+	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
+            {% csrf_token %}
+            <p><input type="submit" value="Visualize" /></p>
+        </form>
+</td>
+	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
+            {% csrf_token %}
+            <p><input type="submit" value="Test" /></p>
+        </form>
+</td>
+	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
+            {% csrf_token %}
+            <p><input type="submit" value="Viable Evolution Simulator" /></p>
+        </form>
+</td>
+
+</tr>
+</table>
+
+
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+</body>
+
+
+

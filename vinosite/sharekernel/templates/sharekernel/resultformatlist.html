@@ -1,0 +1,10 @@
+{% if resultformat_list %}
+    <ul>
+    {% for resultformat in resultformat_list %}
+        <li><a href="/sharekernel/metadatafilespecification/{{ category_id }}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat.id}}/">{{ resultformat.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No result formats are available.</p>
+{% endif %}
+<a href="/sharekernel/metadatafilespecification/{{ category_id }}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Annuler</a>

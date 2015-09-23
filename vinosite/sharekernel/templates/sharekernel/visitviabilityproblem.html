@@ -1,0 +1,114 @@
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
+
+
+<body>
+	<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="/sharekernel/">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+			<h3>{{viabilityproblem.category.category_text}}</h3>
+
+				<h1>{{viabilityproblem.title}}</h1>
+				<h3>Issues : </h3>
+				{{viabilityproblem.issue}}
+				<h3> Model :</h3>
+				Dimension of the state space : {{viabilityproblem.statedimension}}
+
+				<ul>
+				{% for i in stanaab%}
+				<li>  {{i}}</li>
+				{% endfor %}
+				</ul>
+
+				Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
+
+				<ul>
+				{% for i in connaab%}
+				<li>  {{i}}</li>
+				{% endfor %}
+				</ul>
+
+
+			<div class="little_block"><h3> Dynamics :</h3>
+
+{% for i in dyndes%}
+{{ i }}<br>
+{% endfor %}
+<br>
+{% for i in adcondes%}
+{{ i }}<br>
+{% endfor %}
+<br><br>
+Parameters : {{viabilityproblem.dynamicsparameters}}<br>
+
+
+
+
+ 
+ 				</div>
+			<div class="little_block">  
+<h3> Constraints :</h3>
+
+{% for i in stacondes%}
+{{ i }}<br>
+{% endfor %}
+<br><br>
+Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
+
+
+
+			 </div>
+			<div class="little_block">  
+<h3> Target :</h3>
+
+{% for i in tardes%}
+{{ i }}<br>
+{% endfor %}
+<br><br>
+Parameters :  {{viabilityproblem.targetparameters}} <br>
+
+			 </div>
+
+			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
+			<div class="spacer"></div>
+<h2>Archived viability kernel approximations</h2>
+
+<table border = 2>
+{% for p in tabvalues %}
+{% if forloop.counter == 1%}
+	<tr> 
+	{% for pp in p %}
+
+	<td>   {% for ppp in pp %}{{ ppp}}<br>{% endfor %}</td>
+	{% endfor %}   
+{% else %}
+	<tr> 
+	{% for pp in p %}
+	{% if forloop.counter == 1%}
+		<td>   {% for ppp in pp %}{{ ppp}}<br>{% endfor %}</td>
+	{% else %}
+		<td>   {% for ppp in pp %}<a href="/sharekernel/visitresult/{{ ppp.id }}/">{{ ppp.author}}</a><br><br>{% endfor %}</td>
+	{% endif%}
+	{% endfor %}   
+{% endif%}
+
+</tr>
+{% endfor %}
+</table>
+
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+</body>
+
+
+
+
+
+

@@ -1,0 +1,26 @@
+"""
+If you use this as your local settings file,
+remember to change the name to local_settings.py.
+
+Don't make the mistake of committing this file
+containing your delicate passwords to a repo.
+If you do, you can try this:
+    git reset --soft HEAD^
+    git push -f
+This reverts back to the second-most recent commit.
+It is not recommended for repos that other people use.
+"""
+
+LOCAL_SETTINGS = True
+
+ADMINS = (
+    ("Nicolas Dumoulin", "nicolas.dumoulin@irstea.fr"),
+)
+
+# you can provide your own SECRET_KEY
+# SECRET_KEY = ''
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+#STATIC_URL = ''
