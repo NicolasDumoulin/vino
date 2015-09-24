@@ -1,6 +1,5 @@
 # -*- coding: utf8 -*-
 
-import numpy as np
 import h5py
 
 class HDF5Writer:
@@ -14,9 +13,14 @@ class HDF5Writer:
   def __exit__(self, type, value, traceback):
     self.f.close()
 
-  def writeMetadata(self, problem, algorithm):
-    self.metadata['problem']=problem
-    self.metadata['algorithm']=algorithm
+  def writeMetadata(self, metadata):
+    '''
+    Write metadata. TODO need to be specified.
+    Maybe we need 2 categories:
+     - viability problem and its dynamics parameters
+     - kernel approximation algorithm and its parameters
+    '''
+    self.metadata = metadata
   
   def writeData(self, data, attrs, **datasets_options):
     '''
@@ -45,16 +49,29 @@ class HDF5Reader:
   def readDataAttributes(self):
     return {key:value for key,value in self.f['data'].attrs.items()}
 
-import BarGridKernel
-formatsStrategies = { 'bars': BarGridKernel.BarGridKernel }
+class HDF5Manager:
+  def __init__(self, strategies):
+    self.formatsStrategies = { s.getFormatCode():s for s in strategies }
 
-def readKernel(filename):
-  ''' Read a kernel from a Vino HDF5 file, using the appropriate stored format. '''
-  with HDF5Reader(filename) as f:
-    # TODO nothing is done with these metadata
-    metadata = f.readMetadata()
-    # reading the data attributes for determining the format
-    dataAttributes = f.readDataAttributes()
-    return formatsStrategies[dataAttributes['format']].initFromHDF5(dataAttributes, f.readData())
+  def readKernel(self, filename):
+    '''
+    Read a kernel from a Vino HDF5 file and returns a subclass of the class
+    Kernel depending of the detected storage format.
+    '''
+    with HDF5Reader(filename) as f:
+      # TODO nothing is done with these metadata
+      metadata = f.readMetadata()
+      # reading the data attributes for determining the format
+      dataAttributes = f.readDataAttributes()
+      return self.formatsStrategies[dataAttributes['format']].initFromHDF5(metadata, dataAttributes, f.readData())
 
+  @staticmethod
+  def writeKernel(kernel, filename, **datasets_options):
+    '''
+    Write a kernel to a Vino HDF5 file
+    '''
+    with HDF5Writer(filename) as w:
+      w.writeMetadata(kernel.getMetadata())
+      w.writeData(kernel.getData(), kernel.getDataAttributes(), **datasets_options)   
+  
     

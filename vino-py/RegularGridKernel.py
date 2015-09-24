@@ -1,16 +1,37 @@
 # -*- coding: utf8 -*-
 
 import numpy as np
-import h5py
 from hdf5common import HDF5Writer
+from Kernel import Kernel
+from overrides import overrides
 
-class RegularGridKernel:
-  def __init__(self, originCoords, dimensionsSteps, dimensionsExtents=None):
+class RegularGridKernel(Kernel):
+  def __init__(self, originCoords, dimensionsSteps, dimensionsExtents=None, data=None, metadata = {}):
+    super(RegularGridKernel, self).__init__(metadata)
     self.originCoords = originCoords
     self.dimensionsSteps = dimensionsSteps
     self.dimensionsExtents = dimensionsExtents
-    if (dimensionsExtents):
+    if data:
+      self.setGrid(data)
+    elif (dimensionsExtents):
       self.grid = np.full(dimensionsExtents, False, dtype='bool')
+    
+  @staticmethod   
+  @overrides
+  def getFormatCode():
+    return "grid"
+       
+  @classmethod
+  @overrides
+  def initFromHDF5(cls, metadata, dataAttributes, data):
+    '''
+    Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
+    '''
+    return cls(dataAttributes['origin'], dataAttributes['steps'], data=data, metadata=metadata)
+    
+  @overrides
+  def getData(self):
+    return self.grid
     
   def setGrid(self, grid):
     self.dimensionsExtents = grid.shape
@@ -22,31 +43,20 @@ class RegularGridKernel:
   def get(self, coords):
     return self.grid[coords]
   
-  def writeHDF5(self, filename, **datasets_options):
-    with HDF5Writer(filename) as w:
-      w.writeMetadata([["name","foo"]], [["name","greatAlgo"]])
-      w.writeData(self.grid, {
-        'origin' : self.originCoords,
-        'steps' : self.dimensionsSteps,
-        'format' : 'grid'
-          }, **datasets_options)
- 
-  def writeHDF5_coords(self, filename, **datasets_options):
-    with HDF5Writer(filename) as w:
-      w.writeMetadata([["name","foo"]], [["name","greatAlgo"]])
-      coords_list = [[i,j] for i,row in enumerate(self.grid) for j,e in enumerate(row) if e]
-      w.writeData(coords_list, {
-        'origin' : self.originCoords,
-        'steps' : self.dimensionsSteps,
-        'format' : 'grid'
-          }, **datasets_options)
- 
-  def readHDF5(filename):
-    with h5py.File(filename, 'r') as f:
-      pass
+  @overrides
+  def isInside(self, point):
     # TODO
-  
+    raise NotImplementedError
+         
+  @overrides
+  def isInside(self, point):
+    # TODO
+    raise NotImplementedError
+
+
+
 if __name__ == "__main__":
+  from hdf5common import HDF5Manager
   grid = RegularGridKernel([0,0,0], [1,1,1], [10,10,10])
   grid.set([3,1,0], True)
-  grid.writeHDF5('test.h5')
+  HDF5Manager.writeKernel(grid, 'test.h5')

@@ -1,23 +1,33 @@
 # -*- coding: utf8 -*-
 
 import numpy as np
-import h5py
-import hdf5common
-from hdf5common import HDF5Writer, HDF5Reader
 import re
+from overrides import overrides
+from Kernel import Kernel
 
-class BarGridKernel:
-  def __init__(self, originCoords, dimensionsSteps, data = []):
+class BarGridKernel(Kernel):
+  def __init__(self, originCoords, dimensionsSteps, data = [], metadata = {}):
+    super(BarGridKernel, self).__init__(metadata)
     self.originCoords = originCoords
     self.dimensionsSteps = dimensionsSteps
     self.bars = data
     
-  @staticmethod
-  def initFromHDF5(hdf5Attributes, data):
+  @staticmethod   
+  @overrides
+  def getFormatCode():
+    return "bars"
+       
+  @classmethod
+  @overrides
+  def initFromHDF5(cls, metadata, dataAttributes, data):
     '''
     Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
     '''
-    return BarGridKernel(hdf5Attributes['origin'], hdf5Attributes['steps'], data)
+    return cls(dataAttributes['origin'], dataAttributes['steps'], data, metadata)
+    
+  @overrides
+  def getData(self):
+    return np.array(self.bars,dtype='int64')
     
   def addBar(self, coords, inf, sup):
     self.bars.append(coords[:] + [inf,sup])
@@ -25,17 +35,11 @@ class BarGridKernel:
   def getBars(self):
     return self.bars
   
-  def writeHDF5(self, filename, **datasets_options):
-    with HDF5Writer(filename) as w:
-      w.writeMetadata([["name","foo"]], [["name","greatAlgo"]])
-      w.writeData(np.array(self.bars,dtype='int64'), {
-        'origin' : self.originCoords,
-        'steps' : self.dimensionsSteps,
-        'format' : 'bars'
-          }, **datasets_options)   
-  
-  @staticmethod
-  def readPatrickSaintPierre(filename):
+  def getHDF5(self):
+    return 
+
+  @classmethod
+  def readPatrickSaintPierre(cls, filename):
     '''
     Returns an object of class BarGridKernel loaded from an output file from the software of Patric Saint-Pierre.
     '''
@@ -53,7 +57,7 @@ class BarGridKernel:
       origin = map(int, re.findall('[0-9]+', f.readline()))
       maxPoint = map(int, re.findall('[0-9]+', f.readline()))
       for i in range(5): f.readline()
-      bgk = BarGridKernel(origin, dimensionsSteps)
+      bgk = cls(origin, dimensionsSteps)
       # reading until some lines with 'Initxx'
       stop=False
       initxx=False
@@ -67,8 +71,14 @@ class BarGridKernel:
       for line in f:
         coords = map(int, re.findall('[0-9]+', line))
         bgk.addBar(coords[:-2], coords[-2], coords[-1])
+      # TODO what is done with modelMetadata, nbDim and maxPoint
     return bgk
   
+  @overrides
+  def isInside(self, point):
+    # TODO
+    raise NotImplementedError
+
 if __name__ == "__main__":
   #grid = BarGridKernel([0,0,0], [1,1,1])
   #grid.addBar([1,2],3,4)
@@ -79,20 +89,22 @@ if __name__ == "__main__":
   import time
   import timeit
   startTime = time.time()
-  grid = BarGridKernel.readPatrickSaintPierre('../samples/4D_005.txt')
+  grid = BarGridKernel.readPatrickSaintPierre('../samples/4D_005_light.txt')
   readTime = time.time() - startTime
   print('reading raw txt in {:.2f}s'.format(readTime))
+  from hdf5common import HDF5Manager
+  hm = HDF5Manager([BarGridKernel])
 
   for setup,data in [
-    ['from __main__ import grid',[
-      ['writing hdf5', "grid.writeHDF5('test.h5')"],
-      ['writing hdf5/gzip',"grid.writeHDF5('test_gzip9.h5', compression='gzip', compression_opts=9)"],
-      ['writing hdf5/lzf',"grid.writeHDF5('test_lzf.h5', compression='lzf')"],
+    ['from __main__ import grid, hm',[
+      ['writing hdf5', "hm.writeKernel(grid, 'test.h5')"],
+      ['writing hdf5/gzip',"hm.writeKernel(grid, 'test_gzip9.h5', compression='gzip', compression_opts=9)"],
+      ['writing hdf5/lzf',"hm.writeKernel(grid, 'test_lzf.h5', compression='lzf')"],
       ]],
-    ['import hdf5common',[
-      ['reading hdf5', "hdf5common.readKernel('test.h5')"],
-      ['reading hdf5/lzf', "hdf5common.readKernel('test_lzf.h5')"],
-      ['reading hdf5/gzip',"hdf5common.readKernel('test_gzip9.h5')"]
+    ['from __main__ import hm',[
+      ['reading hdf5', "hm.readKernel('test.h5')"],
+      ['reading hdf5/lzf', "hm.readKernel('test_lzf.h5')"],
+      ['reading hdf5/gzip',"hm.readKernel('test_gzip9.h5')"]
       ]]
     ]:
       for message,command in data:

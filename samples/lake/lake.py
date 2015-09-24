@@ -4,7 +4,8 @@ import numpy
 from math import floor, ceil
 import sys
 sys.path.append('../../vino-py')
-import RegularGridKernel
+from RegularGridKernel import RegularGridKernel
+from hdf5common import HDF5Manager
 
 def pnext(p, l, dt, b, r, q, m):
 	return p+dt*(b*p-l-r*pow(p,q)/(pow(m,q)+pow(p,q)))
@@ -67,28 +68,39 @@ def computeTrajectoryP(dt, p0, l0, dp, dl, np, nl, umax, nmax, pmax, lmax, b, r,
           i+=1
 	tabP.resize(i,refcheck=False)
 	return firstCol,tabP
+ 
+def writeHDF5_coords(rgk, filename, **datasets_options):
+  from hdf5common import HDF5Writer
+  with HDF5Writer(filename) as w:
+    w.writeMetadata({'problem':[["name","foo"]], 'algorithm':[["name","greatAlgo"]]})
+    coords_list = [[i,j] for i,row in enumerate(rgk.grid) for j,e in enumerate(row) if e]
+    w.writeData(coords_list, {
+      'origin' : rgk.originCoords,
+      'steps' : rgk.dimensionsSteps,
+      'format' : rgk.getFormatCode()
+        }, **datasets_options)
+          
 
 def writeViablesPointsHDF5(filename, dt, p0, l0, dp, dl, np, nl):
-	f = open(filename+".txt", 'w')
-	f.write("Pas de temps : {:f}\n".format(dt))
-        firstCol,tabp = computeTrajectoryP(dt, p0, l0, dp, dl, np, nl, umax, nmax, pmax, lmax, b, r, q, m)
-        iLmin=ceil((lmin-l0)/dl)
-        iLmax=floor((lmax-l0)/dl)
-        iPmax=floor(pmax/dp)
-        grid=numpy.array([
-          i>=iLmin and i<=iLmax and j<=iPmax and
-            (i<firstCol or (i<firstCol+len(tabp) and p0+j*dp<=tabp[i-firstCol]))
-          for i in numpy.arange(nl) for j in numpy.arange(np)
-          ]).reshape(np,nl)
-        rgk = RegularGridKernel.RegularGridKernel([p0,l0],[dp,dl])
-        rgk.setGrid(grid)
-        for i in range(nl):
-          for j in range(np):
-            if grid[i,j]:
-              f.write("{:f} {:f}\n".format(l0+i*dl,p0+j*dp))
-        f.close()
-	rgk.writeHDF5(filename+".h5", compression="gzip", compression_opts=9)
-	rgk.writeHDF5_coords(filename+"_coords.h5", compression="gzip", compression_opts=9)
+  with open(filename+".txt", 'w') as f:
+    f.write("Pas de temps : {:f}\n".format(dt))
+    firstCol,tabp = computeTrajectoryP(dt, p0, l0, dp, dl, np, nl, umax, nmax, pmax, lmax, b, r, q, m)
+    iLmin=ceil((lmin-l0)/dl)
+    iLmax=floor((lmax-l0)/dl)
+    iPmax=floor(pmax/dp)
+    grid=numpy.array([
+      i>=iLmin and i<=iLmax and j<=iPmax and
+        (i<firstCol or (i<firstCol+len(tabp) and p0+j*dp<=tabp[i-firstCol]))
+      for i in numpy.arange(nl) for j in numpy.arange(np)
+      ]).reshape(np,nl)
+    rgk = RegularGridKernel([p0,l0],[dp,dl])
+    rgk.setGrid(grid)
+    for i in range(nl):
+      for j in range(np):
+        if grid[i,j]:
+          f.write("{:f} {:f}\n".format(l0+i*dl,p0+j*dp))
+  HDF5Manager.writeKernel(rgk, filename+".h5", compression="gzip", compression_opts=9)
+  writeHDF5_coords(rgk, filename+"_coords.h5", compression="gzip", compression_opts=9)
 
 if __name__ == "__main__":
 	b, m, q, r, umax = [0.8, 1, 8, 1, 0.1]
