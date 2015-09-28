@@ -18,13 +18,15 @@
 			The aim is to stimulate trade and allow better selection of methods according to the characteristics of the viability problems under consideration,
  			which will facilitate the application to concrete problems. <br><br>
 
-			<div id="column_left">  <a href="/sharekernel/kernelupload/">Upload your kernel</a> and benefit from the platform services : 
+			<div id="column_left">  <a href="{% url 'sharekernel:kernelupload' %}">Upload your kernel</a> and benefit from the platform services : 
 				<ul><li>	comparison with kernels obtain by other algorithms </li>
 				<li>	visualisation</li>
 				<li>	doi?? </li>
 				<li>	Automated test of your results </li> 
  				</div>
-			<div id="column_right">  <a href="/sharekernel/visitcategorylist/">Visit the database</a> gathering viability kernels from many fields ...<br>
+			<div id="column_right">
+			<a href="{% url 'sharekernel:visitcategorylist' %}">
+			Visit the database</a> gathering viability kernels from many fields ...<br>
 			 </div>
 			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
 			<div class="spacer"></div>

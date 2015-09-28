@@ -4,51 +4,51 @@ Please answer the following questions and we will provide detailed instructions.
 <h3>Does the viability problem you deal with belong to an existing category of the database?</h3> 
 
 {% if category %}Category : {{category.category_text}}<br>
-                 <a href="/sharekernel/categorylist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the category database.</a>
+                 <a href="{% url 'sharekernel:categorylist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the category database.</a>
 
 			<h3>Do you deal with a viability problem existing in the database? </h3>
 
 			{% if viabilityproblem %}Viability Problem : {{viabilityproblem.title}}<br>
-                 <a href="/sharekernel/viabilityproblemlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the viability problem database.</a>
+                 <a href="{% url 'sharekernel:viabilityproblemlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the viability problem database.</a>
 
                  <h3>Do the parameter values belong to the database?</h3>
 
 			{% if parameters %}Parameters : {{parameters.dynamicsparametervalues}}<br>
-                 <a href="/sharekernel/parameterslist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the parameter database.</a>
+                 <a href="{% url 'sharekernel:parameterslist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the parameter database.</a>
 
 	 {% else %} 
 
-                 <a href="/sharekernel/parameterslist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the parameter database.</a>
+                 <a href="{% url 'sharekernel:parameterslist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the parameter database.</a>
                 {% endif %}
 
 
 
  {% else %} 
 
-                 <a href="/sharekernel/viabilityproblemlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the viability problem database.</a>
+                 <a href="{% url 'sharekernel:viabilityproblemlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the viability problem database.</a>
 
                 {% endif %}
 
 
  {% else %} 
-<a href="/sharekernel/categorylist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the category database.</a> {% endif %}<br>
+<a href="{% url 'sharekernel:categorylist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the category database.</a> {% endif %}<br>
 
 
 
 
 <h3>Does the software you have used belong to the database?</h3>
 {% if algorithm %}Algorithm : {{algorithm.name}}<br>
-                 <a href="/sharekernel/algorithmlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the algorithm database.</a>
+                 <a href="{% url 'sharekernel:algorithmlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the algorithm database.</a>
 {%else%}
-                 <a href="/sharekernel/algorithmlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the algorithm database.</a>
+                 <a href="{% url 'sharekernel:algorithmlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the algorithm database.</a>
 
 {% endif %}
 <h3>What result format do you use? </h3>
 
 {% if resultformat %}Result Format : {{resultformat.name}}<br>
-                 <a href="/sharekernel/resultformatlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the result format database.</a>
+                 <a href="{% url 'sharekernel:resultformatlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the result format database.</a>
 {%else%}
-                 <a href="/sharekernel/resultformatlist/{{category_id}}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Browse the result format database.</a>
+                 <a href="{% url 'sharekernel:resultformatlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the result format database.</a>
 
 {% endif %}
 

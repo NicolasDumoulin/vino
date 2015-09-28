@@ -7,7 +7,7 @@
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="/sharekernel/">HOME</a></div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
 <h4>{{viabilityproblem.category.category_text}}</h4>

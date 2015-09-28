@@ -1,10 +1,10 @@
 {% if viabilityproblem_list %}
     <ul>
     {% for viabilityproblem in viabilityproblem_list %}
-        <li><a href="/sharekernel/metadatafilespecification/{{ category_id }}/{{viabilityproblem.id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">{{ viabilityproblem.title }}</a></li>
+        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id viabilityproblem.id parameters_id algorithm_id resultformat_id %}">{{ viabilityproblem.title }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No viability problems are available.</p>
 {% endif %}
-<a href="/sharekernel/metadatafilespecification/{{ category_id }}/{{viabilityproblem_id}}/{{parameters_id}}/{{algorithm_id}}/{{resultformat_id}}/">Annuler</a>
+<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>

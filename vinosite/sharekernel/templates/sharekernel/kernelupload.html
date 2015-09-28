@@ -4,7 +4,7 @@
         <meta charset="utf-8">
     </head>
     <body>
-To get help to write the metadata and the data in your file, please go to the <a href="/sharekernel/metadatafilespecification/N/N/N/N/N/">specification page.</a>
+To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
 
         <!-- Upload form. Note enctype attribute! -->
         <form action="{% url 'sharekernel:verify' %}" method="post" enctype="multipart/form-data">

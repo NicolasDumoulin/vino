@@ -7,7 +7,7 @@
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="/sharekernel/">HOME</a></div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
 			<h3>{{viabilityproblem.category.category_text}}</h3>
@@ -91,7 +91,7 @@ Parameters :  {{viabilityproblem.targetparameters}} <br>
 	{% if forloop.counter == 1%}
 		<td>   {% for ppp in pp %}{{ ppp}}<br>{% endfor %}</td>
 	{% else %}
-		<td>   {% for ppp in pp %}<a href="/sharekernel/visitresult/{{ ppp.id }}/">{{ ppp.author}}</a><br><br>{% endfor %}</td>
+		<td>   {% for ppp in pp %}{% if ppp.id  %}<a href="{% url 'sharekernel:visitresult' ppp.id %}">{{ ppp.author}}</a><br><br>{% endif %}{% endfor %}</td>
 	{% endif%}
 	{% endfor %}   
 {% endif%}
