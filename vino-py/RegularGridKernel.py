@@ -1,7 +1,6 @@
 # -*- coding: utf8 -*-
 
 import numpy as np
-from hdf5common import HDF5Writer
 from Kernel import Kernel
 from overrides import overrides
 
@@ -11,10 +10,10 @@ class RegularGridKernel(Kernel):
     self.originCoords = originCoords
     self.dimensionsSteps = dimensionsSteps
     self.dimensionsExtents = dimensionsExtents
-    if data:
+    if data != None:
       self.setGrid(data)
-    elif (dimensionsExtents):
-      self.grid = np.full(dimensionsExtents, False, dtype='bool')
+    elif (dimensionsExtents != None):
+      self.grid = np.zeros(dimensionsExtents, dtype='bool')
     
   @staticmethod   
   @overrides
@@ -38,7 +37,7 @@ class RegularGridKernel(Kernel):
     self.grid = grid
     
   def set(self, coords, value):
-    self.grid[coords] = value
+    self.grid.put([coords], value)
       
   def get(self, coords):
     return self.grid[coords]
@@ -47,13 +46,6 @@ class RegularGridKernel(Kernel):
   def isInside(self, point):
     # TODO
     raise NotImplementedError
-         
-  @overrides
-  def isInside(self, point):
-    # TODO
-    raise NotImplementedError
-
-
 
 if __name__ == "__main__":
   from hdf5common import HDF5Manager

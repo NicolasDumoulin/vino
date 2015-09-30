@@ -4,6 +4,7 @@ import numpy as np
 import re
 from overrides import overrides
 from Kernel import Kernel
+from RegularGridKernel import RegularGridKernel
 
 class BarGridKernel(Kernel):
   def __init__(self, originCoords, dimensionsSteps, data = [], metadata = {}):
@@ -28,6 +29,27 @@ class BarGridKernel(Kernel):
   @overrides
   def getData(self):
     return np.array(self.bars,dtype='int64')
+    
+  def toRegularGridKernel(self):
+    '''
+    Convert the kernel to the regular grid representation.
+    Returns an instance of RegularGridKernel.
+    The returned grid is trimed to not include empty portion of grid.
+    '''
+    minPoint = np.amin(self.bars,axis=0)[:-1]
+    maxPoint = np.amax(self.bars,axis=0)
+    # we remove the element at position -2 with a mask
+    mask = np.ones(len(maxPoint), dtype=bool)
+    mask[[-2]]=False
+    maxPoint = maxPoint[mask]
+    dimensionsExtents = maxPoint - minPoint + 1
+    grid = RegularGridKernel(self.originCoords, self.dimensionsSteps,
+                             dimensionsExtents, metadata=self.metadata)
+    for bar in self.bars:
+      barPosition = (bar[:-2]-minPoint[:-1]).tolist()
+      for z in range(bar[-2],bar[-1]+1):
+        grid.set(barPosition+[z],True)
+    return grid                             
     
   def addBar(self, coords, inf, sup):
     self.bars.append(coords[:] + [inf,sup])
@@ -94,8 +116,10 @@ if __name__ == "__main__":
   print('reading raw txt in {:.2f}s'.format(readTime))
   from hdf5common import HDF5Manager
   hm = HDF5Manager([BarGridKernel])
-
   for setup,data in [
+    ['from __main__ import grid, hm',[
+      ['converting to a regular grid', 'grid.toRegularGridKernel()']
+      ]],
     ['from __main__ import grid, hm',[
       ['writing hdf5', "hm.writeKernel(grid, 'test.h5')"],
       ['writing hdf5/gzip',"hm.writeKernel(grid, 'test_gzip9.h5', compression='gzip', compression_opts=9)"],
