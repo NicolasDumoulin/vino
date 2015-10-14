@@ -3,6 +3,7 @@
 import numpy as np
 import re
 from overrides import overrides
+from sortedcontainers import SortedList
 from Kernel import Kernel
 from RegularGridKernel import RegularGridKernel
 
@@ -11,7 +12,7 @@ class BarGridKernel(Kernel):
     super(BarGridKernel, self).__init__(metadata)
     self.originCoords = originCoords
     self.dimensionsSteps = dimensionsSteps
-    self.bars = data
+    self.bars = SortedList(data)
     
   @staticmethod   
   @overrides
@@ -24,11 +25,11 @@ class BarGridKernel(Kernel):
     '''
     Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
     '''
-    return cls(dataAttributes['origin'], dataAttributes['steps'], data, metadata)
+    return cls(dataAttributes['origin'], dataAttributes['steps'], data.tolist(), metadata)
     
   @overrides
   def getData(self):
-    return np.array(self.bars,dtype='int64')
+    return np.array(self.bars.as_list(),dtype='int64')
     
   def toRegularGridKernel(self):
     '''
@@ -46,8 +47,15 @@ class BarGridKernel(Kernel):
       grid.grid[tuple(barPosition)].put(range(bar[-2],bar[-1]+1),True)
     return grid                             
     
+  def resample(self, newOrigin, newDimensionsSteps):
+    '''
+    Resample the discrete grid on a new one, supposed to be more coarse.
+    '''
+    # TODO
+    raise NotImplementedError
+    
   def addBar(self, coords, inf, sup):
-    self.bars.append(coords[:] + [inf,sup])
+    self.bars.add(coords[:] + [inf,sup])
     self.kernelMinPoint[:-1] = [min(x) for x in zip(self.kernelMinPoint[:-1],coords)]
     self.kernelMinPoint[-1] = min(self.kernelMinPoint[-1], inf)
     self.kernelMaxPoint[:-1] = [max(x) for x in zip(self.kernelMaxPoint[:-1],coords)]
@@ -100,7 +108,6 @@ class BarGridKernel(Kernel):
   
   @overrides
   def isInside(self, point):
-    # TODO
     raise NotImplementedError
 
 if __name__ == "__main__":
@@ -120,8 +127,7 @@ if __name__ == "__main__":
   hm = HDF5Manager([BarGridKernel])
   startTime = time.time()
   regularGrid = grid.toRegularGridKernel()
-  readTime = time.time() - startTime
-  print('converting to grid in {:.2f}s'.format(readTime))
+  print('conversion in {:.2f}s'.format(time.time() - startTime))
   for setup,data in [
 #    ['from __main__ import grid, hm',[
 #      ['converting to a regular grid', 'print(grid.toRegularGridKernel().grid.shape)']
