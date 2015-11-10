@@ -15,6 +15,9 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+import sys
+sys.path.insert(0, os.path.join(BASE_DIR, "../vino-py/"))
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production

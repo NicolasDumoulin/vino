@@ -1,22 +1,71 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body>
-To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
+{% load staticfiles %}
 
-        <!-- Upload form. Note enctype attribute! -->
-        <form action="{% url 'sharekernel:verify' %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+<script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
+<script src="{% static 'sharekernel/vis.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
 
-            <p>{{ form.non_field_errors }}</p>
-           <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
-           <p>
-                {{ form.docfile.errors }}
-                {{ form.docfile }}
-            </p>
-            <p><input type="submit" value="Upload" /></p>
-        </form>
-    </body>
-</html> 
+<body>
+    To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
+
+    <!-- Upload form. Note enctype attribute! -->
+    <form action="{% url 'sharekernel:verify' %}" id="uploadForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <p>{{ form.non_field_errors }}</p>
+        <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+        <p>
+            {{ form.docfile.errors }}
+            {{ form.docfile }}
+        </p>
+        <p><input type="submit" value="Upload" /></p>
+    </form>
+    <p><input type="submit" id="viewButton" value="View" /></p>
+    <div id="viewPanel"></div>
+    <script type="text/javascript">
+            $("#viewButton").click(function(){
+                // adding crsf token inside the ajax query, needed by Django
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        function getCookie(name) {
+                            var cookieValue = null;
+                            if (document.cookie && document.cookie != '') {
+                                var cookies = document.cookie.split(';');
+                                for (var i = 0; i < cookies.length; i++) {
+                                    var cookie = jQuery.trim(cookies[i]);
+                                        // Does this cookie string begin with the name we want?
+                                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                            break;
+                                        }
+                                }
+                            }
+                            return cookieValue;
+                        }
+                        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                            // Only send the token to relative URLs i.e. locally.
+                            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                        }
+                    }
+                });
+            $.ajax({
+            url: "{% url 'sharekernel:bargrid2json' %}",
+                    type: "POST",
+                    data: new FormData($('#uploadForm')[0]),
+                    processData: false,
+                    contentType: false,
+                    dataType:"json",
+                    success: function (data) {
+                    var container = document.getElementById('viewPanel');
+                            var items = [];
+                            $.each(data, function(index, bar) {
+                            items.push({x: bar[0], y: bar[1]});
+                                    items.push({x: bar[0], y: bar[2]});
+                            });
+                            var dataset = new vis.DataSet(items);
+                            var graph2d = new vis.Graph2d(container, dataset, {style:'points'});
+                    }
+            })
+            return false;
+    });
+    </script>
+</body>
