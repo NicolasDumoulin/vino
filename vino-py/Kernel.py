@@ -17,8 +17,6 @@ class Kernel(object):
     
   def getDataAttributes(self):
     return {
-        'origin' : self.originCoords,
-        'steps' : self.dimensionsSteps,
         'format' : self.getFormatCode()
           }
   

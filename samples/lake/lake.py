@@ -5,6 +5,7 @@ from math import floor, ceil
 import sys
 sys.path.append('../../vino-py')
 from RegularGridKernel import RegularGridKernel
+from BarGridKernel import BarGridKernel
 from hdf5common import HDF5Manager
 
 def pnext(p, l, dt, b, r, q, m):
@@ -88,6 +89,7 @@ def writeViablesPointsHDF5(filename, dt, p0, l0, dp, dl, np, nl):
     iLmin=ceil((lmin-l0)/dl)
     iLmax=floor((lmax-l0)/dl)
     iPmax=floor(pmax/dp)
+    # preparing regulargridkernel
     grid=numpy.array([
       i>=iLmin and i<=iLmax and j<=iPmax and
         (i<firstCol or (i<firstCol+len(tabp) and p0+j*dp<=tabp[i-firstCol]))
@@ -95,6 +97,14 @@ def writeViablesPointsHDF5(filename, dt, p0, l0, dp, dl, np, nl):
       ]).reshape(np,nl)
     rgk = RegularGridKernel([p0,l0],[dp,dl])
     rgk.setGrid(grid)
+    # preparing gridbarkernel
+    bars = []
+    for i in range(int(iLmin),int(iLmax+1)):
+      viablesPoints=numpy.argwhere(grid[i])
+      if len(viablesPoints)>0:
+        bars.append([i,viablesPoints[0][0],viablesPoints[-1][0]])
+    bgk = BarGridKernel([p0,l0],None, None, data=bars)
+    # writing raw points
     for i in range(nl):
       for j in range(np):
         if grid[i,j]:

@@ -38,7 +38,7 @@ class BarGridKernel(Kernel):
     
   @overrides
   def getData(self):
-    return np.array(self.bars.as_list(),dtype='int64')
+    return np.array(list(self.bars),dtype='int64')
     
   def getTotalPointNumber(self):
       return sum(map(lambda elt: elt[-1] - elt[-2], self.bars))
