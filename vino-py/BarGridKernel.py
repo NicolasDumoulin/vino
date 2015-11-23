@@ -8,14 +8,14 @@ from Kernel import Kernel
 from RegularGridKernel import RegularGridKernel
 
 class BarGridKernel(Kernel):
-  def __init__(self, originCoords, oppositeCoords,intervalNumberperaxis,permutation = None, data = [], metadata = {}):
+  def __init__(self, originCoords, oppositeCoords, intervalNumberperaxis, permutation = None, data = [], metadata = {}):
     super(BarGridKernel, self).__init__(metadata)
     self.originCoords = np.array(originCoords,float)
     self.oppositeCoords = np.array(oppositeCoords,float)
     self.intervalNumberperaxis = np.array(intervalNumberperaxis,float)
     self.bars = SortedList(data)
     if permutation is None :
-        self.permutation = np.eye(len(originCoords)).tolist()
+        self.permutation = np.eye(len(originCoords))
     else :
         self.permutation = permutation
     self.kernelMaxPoint  = [-1]*len(originCoords)
@@ -144,27 +144,29 @@ class BarGridKernel(Kernel):
     return grid                             
 
     
-  def toBarGridKernel(self,newOriginCoords,newOppositeCoords,newIntervalNumberperaxis):
+  def toBarGridKernel(self, newOriginCoords, newOppositeCoords, newIntervalNumberperaxis):
     '''
-    Convert a BarGridKernel toanother BarGridKernel with another underlying grid.
+    Convert a BarGridKernel to another BarGridKernel with another underlying grid.
     Returns an instance of BarGridKernel.
     '''
     dimension = len(self.originCoords)
     actualbarposition = np.zeros(dimension-1,int)
     barsindex = 0
-
-    permutnewOriginCoords = np.dot(np.array(self.permutation,float),np.array(newOriginCoords,float))
-    permutnewIntervalNumberperaxis = np.dot(np.array(self.permutation,float),np.array(newIntervalNumberperaxis,float))
-    permutnewpas = np.dot(np.array(self.permutation,float),(np.array(newOppositeCoords,float) - np.array(newOriginCoords,float))/ np.array(newIntervalNumberperaxis,float))
-    permutOriginCoords = np.dot(np.array(self.permutation,float),np.array(self.originCoords,float))
-    permutinversepas = np.dot(np.array(self.permutation,float),(np.array(newIntervalNumberperaxis,float) /(np.array(self.oppositeCoords,float) - np.array(self.originCoords,float))))
+    # converting to numpy arrays
+    newOriginCoords = np.array(newOriginCoords,float)
+    newIntervalNumberperaxis = np.array(newIntervalNumberperaxis,float)
+    permutnewOriginCoords = np.dot(self.permutation, newOriginCoords)
+    # permuting coordinates
+    permutnewIntervalNumberperaxis = np.dot(self.permutation, newIntervalNumberperaxis)
+    permutnewpas = np.dot(self.permutation,(np.array(newOppositeCoords,float) - newOriginCoords) / newIntervalNumberperaxis)
+    permutOriginCoords = np.dot(self.permutation, self.originCoords)
+    permutinversepas = np.dot(self.permutation, (newIntervalNumberperaxis / self.oppositeCoords - self.originCoords))
     data = []
     grid = BarGridKernel(newOriginCoords,newOppositeCoords,newIntervalNumberperaxis,self.permutation,data,self.metadata)
 
     while(actualbarposition[0]<permutnewIntervalNumberperaxis[0]+1):
-#        print "actualbarposition[0] ::%d " %actualbarposition[0]
         realpoint = permutnewOriginCoords[:-1] + actualbarposition * permutnewpas[:-1]
-        intpoint = (realpoint-permutOriginCoords[:-1])*permutinversepas[:-1]
+        intpoint = (realpoint-permutOriginCoords[:-1]) * permutinversepas[:-1]
         intpoint = map(lambda e: int(e+0.5), intpoint)    
         while (barsindex < len(self.bars)) and (self.bars[barsindex][:2] < intpoint):
             barsindex = barsindex+1
@@ -249,11 +251,11 @@ class BarGridKernel(Kernel):
         bgk.addBar(coords[2:-2], coords[-2], coords[-1])
       # TODO what is done with modelMetadata and nbDim
     return bgk
-    
+  
   @classmethod  
   def readPatrickSaintPierreFile(cls, f):
     '''
-    Returns an object of class BarGridKernel loaded from an output file from the software of Patric Saint-Pierre.
+    Returns an object of class BarGridKernel loaded from an output file from the software of Patrick Saint-Pierre.
     '''
     bgk = None
     origin = map(int, re.findall('[0-9]+', f.readline()))
@@ -263,32 +265,33 @@ class BarGridKernel(Kernel):
 
     pointSize = map(int, re.findall('[0-9]+', f.readline()))
     intervalNumber = map(lambda e: e//pointSize[0], intervalNumber)
-    permutVector = map(int, re.findall('[0-9]+', f.readline()))
+    # reading columns headers and deducing permutation of variables
+    line = f.readline()
+    columnNumbertoIgnore = len(re.findall('empty', line))
+    permutVector = map(int, re.findall('[0-9]+', line))
     permutation = np.zeros(dimension * dimension,int).reshape(dimension,dimension)
     for i in range(dimension):
         permutation[i][permutVector[i]-1]=1
-    permutation = permutation.tolist()
-#      columnNumbertoIgnore = len(re.findall('empty', f.readline()))
-    columnNumbertoIgnore = 2     
+    # Ok, creating the container object
     bgk = cls(origin, opposite, intervalNumber,permutation)
-#      bgk.kernelMinPoint = intervalNumber
-#      bgk.kernelMaxPoint = np.zeros(dimension)
-    # reading until some lines with 'Initxx'
+    # ignoring lines until 'Initxx'
     stop=False
     while not stop:
       line = f.readline()
       if 'Initxx' in line:
         stop=True
     # reading bars
-    while 1:
+    stop = False
+    while not stop:
       # using a while loop, because the for loop seems buggy with django InMemoryUploadedFile reading
       line = f.readline()
       if not line:
-        break
-      coords = map(int, re.findall('[0-9]+', line))
-      coords = map(lambda e: e//pointSize[0], coords)
-      bgk.addBar(coords[columnNumbertoIgnore:-2], coords[-2], coords[-1])
-      # TODO what is done with modelMetadata and nbDim
+        stop=True
+      else:
+        coords = map(int, re.findall('[0-9]+', line))
+        coords = map(lambda e: e//pointSize[0], coords)
+        bgk.addBar(coords[columnNumbertoIgnore:-2], coords[-2], coords[-1])
+        # TODO what is done with modelMetadata and nbDim
     return bgk
 
   @classmethod  
