@@ -322,21 +322,20 @@ class BarGridKernel(Kernel):
     
     point = np.dot(self.permutation, np.transpose(point_int))
     l = len(point)      
-
+    # we will look at each bar if they are positioned in the coordinates
+    # in (n-1) dimensions space than our point
+    candidateBar = False
     for bar in self.bars:
-        i = 0        
-        bb = True
-        while i < (l-1):
-            if point[i]!=bar[i]:
-                bb = False                
-                i = l-1
-            else :
-                i = i+1
-
-        if bb :
-            if (point[l-1]>=bar[l-1]) and (point[l-1]<=bar[l]):
-                    result = True
-                    break
+      if point[:-1]==bar[:-2]:
+        # we have reached the interesting zone
+        candidateBar = True
+        # is our point in the bar?
+        if (point[l-1]>=bar[l-1]) and (point[l-1]<=bar[l]):
+          result = True
+          break
+      elif not candidateBar:
+        # we have passed the position in (n-1) dimensions space, so we can't find candidates anymore
+        break
     return result
 
 if __name__ == "__main__":
