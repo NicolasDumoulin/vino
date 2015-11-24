@@ -2,6 +2,7 @@
 
 <script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
 <script src="{% static 'sharekernel/vis.js' %}"></script>
+<script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
 
 <body>
@@ -19,54 +20,70 @@
         </p>
         <p><input type="submit" value="Upload" /></p>
     </form>
-    <p><input type="submit" id="viewButton" value="View" /></p>
+    <p><input type="submit" id="viewVis" value="View with vis.js" /></p>
+    <p><input type="submit" id="viewPlotly" value="View with plotly.js" /></p>
     <div id="viewPanel"></div>
     <script type="text/javascript">
-        $("#viewButton").click(function(){
-            $('#viewPanel').empty();
-            // adding crsf token inside the ajax query, needed by Django
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    function getCookie(name) {
-                        var cookieValue = null;
-                        if (document.cookie && document.cookie != '') {
-                            var cookies = document.cookie.split(';');
-                            for (var i = 0; i < cookies.length; i++) {
-                                var cookie = jQuery.trim(cookies[i]);
-                                    // Does this cookie string begin with the name we want?
-                                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                        break;
-                                    }
-                            }
+        // adding crsf token inside the ajax query, needed by Django
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie != '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
                         }
-                        return cookieValue;
                     }
-                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-                        // Only send the token to relative URLs i.e. locally.
-                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-                    }
+                    return cookieValue;
                 }
-            });
-            $.ajax({
-            url: "{% url 'sharekernel:bargrid2json' %}",
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    // Only send the token to relative URLs i.e. locally.
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                }
+            }
+        });
+        function loadAndPlot(callback) {
+            $('#viewPanel').empty();
+            $.ajax({ url: "{% url 'sharekernel:bargrid2json' %}",
                     type: "POST",
                     data: new FormData($('#uploadForm')[0]),
                     processData: false,
                     contentType: false,
                     dataType:"json",
-                    success: function (data) {
-                    var container = document.getElementById('viewPanel');
-                            var items = [];
-                            $.each(data, function(index, bar) {
-                            items.push({x: bar[0], y: bar[1]});
-                                    items.push({x: bar[0], y: bar[2]});
-                            });
-                            var dataset = new vis.DataSet(items);
-                            var graph2d = new vis.Graph2d(container, dataset, {style:'points'});
-                    }
+                    success: callback
             })
             return false;
+        }
+        $("#viewVis").click(function(){
+            loadAndPlot(function (data) {
+                var container = document.getElementById('viewPanel');
+                var items = [];
+                $.each(data, function(index, bar) {
+                items.push({x: bar[0], y: bar[1]});
+                        items.push({x: bar[0], y: bar[2]});
+                });
+                var dataset = new vis.DataSet(items);
+                var graph2d = new vis.Graph2d(container, dataset, {style:'points'});
+            })
+        });
+        $("#viewPlotly").click(function(){
+            loadAndPlot(function (data) {
+                var container = document.getElementById('viewPanel');
+                var items = {x:[],y:[], mode:'markers', type: 'scatter', hoverinfo:'none' };
+                $.each(data, function(index,bar) {
+                    items.x.push(bar[0]);
+                    items.x.push(bar[0]);
+                    items.y.push(bar[1]);
+                    items.y.push(bar[2]);
+                });
+                Plotly.newPlot(container,[items],{margin:{t:0}});
+            })
         });
     </script>
 </body>
