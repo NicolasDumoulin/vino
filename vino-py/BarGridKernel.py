@@ -8,6 +8,15 @@ from Kernel import Kernel
 from RegularGridKernel import RegularGridKernel
 
 class BarGridKernel(Kernel):
+  '''
+  Store a kernel of n dimensions as a list of bars in the space of dimension (n-1).
+  A bar is given by its start and its end coordinates, and corresponds to the
+  hull of the viable points in the last dimension for each coordinates in the space
+  of dimension (n-1).
+  The order of the dimensions may have been changed, and the last dimension of these data
+  may not correspond to the last dimension of the viability problem.
+  Therefore the attribute ``permutation`` give a matrix describing the permutation of the dimension.
+  '''
   def __init__(self, originCoords, oppositeCoords, intervalNumberperaxis, permutation = None, data = [], metadata = {}):
     super(BarGridKernel, self).__init__(metadata)
     self.originCoords = np.array(originCoords,float)
@@ -303,19 +312,15 @@ class BarGridKernel(Kernel):
       return cls.readPatrickSaintPierreFile(f)      
   
   @overrides
-  def isInside(self, point_initial):
+  def isInside(self, point):
     '''
-    Returns if point_initial belongs to the BarGridKernel
+    Returns if point belongs to the BarGridKernel.
     '''
-    b = False
-    origin = self.originCoords
-    point_init = np.array(point_initial,float)
-    opposite = self.oppositeCoords
-    intervalnumber = self.intervalNumberperaxis
-    point_int = intervalnumber * (point_init - origin)/(opposite - origin)
-    point_int = map(lambda e: int(e+0.5), point_int)    
-
-    point = np.dot(np.array(self.permutation),np.transpose(np.array(point_int))).tolist()
+    result = False
+    point = np.array(point,float)
+    point_int = 0.5 + self.intervalNumberperaxis * (point - self.originCoords)/(self.oppositeCoords - self.originCoords)
+    
+    point = np.dot(self.permutation, np.transpose(point_int))
     l = len(point)      
 
     for bar in self.bars:
@@ -330,9 +335,9 @@ class BarGridKernel(Kernel):
 
         if bb :
             if (point[l-1]>=bar[l-1]) and (point[l-1]<=bar[l]):
-                    b = True
+                    result = True
                     break
-    return b
+    return result
 
 if __name__ == "__main__":
   #grid = BarGridKernel([0,0,0], [1,1,1])
