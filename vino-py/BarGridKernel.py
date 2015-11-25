@@ -333,7 +333,7 @@ class BarGridKernel(Kernel):
         if (point[l-1]>=bar[l-1]) and (point[l-1]<=bar[l]):
           result = True
           break
-      elif not candidateBar:
+      elif candidateBar:
         # we have passed the position in (n-1) dimensions space, so we can't find candidates anymore
         break
     return result
