@@ -37,7 +37,7 @@ class Kernel(object):
     '''
   
   @abc.abstractmethod
-  def isInside(self, point):
+  def isInSet(self, point):
     '''
     Return a boolean to indicate if a point is inside or outside from this kernel.
     '''

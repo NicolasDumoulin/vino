@@ -43,7 +43,7 @@ class RegularGridKernel(Kernel):
     return self.grid[coords]
   
   @overrides
-  def isInside(self, point):
+  def isInSet(self, point):
     # TODO
     raise NotImplementedError
 
