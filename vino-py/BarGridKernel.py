@@ -50,7 +50,7 @@ class BarGridKernel(Kernel):
     return np.array(list(self.bars),dtype='int64')
     
   def getTotalPointNumber(self):
-      return sum(map(lambda elt: elt[-1] - elt[-2], self.bars))
+      return sum(map(lambda elt: elt[-1] - elt[-2] + 1, self.bars))
     
   def toRegularGridKernel(self):
     '''
