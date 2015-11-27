@@ -312,7 +312,7 @@ class BarGridKernel(Kernel):
       return cls.readPatrickSaintPierreFile(f)      
   
   @overrides
-  def isInside(self, point):
+  def isInSet(self, point):
     '''
     Returns if point belongs to the BarGridKernel.
     '''
