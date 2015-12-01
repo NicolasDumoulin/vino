@@ -182,6 +182,143 @@ class BarGridKernel(Kernel):
         barsindex = barsindex + 1          
     return insidegrid
 
+
+  def getBorder(self):
+    '''
+    Returns an instance of BarGridKernel which is the points inside the original BarGridKernel 
+    Attention pas pris encore en compte permutation éventuelle
+    '''
+    data = []
+    tabaroundbarsindices = []
+    dimension = len(self.originCoords)-1
+    nbBars = len(self.bars)
+    bordergrid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,self.permutation,data,self.metadata)
+    barsindex = 0
+    for i in range(2*dimension):
+        tabaroundbarsindices.append(0)
+
+    while (barsindex < len(self.bars)):
+#    while (barsindex < 100):
+      alreadycut = False
+      if (self.bars[barsindex][-1] - self.bars[barsindex][-2])>2:
+        actualbarposition = self.bars[barsindex][:-2]
+        totalborder = False
+        tabaroundpositions = []
+
+        for i in range(dimension*2):
+            tabaroundpositions.append(self.bars[barsindex][:-2])
+            tabaroundpositions[-1][i/2] = tabaroundpositions[-1][i/2] + 2*(i%2)-1
+            if (tabaroundpositions[-1][i/2] <0) or (tabaroundpositions[-1][i/2] > self.intervalNumberperaxis[i/2]):
+                totalborder = True                
+                break
+            else:
+                while (tabaroundbarsindices[i] < nbBars) and (self.bars[tabaroundbarsindices[i]][:-2] < tabaroundpositions[-1]):
+                    tabaroundbarsindices[i] = tabaroundbarsindices[i] + 1
+                if (self.bars[tabaroundbarsindices[i]][:-2] > tabaroundpositions[-1]):
+                    totalborder = True                    
+                    break
+ 
+
+        if totalborder:
+            bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+            barsindex = barsindex + 1          
+        else :
+ #           print('barsindex : %d tabarounindices : %d - %d' %(barsindex,tabaroundbarsindices[0],tabaroundbarsindices[1]))
+ #           print self.bars[barsindex][-2]+1
+            mini = self.bars[barsindex][-2]+1
+            maxi = self.intervalNumberperaxis[-1]
+        while not totalborder:
+            partialborder = False
+            i = 0
+            while ((not partialborder) and (i < dimension +1)):
+  #              print "i = %d" %i
+  #              print tabaroundbarsindices[i]                
+                while ((tabaroundbarsindices[i] < nbBars) and (self.bars[tabaroundbarsindices[i]][:-2] == tabaroundpositions[i]) and (self.bars[tabaroundbarsindices[i]][-1] < mini)):
+                    tabaroundbarsindices[i] = tabaroundbarsindices[i] + 1
+                                        
+#                print tabaroundbarsindices[i]
+#                print self.bars[tabaroundbarsindices[i]]
+#                print "mini"
+#                print mini
+#                print "maxi"
+#                print maxi
+#                  b= a.read()
+                if ((tabaroundbarsindices[i] == nbBars) or (self.bars[tabaroundbarsindices[i]][:-2] > tabaroundpositions[i])):
+                    totalborder = True
+                    partialborder = True
+                    if alreadycut :
+                        bordergrid.addBar(self.bars[barsindex][:-2], remember, self.bars[barsindex][-1])
+                        alreadycut = False
+                    else : 
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+                    barsindex = barsindex + 1          
+ #                   print "sortie 1"
+                elif (self.bars[tabaroundbarsindices[i]][-2] > self.bars[barsindex][-1]-1):
+                    if alreadycut :
+                        bordergrid.addBar(self.bars[barsindex][:-2], remember, self.bars[barsindex][-1])
+                        alreadycut = False
+                    else :
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+                    barsindex = barsindex + 1
+                    while (barsindex < len(self.bars)) and (self.bars[barsindex][:-2] == actualbarposition) and ((self.bars[barsindex][-1] - self.bars[barsindex][-2])<=2):
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+                        barsindex = barsindex + 1
+                    if ((barsindex == len(self.bars)) or (self.bars[barsindex][:-2] > actualbarposition)):
+                        totalborder = True
+                        partialborder = True
+                    else :
+                        partialborder = True                        
+                        mini = self.bars[barsindex][-2]+1
+                        maxi = self.intervalNumberperaxis[-1]
+#                    print "sortie 2"
+                elif (self.bars[tabaroundbarsindices[i]][-2] > maxi):
+                    mini = self.bars[tabaroundbarsindices[i]][-2]
+                    maxi = self.bars[tabaroundbarsindices[i]][-1]
+                    i =0
+#                    print "sortie 3"
+                else :
+                    mini = max(self.bars[tabaroundbarsindices[i]][-2],mini)
+                    maxi = min(self.bars[tabaroundbarsindices[i]][-1],maxi)
+                    i =i+1
+#                    print "sortie 4"
+            if not partialborder:
+                if (maxi < self.bars[barsindex][-1]-1) :
+                    if alreadycut :
+                        bordergrid.addBar(self.bars[barsindex][:-2], remember,mini-1)
+                    else :
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2],mini-1)
+                        alreadycut = True
+                    remember = maxi + 1
+                    mini = maxi + 2
+                    maxi = self.intervalNumberperaxis[-1]
+#                    print "sortie totale 1"
+                else :
+                    if alreadycut :
+                        bordergrid.addBar(self.bars[barsindex][:-2], remember, mini -1)
+                    else : 
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], mini -1)
+                    alreadycut = False
+                    bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-1], self.bars[barsindex][-1])
+                    barsindex = barsindex + 1
+                    while (barsindex < len(self.bars)) and (self.bars[barsindex][:-2] == actualbarposition) and ((self.bars[barsindex][-1] - self.bars[barsindex][-2])<=2):
+                        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+                        barsindex = barsindex + 1
+                    if ((barsindex == len(self.bars)) or (self.bars[barsindex][:-2] > actualbarposition)):
+                        totalborder = True
+#                        print "sortie totale 2"
+                    else :
+                        mini = self.bars[barsindex][-2]+1
+                        maxi = self.intervalNumberperaxis[-1]
+#                        print "sortie totale 3"
+
+        while (barsindex < len(self.bars)) and (self.bars[barsindex][:-2] == actualbarposition):
+                    bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])                    
+                    barsindex = barsindex + 1
+      else:
+        bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
+        barsindex = barsindex + 1          
+    return bordergrid
+
    
   def intersectionwithBarGridKernel(self,othergrid):
     '''
@@ -488,6 +625,16 @@ if __name__ == "__main__":
 #  readTime = time.time() - startTime
 #  print('converting to grid in {:.2f}s'.format(readTime))
 
+
+  startTime = time.time()
+  bordergrid = grid.getBorder()
+  readTime = time.time() - startTime
+  print('border in {:.2f}s'.format(readTime))
+  total = bordergrid.getTotalPointNumber()  
+  print "bordergrid totalpoint ::%d " %total
+ 
+ 
+  '''
   
   startTime = time.time()
   insidegrid = grid.getInside()
@@ -502,8 +649,9 @@ if __name__ == "__main__":
   print('minus in {:.2f}s'.format(readTime))
   total = minusgrid.getTotalPointNumber()  
   print "grid totalpoint ::%d " %total
+ 
+    
   
-  '''
   startTime = time.time()
   newgrid = grid.toBarGridKernel(grid.originCoords,grid.oppositeCoords,grid.intervalNumberperaxis)
   readTime = time.time() - startTime
