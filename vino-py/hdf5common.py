@@ -20,7 +20,9 @@ class HDF5Writer:
      - viability problem and its dynamics parameters
      - kernel approximation algorithm and its parameters
     '''
-    self.metadata = metadata
+    # TODO puts metadata in hierarchical form
+    for key,value in metadata.iteritems():
+      self.f['data'].attrs[key] = value
   
   def writeData(self, data, attrs, **datasets_options):
     '''
@@ -41,7 +43,8 @@ class HDF5Reader:
     self.f.close()
 
   def readMetadata(self):
-    return {key:value.value for key,value in self.f['metadata'].iteritems()}
+    # TODO puts metadata in hierarchical form
+    return {key:value for key,value in self.f['data'].attrs.items()}
 
   def readData(self):
     return self.f['data'].value
@@ -63,7 +66,7 @@ class HDF5Manager:
       metadata = f.readMetadata()
       # reading the data attributes for determining the format
       dataAttributes = f.readDataAttributes()
-      return self.formatsStrategies[dataAttributes['format']].initFromHDF5(metadata, dataAttributes, f.readData())
+      return self.formatsStrategies[dataAttributes['resultformat.name']].initFromHDF5(metadata, dataAttributes, f.readData())
 
   @staticmethod
   def writeKernel(kernel, filename, **datasets_options):
@@ -71,7 +74,7 @@ class HDF5Manager:
     Write a kernel to a Vino HDF5 file
     '''
     with HDF5Writer(filename) as w:
-      w.writeMetadata(kernel.getMetadata())
       w.writeData(kernel.getData(), kernel.getDataAttributes(), **datasets_options)   
+      w.writeMetadata(kernel.getMetadata())
   
     

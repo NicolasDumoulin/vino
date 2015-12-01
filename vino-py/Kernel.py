@@ -17,7 +17,7 @@ class Kernel(object):
     
   def getDataAttributes(self):
     return {
-        'format' : self.getFormatCode()
+        'resultformat.name' : self.getFormatCode()
           }
   
   @staticmethod   
