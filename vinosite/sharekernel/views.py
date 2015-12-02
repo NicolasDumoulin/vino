@@ -183,6 +183,11 @@ def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
         grid = BarGridKernel.readPatrickSaintPierreFile(source)
+        
+#        insidegrid = grid.getInside()
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
+        
+        
         out_json = json.dumps(list(grid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
