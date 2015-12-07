@@ -528,9 +528,12 @@ class BarGridKernel(Kernel):
     Returns an object of class BarGridKernel loaded from an output file from the software of Patrick Saint-Pierre.
     '''
     bgk = None
-    origin = map(int, re.findall('[0-9]+', f.readline()))
+    
+    #map(float, re.findall('-?\d+\.?\d*', 'rtyryry 0.3 ioyoyou 0.5555 lkjkjjml 6'))
+    #origin = map(int, re.findall('[0-9]+', f.readline()))
+    origin = map(float, re.findall('-?\d+\.?\d*', f.readline()))
     dimension = len(origin)
-    opposite = map(int, re.findall('[0-9]+', f.readline()))
+    opposite = map(float, re.findall('-?\d+\.?\d*', f.readline()))
     intervalNumber = map(int, re.findall('[0-9]+', f.readline()))
 
     pointSize = map(int, re.findall('[0-9]+', f.readline()))
@@ -610,7 +613,7 @@ if __name__ == "__main__":
   import timeit
   import sys
   startTime = time.time()
-  grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D.txt')
+  grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
 
   total = grid.getTotalPointNumber()  
   print "grid totalpoint ::%d " %total
@@ -619,6 +622,12 @@ if __name__ == "__main__":
   print('reading raw txt in {:.2f}s'.format(readTime))
   print "minPoint ::%d " %grid.kernelMinPoint[0]
   print "maxPoint ::%d " %grid.kernelMaxPoint[0]
+
+  print grid.originCoords
+  print grid.oppositeCoords
+  print grid.intervalNumberperaxis
+    
+
   from hdf5common import HDF5Manager
   hm = HDF5Manager([BarGridKernel])
 #  startTime = time.time()
@@ -626,7 +635,7 @@ if __name__ == "__main__":
 #  readTime = time.time() - startTime
 #  print('converting to grid in {:.2f}s'.format(readTime))
 
-
+'''
   startTime = time.time()
   bordergrid = grid.getBorder()
   readTime = time.time() - startTime
@@ -635,7 +644,7 @@ if __name__ == "__main__":
   print "bordergrid totalpoint ::%d " %total
  
  
-  '''
+  
   
   startTime = time.time()
   insidegrid = grid.getInside()
