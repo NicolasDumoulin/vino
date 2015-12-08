@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from BarGridKernel import *
 
 class Line(object):
     def __init__(self, data = []):
@@ -35,20 +36,20 @@ class Line(object):
             tabindices.append(0)
         
         for j in range(1,lentab):
-            print "new j %d" %j
-            print tabindices
+ #           print "new j %d" %j
+ #           print tabindices
             i = tabindices[-1]
             maxrange = lentab-1            
             while (i>=0):
-                print i
-                print j
-                print tab[i]
-                print tab[j]
+#                print i
+#                print j
+#                print tab[i]
+#                print tab[j]
                 intersect = norm.intersectindex(i,j,tab[i],tab[j])
-                print "intersect %d" %intersect
+#                print "intersect %d" %intersect
                 if (intersect > maxrange):
                     i = -1
-                    print "sortie 1"
+#                    print "sortie 1"
                 elif (intersect < 0):
                     k = maxrange
                     while (k>=0) and (tabindices[k] == i) :
@@ -57,42 +58,42 @@ class Line(object):
                     if k >=0:
                         i = tabindices[k]
                         maxrange = k
-                        print "sortie 2"
+#                        print "sortie 2"
                     else :
                         i = -1
-                        print "sortie 3"
+#                        print "sortie 3"
                 elif (tabindices[intersect] == i) :
                     for k in range(intersect,maxrange+1):
                         tabindices[k] = j
                     i = - 1
-                    print "sortie 4"
+#                    print "sortie 4"
                 else : 
                     k = maxrange
-                    print tabindices
+#                    print tabindices
                     while (k>=0) and (tabindices[k] == i) :
                         tabindices[k] = j
                         k = k-1
-                    print tabindices
+#                    print tabindices
                     if k >=0:
                         i = tabindices[k]
                         maxrange = k
-                        print i
-                        print "sortie 5"
+#                        print i
+#                        print "sortie 5"
                     else :
                         i = -1
-                        print "sortie 6"
-        print tabindices
-        print self.data
+#                        print "sortie 6"
+ #       print tabindices
+#        print self.data
         if lowborder == True:
             indexadd = 1
         else : 
             indexadd = 0
         for k in range(len(self.data)):
-            print k
+#            print k
             kbis = k+indexadd
             index = tabindices[kbis]
             self.data[k] = norm.newdistance(tab[index],kbis-index)            
-        print self.data
+#        print self.data
         
 class EucNorm(object):
     def __init__(self, normname = "euclidean"):
@@ -108,9 +109,34 @@ class EucNorm(object):
         
 class Matrix(object):
     def __init__(self, dimensions = [], data = []):
-        self.dimensions = dimensions
+        self.dimensions = map(lambda e: int(e), dimensions)
         self.data = data
     
+    @classmethod 
+    def initFromBarGridKernel(cls,bargrid):
+        newmatrix = None
+        dimensions = list(bargrid.intervalNumberperaxis)
+        dimensions = map(lambda e: e+1, dimensions)
+        maxdim = int(max(dimensions))
+        nbdim = len(dimensions)
+        total = 1
+        for i in range(nbdim):
+            total = total*dimensions[i]
+        data = [0]*total
+        newmatrix = cls(dimensions,data)
+        spacesizes = [1]*nbdim
+        for i in range(1,nbdim):
+            spacesizes[nbdim-1-i] = spacesizes[nbdim-i]*dimensions[nbdim-i]
+        for bar in bargrid.bars:
+            position = 0
+            for i in range(nbdim-1):
+                position = position + spacesizes[i]*bar[i]         
+            for i in range(bar[-2],bar[-1]+1):
+                newmatrix.data[int(position) + i] = maxdim
+        return newmatrix
+
+        
+        
     def totalpointNumber(self):
         total = 1
         for i in range(len(self.dimensions)):
@@ -148,24 +174,23 @@ class Matrix(object):
         
     def distance(self,norm,lowborders,upborders):
         for direction in range(1,len(self.dimensions)+1):
-            print "new direction"
+#            print "new direction"
             spacesize = self.spaceSize(direction)    
             positions = self.initPosition(direction)
             line = self.initLine(direction)
-            print line.data
+#            print line.data
             i = 0
             if direction ==1:
                 while (i < spacesize):
                     line.getLineFromMatrix(self,positions)
-                    print positions
-                    print line.data
+#                    print positions
+#                    print line.data
                     line.firstpass(lowborders[direction - 1],upborders[direction - 1])
                     self.writeFromLine(line,positions)
-                    print line.data
-                    print positions
+#                    print line.data
+#                    print positions
                     i = i + 1
                     positions = map(lambda e: e+1, positions)
-                print self.data
 
             else :
                 spacesizeup = self.spaceSize(direction-1)    
@@ -173,44 +198,70 @@ class Matrix(object):
                     j = 0
                     while (j<spacesize) : 
                         line.getLineFromMatrix(self,positions)
-                        print positions
-                        print "line"
-                        print line.data
+#                        print positions
+#                        print "line"
+#                        print line.data
                         line.update(norm,lowborders[direction - 1],upborders[direction - 1])
                         self.writeFromLine(line,positions)
                         i = i + 1
                         j = j+ 1
                         positions = map(lambda e: e+1, positions)
                     positions = map(lambda e: e-spacesize+spacesizeup, positions)
-                print self.data
         
         
 
 if __name__ == "__main__":
-    norm = EucNorm()
     
-#    matrix = Matrix([2,2,3],[1,2,3,4,5,6,7,8,9,10,11,12])#,1000,1000,0,1000,1000,1000,1000])
+    import time
+    
+    norm = EucNorm()
+   
+    bargrid = BarGridKernel([0,0], [10,10], [10,10])
+    bargrid.addBar([1],3,7)
+    bargrid.addBar([2],5,5)
+    bargrid.addBar([3],0,10)
+    distancegrid = Matrix.initFromBarGridKernel(bargrid)
+
+    lowborders = []    
+    upborders = []    
+    for i in range(len(distancegrid.dimensions)):
+      lowborders.append(False)
+      upborders.append(False)
+
+    startTime = time.time()
+    distancegrid.distance(norm,lowborders,upborders)
+    readTime = time.time() - startTime
+    print('distance in {:.2f}s'.format(readTime))
+   
+'''
     data = []
-    for i in range(100):
-        for j in range(100):
-            if ((i-49.5)*(i-49.5)+(j-49.5)*(j-49.5))<900 :
-                data.append(100)
+    dim1 = 1000
+    dim2 = 1000
+    for i in range(dim1):
+        for j in range(dim2):
+            if ((i-500)*(i-500)+(j-500)*(j-500))<=90000 :
+                data.append(max(dim1,dim2))
             else :
                 data.append(0)
     
-    matrix = Matrix([100,100],data)
-    print matrix.data
+    matrix = Matrix([dim1,dim2],data)
+#    print matrix.data
     lowborders = []    
     upborders = []    
     for i in range(len(matrix.dimensions)):
       lowborders.append(False)
       upborders.append(False)
     
+    startTime = time.time()
     matrix.distance(norm,lowborders,upborders)
+    readTime = time.time() - startTime
+    print('distance in {:.2f}s'.format(readTime))
 
 #    for i in range(100):
 #        print matrix.data[i*100:(i+1)*100-1]
         
+'''
+
 '''
     for direction in range(1,len(matrix.dimensions)+1):
         print "new direction"
