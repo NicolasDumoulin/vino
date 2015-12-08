@@ -178,17 +178,32 @@ def kerneluploaded(request):
 
 from BarGridKernel import BarGridKernel
 import json
+from distance import Matrix, EucNorm
 
 def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
-        grid = BarGridKernel.readPatrickSaintPierreFile(source)
-        
+        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
+        distancegriddimensions = [301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+
 #        insidegrid = grid.getInside()
 #        minusgrid = grid.MinusBarGridKernel(insidegrid)        
         
+#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
         
-        out_json = json.dumps(list(grid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
+        out_json = json.dumps(list(data), sort_keys = True, indent = 4, ensure_ascii=False)
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
     

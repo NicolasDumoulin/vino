@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from BarGridKernel import *
+from BarGridKernel import BarGridKernel
+
 
 class Line(object):
     def __init__(self, data = []):
@@ -119,23 +120,45 @@ class Matrix(object):
         dimensions = map(lambda e: e+1, dimensions)
         maxdim = int(max(dimensions))
         nbdim = len(dimensions)
+#        print dimensions
         total = 1
         for i in range(nbdim):
             total = total*dimensions[i]
         data = [0]*total
         newmatrix = cls(dimensions,data)
         spacesizes = [1]*nbdim
+#        print newmatrix.dimensions
+#        print total
         for i in range(1,nbdim):
             spacesizes[nbdim-1-i] = spacesizes[nbdim-i]*dimensions[nbdim-i]
+#        print spacesizes
         for bar in bargrid.bars:
             position = 0
             for i in range(nbdim-1):
                 position = position + spacesizes[i]*bar[i]         
-            for i in range(bar[-2],bar[-1]+1):
+            for i in range(int(bar[-2]),int(bar[-1]+1)):
                 newmatrix.data[int(position) + i] = maxdim
         return newmatrix
 
-        
+    def toDataPointDistance(self):
+        data = []
+        nbdim = len(self.dimensions)
+        point = [0]*(nbdim+1)
+        for position in range(len(self.data)):
+            if self.data[position] > 0:
+                point[-1] = self.data[position]
+                data.append(list(point))
+#                data.append(list(point).append(self.data[position]))
+#            print position
+#            print point
+            
+            for i in range(nbdim):
+                if (point[nbdim-1-i] < self.dimensions[nbdim-1-i]-1):
+                    point[nbdim-1-i] = point[nbdim-1-i]+1
+                    break
+                else : 
+                    point[nbdim-1-i] = 0
+        return data
         
     def totalpointNumber(self):
         total = 1
@@ -181,7 +204,8 @@ class Matrix(object):
 #            print line.data
             i = 0
             if direction ==1:
-                while (i < spacesize):
+                for i in range(spacesize):
+#                    print i                    
                     line.getLineFromMatrix(self,positions)
 #                    print positions
 #                    print line.data
@@ -189,12 +213,26 @@ class Matrix(object):
                     self.writeFromLine(line,positions)
 #                    print line.data
 #                    print positions
-                    i = i + 1
                     positions = map(lambda e: e+1, positions)
 
             else :
                 spacesizeup = self.spaceSize(direction-1)    
+                for i in range(self.totalpointNumber()/spacesizeup):
+#                    print i                    
+                    for j in range(spacesize): 
+                        line.getLineFromMatrix(self,positions)
+#                        print positions
+#                        print "line"
+#                        print line.data
+                        line.update(norm,lowborders[direction - 1],upborders[direction - 1])
+                        self.writeFromLine(line,positions)
+                        positions = map(lambda e: e+1, positions)
+                    positions = map(lambda e: e-spacesize+spacesizeup, positions)
+
+'''
+                spacesizeup = self.spaceSize(direction-1)    
                 while (i < (self.totalpointNumber()/self.dimensions[direction-1])):
+                    print i                    
                     j = 0
                     while (j<spacesize) : 
                         line.getLineFromMatrix(self,positions)
@@ -207,7 +245,7 @@ class Matrix(object):
                         j = j+ 1
                         positions = map(lambda e: e+1, positions)
                     positions = map(lambda e: e-spacesize+spacesizeup, positions)
-        
+'''        
         
 
 if __name__ == "__main__":
@@ -216,12 +254,23 @@ if __name__ == "__main__":
     
     norm = EucNorm()
    
-    bargrid = BarGridKernel([0,0], [10,10], [10,10])
-    bargrid.addBar([1],3,7)
-    bargrid.addBar([2],5,5)
-    bargrid.addBar([3],0,10)
-    distancegrid = Matrix.initFromBarGridKernel(bargrid)
+#    bargrid = BarGridKernel([0,0], [10,10], [10,10])
+#    bargrid.addBar([1],3,7)
+#    bargrid.addBar([2],5,5)
+#    bargrid.addBar([3],0,10)
+    bargrid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
+    distancegriddimensions = [101,101]
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    print "of"    
+    print distancegridintervals
+    
+    resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
 
+#    print resizebargrid.bars
+
+    distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+    
+   
     lowborders = []    
     upborders = []    
     for i in range(len(distancegrid.dimensions)):
@@ -232,7 +281,9 @@ if __name__ == "__main__":
     distancegrid.distance(norm,lowborders,upborders)
     readTime = time.time() - startTime
     print('distance in {:.2f}s'.format(readTime))
-   
+  
+    data = distancegrid.toDataPointDistance()
+    
 '''
     data = []
     dim1 = 1000
