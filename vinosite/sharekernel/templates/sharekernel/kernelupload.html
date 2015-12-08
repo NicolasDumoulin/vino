@@ -9,7 +9,7 @@
     To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
 
     <!-- Upload form. Note enctype attribute! -->
-    <form action="{% url 'sharekernel:verify' %}" id="uploadForm" method="post" enctype="multipart/form-data">
+    <form action="{% url 'sharekernel:hdf5record' %}" id="uploadForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <p>{{ form.non_field_errors }}</p>

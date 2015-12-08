@@ -12,6 +12,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^recorded/$', views.recorded, name='recorded'),
+    url(r'^hdf5record/$', views.hdf5record, name='hdf5record'),
     url(r'^verify/$', views.verify, name='verify'),
     url(r'^kernelupload/$', views.kernelupload, name='kernelupload'),
     url(r'^bargrid2json/$', views.bargrid2json, name='bargrid2json'),

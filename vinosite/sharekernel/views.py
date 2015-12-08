@@ -4,6 +4,10 @@ from sharekernel.forms import DocumentForm
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.files import File
+from BarGridKernel import BarGridKernel
+from hdf5common import HDF5Reader
+import json
+import tempfile
 
 # Create your views here.
 
@@ -176,9 +180,6 @@ def kerneluploaded(request):
     context = {}
     return render(request, 'sharekernel/kerneluploaded.html', context)            
 
-from BarGridKernel import BarGridKernel
-import json
-
 def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
@@ -275,7 +276,58 @@ def metadatafilecontent(request,category_id,viabilityproblem_id,parameters_id,al
     #13/12/1/1/1
     context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'algorithm' : a}
     return render(request, 'sharekernel/content.html', context)            
-    
+
+def findandsaveobject(cls, metadata, foreignkeys={}, fields={}):
+    '''
+    Try to find object with same metadata, or return a new object
+    '''
+    # find objects with same metadata and foreign keys
+    p = [ o for o in cls.objects.all()
+            if all(
+                metadata.get(cls.__name__.lower()+'.'+f.name) == getattr(o, f.name)
+                # list all model attributes except db keys
+                for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields)
+            ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
+        ]
+    if not p:
+        # no object found, creating a new one
+        p = cls()
+        # setting metadata
+        for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
+            try:
+                setattr(p, f.name, metadata[cls.__name__.lower()+'.'+f.name])
+            except:
+                print("metadata not found: "+cls.__name__.lower()+'.'+f.name)
+        # setting additional field (data file)
+        for fn,f in fields.iteritems():
+            setattr(p, fn, f)
+        # setting foreign keys
+        for f,fk in foreignkeys.iteritems():
+            setattr(p, f, fk)
+        p.save()
+    return p
+
+def hdf5record(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():            
+            tmpfile = tempfile.NamedTemporaryFile(delete=False)
+            for chunk in request.FILES['docfile'].chunks():
+                tmpfile.write(chunk)
+            tmpfile.close()
+            with HDF5Reader(tmpfile.name) as f:
+                metadata = f.readMetadata()
+            #metadata = HDF5Reader('test.h5').readMetadata()
+            c = findandsaveobject(Category, metadata)
+            vp = findandsaveobject(ViabilityProblem, metadata, foreignkeys={"category": c})
+            p = findandsaveobject(Parameters, metadata, foreignkeys={"viabilityproblem": vp})
+            rf = findandsaveobject(ResultFormat, metadata)
+            a = findandsaveobject(Algorithm, metadata)
+            r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
+            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
+    context = {}
+    return render(request, 'sharekernel/kerneluploaded.html', context)        
+     
 def verify(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
@@ -430,18 +482,14 @@ def verify(request):
         else:
             context = {'form' : form}
             return render(request, 'sharekernel/kernelupload.html', context)            
-            
+           
 def recorded(request):
-    
-    
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
             newdoc = Document(docfile = request.FILES['docfile'])
     source = newdoc.docfile
-    t = [] 
-    for i in range(32):
-        t.append(-1)
+    t = [-1] * 32 
     c = Category()
     a = Algorithm()
     vp = ViabilityProblem() 
@@ -450,7 +498,6 @@ def recorded(request):
     f = ResultFormat()    
 #    vp = c.viabilityproblem_set.create()
 #    p = vp.parameters_set.create()
-    oui = -1 
     try:
 # Appeler la fonction de traitement
         for ligne in source:
@@ -567,12 +614,7 @@ def recorded(request):
                     t[31] = 1
                     r.formatparametervalues = donnees[donnees.index("#FormatParameterValues")+1]
 
-        if (-1) in t:        
-            oui = -1
-        else:
-            oui = 1
- 
-        if oui == 1:
+        if -1 not in t:
             b=-1
             for cc in Category.objects.all():
                 if cc.category_text == c.category_text:
@@ -624,7 +666,7 @@ def recorded(request):
     finally:  
 # Fermerture du fichier source
         source.close()            
-    if oui ==1:
+    if -1 not in t:
         context = {}
         return render(request, 'sharekernel/record.html', context)            
     else:
