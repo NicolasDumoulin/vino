@@ -430,14 +430,18 @@ class BarGridKernel(Kernel):
     permutnewIntervalNumberperaxis = np.dot(self.permutation, newIntervalNumberperaxis)
     permutnewpas = np.dot(self.permutation,(np.array(newOppositeCoords,float) - newOriginCoords) / newIntervalNumberperaxis)
     permutOriginCoords = np.dot(self.permutation, self.originCoords)
-    permutinversepas = np.dot(self.permutation, (newIntervalNumberperaxis / self.oppositeCoords - self.originCoords))
+    permutinversepas = np.dot(self.permutation, (self.intervalNumberperaxis / self.oppositeCoords - self.originCoords))
+#    print permutinversepas
+#    print permutnewpas
     data = []
     grid = BarGridKernel(newOriginCoords,newOppositeCoords,newIntervalNumberperaxis,self.permutation,data,self.metadata)
 
     while(actualbarposition[0]<permutnewIntervalNumberperaxis[0]+1):
+#        print actualbarposition
         realpoint = permutnewOriginCoords[:-1] + actualbarposition * permutnewpas[:-1]
         intpoint = (realpoint-permutOriginCoords[:-1]) * permutinversepas[:-1]
-        intpoint = map(lambda e: int(e+0.5), intpoint)    
+        intpoint = map(lambda e: int(e+0.5), intpoint)
+#        print intpoint
         while (barsindex < len(self.bars)) and (self.bars[barsindex][:2] < intpoint):
             barsindex = barsindex+1
         barinprocess = False
@@ -459,9 +463,12 @@ class BarGridKernel(Kernel):
                     barinprocess = True
             barsindex = barsindex+1
         for i in range(dimension-1):
-            if (actualbarposition[dimension-2-i]<permutnewIntervalNumberperaxis[dimension-2-i]+1):
+            if ((i == dimension - 2) or (actualbarposition[dimension-2-i]<permutnewIntervalNumberperaxis[dimension-2-i])):
                 actualbarposition[dimension-2-i] = actualbarposition[dimension-2-i]+1
                 break
+            else :
+                actualbarposition[dimension-2-i] = 0
+                
     return grid                             
 
 
@@ -627,6 +634,11 @@ if __name__ == "__main__":
   print grid.oppositeCoords
   print grid.intervalNumberperaxis
     
+  distancegriddimensions = [1001,1001]
+  distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    
+  resizebargrid = grid.toBarGridKernel(grid.originCoords, grid.oppositeCoords, distancegridintervals)
+#  print resizebargrid.bars
 
   from hdf5common import HDF5Manager
   hm = HDF5Manager([BarGridKernel])

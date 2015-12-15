@@ -75,15 +75,12 @@
         $("#viewPlotly").click(function(){
             loadAndPlot(function (data) {
                 var container = document.getElementById('viewPanel');
-                var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { color: [] }, hoverinfo:'none' };
+                var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [] }, hoverinfo:'none' };
                 $.each(data, function(index,bar) {
                     items.x.push(bar[0]);
-                    items.x.push(bar[0]);
                     items.y.push(bar[1]);
-                    items.y.push(bar[2]);
-                    items.marker.color.push(10);
-                    items.marker.color.push(30);
-                });
+                    items.marker.color.push(bar[2]);
+              });
                 Plotly.newPlot(container,[items],{margin:{t:0}});
             })
         });

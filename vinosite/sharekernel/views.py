@@ -6,6 +6,8 @@ from django.core.urlresolvers import reverse
 from django.core.files import File
 from BarGridKernel import BarGridKernel
 from hdf5common import HDF5Reader
+from distance import Matrix, EucNorm
+
 import json
 import tempfile
 
@@ -182,16 +184,31 @@ def kerneluploaded(request):
     context = {}
     return render(request, 'sharekernel/kerneluploaded.html', context)            
 
+
 def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
-        grid = BarGridKernel.readPatrickSaintPierreFile(source)
-        
+        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
+        distancegriddimensions = [301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+
 #        insidegrid = grid.getInside()
 #        minusgrid = grid.MinusBarGridKernel(insidegrid)        
         
+#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
         
-        out_json = json.dumps(list(grid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
+        out_json = json.dumps(list(data), sort_keys = True, indent = 4, ensure_ascii=False)
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
     
