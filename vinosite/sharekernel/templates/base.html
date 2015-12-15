@@ -1,0 +1,15 @@
+{% load staticfiles %}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+  <title>{% block metatitle %}Vino{% endblock %}</title>
+  <script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+        {% block body %}{% endblock %}
+</body>
+</html>

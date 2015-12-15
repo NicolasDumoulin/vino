@@ -1,9 +1,8 @@
-{% load staticfiles %}
+{% extends "base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
+{% block body %}
 
 
-<body>
 	<div id="container">
 		<div id="topbar"> 
 		</div>
@@ -13,6 +12,9 @@
 <h4>{{viabilityproblem.category.category_text}}</h4>
 
 <h2>{{viabilityproblem.title}}</h2>
+
+<p><a href="#">Visualize</a></p>
+<p><a href="#">Compare with …</a></p>
 
 <h4> Model :</h4>
 Dimension of the state space : {{viabilityproblem.statedimension}}
@@ -101,37 +103,9 @@ Parameters :
 <h3>Contact :   {{ algorithm.softwarecontact }}<br></h3>
 <h3>Sofware Parameters :   {{ algorithm.softwareparameters }}<br></h3>
 
-
-
-<table >
-	<tr> 
-
-	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
-            {% csrf_token %}
-            <p><input type="submit" value="Visualize" /></p>
-        </form>
-</td>
-	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
-            {% csrf_token %}
-            <p><input type="submit" value="Test" /></p>
-        </form>
-</td>
-	<td>           <form action="{% url 'sharekernel:home' %}" method="post">
-            {% csrf_token %}
-            <p><input type="submit" value="Viable Evolution Simulator" /></p>
-        </form>
-</td>
-
-</tr>
-</table>
-
-
-
 		<!-- close #main content -->
 		</div>
 	<!-- close #container -->
 	</div>
-</body>
 
-
-
+{% endblock %}

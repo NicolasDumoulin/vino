@@ -1,17 +1,13 @@
-{% load staticfiles %}
+{% extends "base.html" %}
 
-<script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
+{% block body %}
 
-
-<body>
 	<div id="container">
 		<div id="topbar"> 
 		</div>
 		<div id="navbar"> </div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
-<!--						<img src="{% static 'sharekernel/images/logo_site.png' %}" width = "250px" alt="Photo de mon gite" /> -->
 
 			Share Your Kernel is a platform on numerical methods to solve viability problems.<br>
 			The interest of this platform is to show the results obtained on different problems, from simple to complex, and 
@@ -46,6 +42,5 @@
 		</div>
 	<!-- close #container -->
 	</div>
-      
-</body>
 
+{% endblock %}
