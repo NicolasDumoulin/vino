@@ -1,5 +1,6 @@
 {% load staticfiles %}
 
+<script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
 
 
@@ -30,10 +31,21 @@
 			 </div>
 			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
 			<div class="spacer"></div>
+                        {% if lastkernels %}
+                            <div id="last_kernels">
+                                                    Last kernels:
+                                                    <ul class="kernelslist">
+                            {% for kernel in lastkernels %}
+                            <li><a href="{% url 'sharekernel:visitresult' kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
+                            {% endfor %}
+                            </ul>
+                                                </div>
+                        {% endif %}                        
 
 		<!-- close #main content -->
 		</div>
 	<!-- close #container -->
 	</div>
+      
 </body>
 

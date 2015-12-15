@@ -16,7 +16,9 @@ from django.http import HttpResponse
 
 
 def home(request):
-    context = {}
+    context = {
+        'lastkernels':Results.objects.order_by('-submissiondate')[:5]
+        }
     return render(request, 'sharekernel/home.html', context)            
     
 def visitcategorylist(request):
