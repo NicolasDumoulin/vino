@@ -2,9 +2,15 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-  <title>{% block metatitle %}Vino{% endblock %}</title>
-  <script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block metatitle %}Vino{% endblock %}</title>
+    <script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
+    <script src="{% static 'sharekernel/jquery-ui-1.11.4.min.js' %}"></script>
+    <script src="{% static 'sharekernel/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/jquery-ui-1.11.4.min.css' %}" />
+    <link href="{% static 'sharekernel/css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
   {% block head %}{% endblock %}
 </head>

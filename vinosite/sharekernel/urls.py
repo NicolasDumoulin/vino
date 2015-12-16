@@ -11,6 +11,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
+    url(r'^compare/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/$', views.compareresult, name='compareresult'),
     url(r'^recorded/$', views.recorded, name='recorded'),
     url(r'^hdf5record/$', views.hdf5record, name='hdf5record'),
     url(r'^verify/$', views.verify, name='verify'),

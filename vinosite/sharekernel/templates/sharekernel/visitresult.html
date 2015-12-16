@@ -13,8 +13,17 @@
 
 <h2>{{viabilityproblem.title}}</h2>
 
-<p><a href="#">Visualize</a></p>
-<p><a href="#">Compare with …</a></p>
+<p><a href="#" id="visualizebutton">Visualize</a></p>
+<p><a href="#" id="comparebutton">Compare with …</a></p>
+<div id="comparison-selection-box">
+    <p class="validateTips">Please select a ViNO to start a comparison:</p>
+    <ul>
+        {% for kernel in allkernels %}
+        <li><a href="{% url 'sharekernel:compareresult' result.id kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
+        {% endfor %}
+    
+    </ul>
+</div>
 
 <h4> Model :</h4>
 Dimension of the state space : {{viabilityproblem.statedimension}}
@@ -107,5 +116,28 @@ Parameters :
 		</div>
 	<!-- close #container -->
 	</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+        var comparisonSelectionBox = $('#comparison-selection-box').dialog({
+            autoOpen: false,
+            modal:true,
+            title: "ViNOs comparison",
+            width:Math.min($(window).width()-15,600),
+            height: "auto",
+            zIndex:11000,
+            buttons: {
+                Cancel: function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+        $('#comparebutton').click(function(){
+            comparisonSelectionBox.dialog('open');            
+        });
+        
+    });
+</script> 
 
 {% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% block head %}
+    <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <h2>ViNOs comparison</h2>
+            <p>The data has been reduced to 31 points per dimensions.</p>
+            <p>ViNOs compared:<ul>
+                    <li>
+                        <button type="button" id="viewA" style="background-color:#FF0000" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                            Vino A
+                        </button>
+                        {{vinoA.parameters.viabilityproblem.title}} - {{vinoA.author}} - {{vinoA.submissiondate}}</li>
+                    <li>
+                        <button type="button" id="viewB" style="background-color:#0000FF" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                            Vino B
+                        </button>
+                        {{vinoB.parameters.viabilityproblem.title}} - {{vinoB.author}} - {{vinoB.submissiondate}}</li>
+                </ul>
+                <button type="button" id="viewAminusB" style="background-color:#FF0000" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                    A - B
+                </button>
+                <button type="button" id="viewBminusA" style="background-color:#0000FF" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                    B - A
+                </button>
+                <button type="button" id="viewIntersection" style="background-color:#FF00FF" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                    intersection
+                </button>
+            </p>
+        </div>
+        <div class="col-md-8">
+            <div id="viewPanel"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('.btn').button();
+    var container = $('#viewPanel')[0];
+    var plotsData = [
+        ['VinoA', 'rgb(255,0,0,0.4)', {{ gridA }}, $('#viewA'), {}, -1],
+        ['VinoB', 'rgb(0,0,255,0.4)', {{ gridB }}, $('#viewB'), {}, -1],
+        ['A - B', 'rgb(255,0,0,0.4)', {{ minusgridAB }}, $('#viewAminusB'), {}, -1],
+        ['B - A', 'rgb(0,0,255,0.4)', {{ minusgridBA }}, $('#viewBminusA'), {}, -1],
+        ['Intersection', 'rgb(255,0,255,0.4)', {{ intersection }}, $('#viewIntersection'), {}, -1]
+    ];
+    $.each(plotsData, function(index,data) {
+        data[4] = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 9, color: data[1] }, hoverinfo:'none' };
+        $.each(data[2], function(index,bar) {
+            data[4].x.push(bar[0]);
+            data[4].x.push(bar[0]);
+            data[4].y.push(bar[1]);
+            data[4].y.push(bar[2]);
+        });
+        data[3].click(function(){
+            data[3].toggleClass('checked')
+            if (data[3].hasClass('checked')) {
+                data[5]=container.data.length;
+                Plotly.addTraces(container, data[4]);
+            } else {
+                Plotly.deleteTraces(container, [data[5]])
+            }
+        });
+    });
+    Plotly.newPlot(container,[],{margin:{t:0}});
+</script>
+
+{% endblock %}

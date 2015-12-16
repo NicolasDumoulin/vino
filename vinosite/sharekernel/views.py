@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.files import File
 from BarGridKernel import BarGridKernel
-from hdf5common import HDF5Reader
+from hdf5common import HDF5Reader, HDF5Manager
 from distance import Matrix, EucNorm
 
 import json
@@ -16,6 +16,7 @@ import tempfile
 from django.http import HttpResponse
 
 
+hdf5manager = HDF5Manager([BarGridKernel])
 
 def home(request):
     context = {
@@ -105,7 +106,7 @@ def visitresult(request,result_id):
             tabvaluesbisbis = []
         tabvalues.append(tabvaluesbis)
         tabvaluesbis = []    
-    context = {'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval,'tabvalues' : tabvalues}
+    context = {'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval,'tabvalues' : tabvalues}
     return render(request, 'sharekernel/visitresult.html', context)            
 
 def visitviabilityproblem(request,viabilityproblem_id):
@@ -208,10 +209,34 @@ def bargrid2json(request):
         
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
         
-        out_json = json.dumps(list(data), sort_keys = True, indent = 4, ensure_ascii=False)
+        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False)
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
     
+def compareresult(request, vinoA_id, vinoB_id):
+    vinoA = Results.objects.get(id=vinoA_id)
+    vinoB = Results.objects.get(id=vinoB_id)
+    # TODO configurable new dimensions
+    distancegriddimensions = [31]*vinoA.parameters.viabilityproblem.statedimension
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    gridA = hdf5manager.readKernel(vinoA.datafile.path)
+    gridA = gridA.toBarGridKernel(gridA.originCoords, gridA.oppositeCoords, distancegridintervals)
+    # TODO remove this fake
+    for bar in gridA.bars:
+        bar[1]=bar[1]+1
+        bar[2]=bar[2]-1
+    gridB = hdf5manager.readKernel(vinoB.datafile.path)
+    gridB = gridB.toBarGridKernel(gridB.originCoords, gridB.oppositeCoords, distancegridintervals)
+    minusgridAB = gridA.MinusBarGridKernel(gridB)
+    minusgridBA = gridB.MinusBarGridKernel(gridA)
+    intersection = gridA.intersectionwithBarGridKernel(gridB)
+    context = {
+        'vinoA': vinoA, 'vinoB': vinoB
+    }
+    for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
+        context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
+    return render(request, 'sharekernel/compareTwoVinos.html', context)            
+
 def kernelupload(request):
     form = DocumentForm()
     context = { 'form': form} 
