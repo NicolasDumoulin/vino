@@ -21,7 +21,7 @@
 			<div id="column_left"> {% if category_list %}
 			    <ul>
     				{% for category in category_list %}
-        			<li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{ category.category_text }}</a></li>
+        			<li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{ category.text }}</a></li>
     				{% endfor %}
     				</ul>
 				{% else %}
