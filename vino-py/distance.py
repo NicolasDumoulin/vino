@@ -259,14 +259,14 @@ if __name__ == "__main__":
 #    bargrid.addBar([2],5,5)
 #    bargrid.addBar([3],0,10)
     bargrid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
-    distancegriddimensions = [101,101]
+    distancegriddimensions = [2001,2001]
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     print "of"    
     print distancegridintervals
     
     resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
 
-#    print resizebargrid.bars
+#    print resizebargrid.bars  101 0.17 s ; 1001 114 s
 
     distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
     
