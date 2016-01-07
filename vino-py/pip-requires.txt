@@ -3,3 +3,4 @@ sortedcontainers>=1.4.3
 numpy>=1.10.1
 h5py>=2.5.0
 xmlrunner>=1.7.7
+unittest2>=1.1.0
