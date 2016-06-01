@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 import h5py
+import METADATA
 
 class HDF5Writer:
   def __init__(self, filename):
@@ -66,7 +67,7 @@ class HDF5Manager:
       metadata = f.readMetadata()
       # reading the data attributes for determining the format
       dataAttributes = f.readDataAttributes()
-      return self.formatsStrategies[dataAttributes['resultformat.name']].initFromHDF5(metadata, dataAttributes, f.readData())
+      return self.formatsStrategies[dataAttributes[METADATA.resultformat_name]].initFromHDF5(metadata, dataAttributes, f.readData())
 
   @staticmethod
   def writeKernel(kernel, filename, **datasets_options):
@@ -76,5 +77,3 @@ class HDF5Manager:
     with HDF5Writer(filename) as w:
       w.writeData(kernel.getData(), kernel.getDataAttributes(), **datasets_options)   
       w.writeMetadata(kernel.getMetadata())
-  
-    

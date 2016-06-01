@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import abc
+import METADATA
 
 class Kernel(object):
   def __init__(self, metadata={}):
@@ -17,7 +18,7 @@ class Kernel(object):
     
   def getDataAttributes(self):
     return {
-        'resultformat.name' : self.getFormatCode()
+        METADATA.resultformat_name : self.getFormatCode()
           }
   
   @staticmethod   
