@@ -491,14 +491,14 @@ class BarGridKernel(Kernel):
     '''
     Returns an object of class BarGridKernel loaded from an output file from the software of Patric Saint-Pierre.
     '''
-    modelMetadata=[]
+    metadata=[]
     bgk = None
     with open(filename, 'r') as f:
       f.readline()
       nbDim = re.match('\s*([0-9]*)\s.*',f.readline()).group(1)
-      modelMetadata.append(['dynamic', f.readline()])
-      modelMetadata.append(['constraints', f.readline()])
-      modelMetadata.append(['target', f.readline()])
+      metadata.append([MEDATADA.dynamicsdescription, f.readline()])
+      metadata.append([MEDATADA.stateconstraintdescription, f.readline()])
+      metadata.append([MEDATADA.targetdescription, f.readline()])
       for i in range(4): f.readline()
       dimensionsSteps = map(int, re.findall('[0-9]+', f.readline()))
       for i in range(2): f.readline()
@@ -507,7 +507,7 @@ class BarGridKernel(Kernel):
       for i in range(5): f.readline()
       # ND Why? Why not opposite = maxPoint
       opposite = origin      
-      bgk = cls(origin, opposite, dimensionsSteps)
+      bgk = cls(origin, opposite, dimensionsSteps, metadata=metadata)
       # reading until some lines with 'Initxx'
       stop=False
       initxx=False
