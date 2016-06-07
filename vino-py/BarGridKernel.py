@@ -69,7 +69,7 @@ class BarGridKernel(Kernel):
     minPoint = np.array(self.kernelMinPoint)
     maxPoint = np.array(self.kernelMaxPoint)
     dimensionsExtents = maxPoint - minPoint + 1
-    grid = RegularGridKernel(self.originCoords, self.dimensionsSteps,
+    grid = RegularGridKernel(self.originCoords, self.intervalNumberperaxis,
                              dimensionsExtents, metadata=self.metadata)
     for bar in self.bars:
       barPosition = (bar[:-2]-minPoint[:-1]).tolist()
