@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 import os
 import numpy as np
-import re
+import re, math
 from overrides import overrides
 from sortedcontainers import SortedList
 from Kernel import Kernel
@@ -586,27 +586,60 @@ class BarGridKernel(Kernel):
   def isInSet(self, point):
     '''
     Returns if point belongs to the BarGridKernel.
+    This method will find the cell where to lookup a bar containing the point. If not,
+    the point is not considered in the set.
+    Technical details:
+    In a BarGrid, each cell of the (n-1) dimensional space is stored by its 
+    index inside a matrix between two opposite points and the number of cells in each dimension.
+    First, this method will compute the index(es) of the cell where to lookup for bars,
+    then it will look for the last dimension to check if the point is inside a cell
+    covered by a bar in the selected cell of the (n-1) dimensional space.
+    Note that if the point is exactly between several cells (on a vertex or on an edge),
+    the method will check the bars of all the touching cells.
+    Let's consider s(i) the size of a cell (the step size) on the dimension i,
+    p(i) the coordinates of the point requested on the dimension i, and
+    c(i) the coordinates of the center of a cell of the BarGrid in the dimension i,
+    thus we consider that the point p is inside the cell c if:
+     - p(i)>=c(i)-s(i)/2 (after the left side of the cell)
+     - p(i)<=c(i)+s(i)/2 (before the right side of the cell)
+     - for i belongs to [0;n-1]
     '''
     result = False
     point = np.array(point,float)
-    point_int = 0.5 + self.intervalNumberperaxis * (point - self.originCoords)/(self.oppositeCoords - self.originCoords)
-    
-    point = np.dot(self.permutation, np.transpose(point_int))
+    # first we need to project the point into the cells coordinate system
+    point_int = self.intervalNumberperaxis * (point - self.originCoords)/(self.oppositeCoords - self.originCoords)
+    points = [point_int]
+    for i,coord in enumerate(point_int):
+        new_points = []
+        for p in points:
+            if (coord%1)==0.5: # the point is exactly between two cells on the current dimension
+                left = [pp for pp in p]
+                left[i] = int(math.floor(left[i]))
+                right = [pp for pp in p]
+                right[i] = int(math.ceil(right[i]))
+                new_points.extend([left, right])
+            else:
+                # we just need to round to the nearest cell center
+                new_point = [pp for pp in p]
+                new_point[i] = int(round(new_point[i]))
+                new_points.append(new_point)
+        points=new_points
     l = len(point)      
     # we will look at each bar if they are positioned in the coordinates
     # in (n-1) dimensions space than our point
-    candidateBar = False
-    for bar in self.bars:
-      if point[:-1]==bar[:-2]:
-        # we have reached the interesting zone
-        candidateBar = True
-        # is our point in the bar?
-        if (point[l-1]>=bar[l-1]) and (point[l-1]<=bar[l]):
-          result = True
-          break
-      elif candidateBar:
-        # we have passed the position in (n-1) dimensions space, so we can't find candidates anymore
-        break
+    for point in points:
+        candidateBar = False
+        for bar in self.bars:
+            if point[:-1]==bar[:-2]:
+              # we have reached the interesting zone
+              candidateBar = True
+              # is our point in the bar?
+              if (point[l-1]>=bar[l-1]-0.5) and (point[l-1]<=bar[l]+0.5):
+                result = True
+                break
+            elif candidateBar:
+              # we have passed the position in (n-1) dimensions space, so we can't find candidates anymore
+              break
     return result
 
 if __name__ == "__main__":
