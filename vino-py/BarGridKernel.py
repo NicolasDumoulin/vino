@@ -109,7 +109,7 @@ class BarGridKernel(Kernel):
                             totalborder = True                    
                             break
                 if not totalborder:
-                   mini = self.bars[barsindex][-2]+1
+                    mini = self.bars[barsindex][-2]+1
                     maxi = self.intervalNumberperaxis[-1]
                 while not totalborder:
                     partialborder = False
@@ -157,7 +157,7 @@ class BarGridKernel(Kernel):
                 while (barsindex < len(self.bars)) and (self.bars[barsindex][:-2] == actualbarposition):
                     barsindex = barsindex + 1
             else:
-              barsindex = barsindex + 1          
+                barsindex = barsindex + 1          
         return insidegrid
 
 
