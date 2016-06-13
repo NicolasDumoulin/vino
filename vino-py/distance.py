@@ -3,6 +3,10 @@ from BarGridKernel import BarGridKernel
 
 
 class Line(object):
+    '''
+	The algorithm used to evaluate the distance map in the Matrix class uses what we call Line which gathers the values when one coordinate varies and the n-1 others are fixed
+	The algorithm has an initialization phase (the method firstpass below) and n-1 iteration of method update.
+    '''
     def __init__(self, data = []):
         self.data = data 
             
@@ -97,6 +101,12 @@ class Line(object):
 #        print self.data
         
 class EucNorm(object):
+    '''
+    This class is designed to describe the norm from which the distance is computed. In the algorithm of distance evaluation (distance method of Matrix class below), 
+    two charactéristics depending on the norm are used : a method to evaluate the intersection index and a method to evaluate the distance on i dimensions from the distance 
+    on i-1 dimensions and the distance in the ith dimension.
+    For the moment only the characteristics corresponding to the Euclidean norm are implemented below.
+    ''' 
     def __init__(self, normname = "euclidean"):
         self.name = normname   
         
@@ -112,9 +122,14 @@ class Matrix(object):
     def __init__(self, dimensions = [], data = []):
         self.dimensions = map(lambda e: int(e), dimensions)
         self.data = data
-    
+	self.maximum = max(data)    	
+
     @classmethod 
     def initFromBarGridKernel(cls,bargrid):
+	'''
+	Initialize from a BarGridKernel a Matrix with the same underlying grid. The value of the Matrix cell is set at 0 if this cell does'nt belong to the BarGridKernel 
+	and to +infty otherwise.
+	''' 
         newmatrix = None
         dimensions = list(bargrid.intervalNumberperaxis)
         dimensions = map(lambda e: e+1, dimensions)
@@ -138,9 +153,13 @@ class Matrix(object):
                 position = position + spacesizes[i]*bar[i]         
             for i in range(int(bar[-2]),int(bar[-1]+1)):
                 newmatrix.data[int(position) + i] = maxdim
+	newmatrix.maximum = max(newmatrix.data)
         return newmatrix
 
     def toDataPointDistance(self):
+	'''
+	Return the list of points coordinates concatenated with their associated non null distance value
+	'''
         data = []
         nbdim = len(self.dimensions)
         point = [0]*(nbdim+1)
@@ -161,6 +180,9 @@ class Matrix(object):
         return data
         
     def totalpointNumber(self):
+	'''
+	Return the cell number of the Matrix
+	'''
         total = 1
         for i in range(len(self.dimensions)):
             total = total*self.dimensions[i]
@@ -228,25 +250,63 @@ class Matrix(object):
                         self.writeFromLine(line,positions)
                         positions = map(lambda e: e+1, positions)
                     positions = map(lambda e: e-spacesize+spacesizeup, positions)
-
-'''
-                spacesizeup = self.spaceSize(direction-1)    
-                while (i < (self.totalpointNumber()/self.dimensions[direction-1])):
-                    print i                    
-                    j = 0
-                    while (j<spacesize) : 
-                        line.getLineFromMatrix(self,positions)
-#                        print positions
-#                        print "line"
-#                        print line.data
-                        line.update(norm,lowborders[direction - 1],upborders[direction - 1])
-                        self.writeFromLine(line,positions)
-                        i = i + 1
-                        j = j+ 1
-                        positions = map(lambda e: e+1, positions)
-                    positions = map(lambda e: e-spacesize+spacesizeup, positions)
-'''        
+            self.maximum = max(self.data)	
         
+    def histogramFromBarGrid(self,bargrid,barnumber):
+	barlimits = []
+	barlimits.append(0)
+	occurnumber = []
+	occurnumber.append(0)
+        histodict = {}
+        if (self.maximum>0) :
+            interval = (self.maximum-1)/float(barnumber)
+            for i in range(barnumber):
+		barlimits.append(int(round(1+i*interval)))
+		occurnumber.append(0)
+                histodict[str(int(round(1+i*interval)))] = 0
+            nbdim = len(self.dimensions)
+            spacesizes = [1]*nbdim
+	    for i in range(1,nbdim):
+                spacesizes[nbdim-1-i] = spacesizes[nbdim-i]*self.dimensions[nbdim-i]
+            for bar in bargrid.bars:
+                position = 0
+                for i in range(nbdim-1):
+                    position = position + spacesizes[i]*bar[i]         
+                for i in range(int(position)+int(bar[-2]),int(position)+int(bar[-1]+1)):
+                    k = 0		
+	            for j in range(1,barnumber+1):
+	                if (self.data[i]>= barlimits[j]) :
+                            k = k+1
+		    occurnumber[k]=occurnumber[k]+1
+	    histodict = dict(zip(range(barnumber+1),zip(barlimits,occurnumber)))
+	else :
+	    histodict['0'] = self.totalpointNumber()
+	    occurnumber[0] = self.totalpointNumber()
+        return histodict
+
+    def histogram(self,barnumber):
+	barlimits = []
+	barlimits.append(0)
+	occurnumber = []
+	occurnumber.append(0)
+        histodict = {}
+        if (self.maximum>0) :
+            interval = (self.maximum-1)/float(barnumber)
+            for i in range(barnumber):
+		barlimits.append(int(round(1+i*interval)))
+		occurnumber.append(0)
+                histodict[str(int(round(1+i*interval)))] = 0
+	    for i in range(self.totalpointNumber()):
+                k = 0		
+		for j in range(1,barnumber+1):
+	            if (self.data[i]>= barlimits[j]) :
+                        k = k+1
+		occurnumber[k]=occurnumber[k]+1
+	    histodict = dict(zip(range(barnumber+1),zip(barlimits,occurnumber)))
+	else :
+	    histodict['0'] = self.totalpointNumber()
+	    occurnumber[0] = self.totalpointNumber()
+        return histodict
 
 if __name__ == "__main__":
     
@@ -263,12 +323,20 @@ if __name__ == "__main__":
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     print "of"    
     print distancegridintervals
-    
+
+    startTime = time.time()
     resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+    readTime = time.time() - startTime
+
+    print('resize in {:.2f}s'.format(readTime))
 
 #    print resizebargrid.bars  101 0.17 s ; 1001 114 s
-
+    startTime = time.time()
     distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+    readTime = time.time() - startTime
+
+    print('init distance in {:.2f}s'.format(readTime))
+
     
    
     lowborders = []    
@@ -282,8 +350,18 @@ if __name__ == "__main__":
     readTime = time.time() - startTime
     print('distance in {:.2f}s'.format(readTime))
   
-    data = distancegrid.toDataPointDistance()
-    
+#    data = distancegrid.toDataPointDistance()
+
+    startTime = time.time()
+    histodict = distancegrid.histogram(10)    
+    readTime = time.time() - startTime
+    print('histogram in {:.2f}s'.format(readTime))
+
+    startTime = time.time()
+    histodict2 = distancegrid.histogramFromBarGrid(resizebargrid,10)
+    readTime = time.time() - startTime
+    print('histogram with bargrid in {:.2f}s'.format(readTime))
+
 '''
     data = []
     dim1 = 1000

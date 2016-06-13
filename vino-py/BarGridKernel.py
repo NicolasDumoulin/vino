@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 import os
 import numpy as np
-import re, math
 from overrides import overrides
 from sortedcontainers import SortedList
+import re, math
 from Kernel import Kernel
 from RegularGridKernel import RegularGridKernel
 
