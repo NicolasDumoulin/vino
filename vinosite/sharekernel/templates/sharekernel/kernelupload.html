@@ -4,6 +4,7 @@
 <script src="{% static 'sharekernel/vis.js' %}"></script>
 <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/histogram.css' %}" />
 
 <body>
     To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
@@ -22,7 +23,11 @@
     </form>
     <p><input type="submit" id="viewVis" value="View with vis.js" /></p>
     <p><input type="submit" id="viewPlotly" value="View with plotly.js" /></p>
+    <p><input type="submit" id="viewHisto" value="View Distance Histogram" /> with maximum value <input id="maxvalue"></p>
     <div id="viewPanel"></div>
+    <div id="histoTitle"></div>
+    <div id="histo"></div>
+    <div id="labels"></div></div>
     <script type="text/javascript">
         // adding crsf token inside the ajax query, needed by Django
         $.ajaxSetup({
@@ -48,9 +53,9 @@
                 }
             }
         });
-        function loadAndPlot(callback) {
+        function loadAndPlot(url,callback) {
             $('#viewPanel').empty();
-            $.ajax({ url: "{% url 'sharekernel:bargrid2json' %}",
+            $.ajax({ url: url,
                     type: "POST",
                     data: new FormData($('#uploadForm')[0]),
                     processData: false,
@@ -61,7 +66,8 @@
             return false;
         }
         $("#viewVis").click(function(){
-            loadAndPlot(function (data) {
+            var url = "{% url 'sharekernel:bargrid2json' %}"
+	    loadAndPlot(url,function (data) {
                 var container = document.getElementById('viewPanel');
                 var items = [];
                 $.each(data, function(index, bar) {
@@ -73,7 +79,8 @@
             })
         });
         $("#viewPlotly").click(function(){
-            loadAndPlot(function (data) {
+            var url = "{% url 'sharekernel:bargrid2json' %}"
+	    loadAndPlot(url,function (data) {
                 var container = document.getElementById('viewPanel');
                 var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [] }, hoverinfo:'none' };
                 $.each(data, function(index,bar) {
@@ -84,5 +91,92 @@
                 Plotly.newPlot(container,[items],{margin:{t:0}});
             })
         });
+        $("#viewHisto").click(function(){
+	    var url = "{% url 'sharekernel:bargrid2json2' 0 %}";
+	    var x, text;
+	    document.getElementById('histo').innerHTML = "";
+            // Get the value of the input field with id="numb"
+            x = document.getElementById("maxvalue").value;
+//	    x = 5;
+	    // If x is Not a Number 
+    	    if (isNaN(x) || x=="%20") {
+        	text = "Input not valid : " + x;
+    	    } else {
+        	text = "Distance Histogram with values between 1 and " + x;
+	    	url = url.replace("0",x);
+	    	loadAndPlot(url,function (data) {
+//                	var container = document.getElementById('viewPanel');
+			var items = {x:[],y:[]};
+//	        	container.innerHTML="Youpi";
+			$.each(data, function(index,bar) {
+                    	items.x.push(bar[0]);
+                    	items.y.push(bar[1]);
+	        	});
+	        	histodata(items.x,items.y);
+	        	makeGraph();
+		          
+	    	})
+	    }
+	    document.getElementById('histoTitle').innerHTML= text;
+        });
+	function histodata(x,y)
+	{
+ 	/**** ch est une chaine qui va recevoir toutes les commandes HTML permettant mettre les valeurs de l'hitogrammme dans un tableau html************/
+        var container = document.getElementById('histo');
+	var max = x.length;
+ 	var ch="";
+ 	ch+='<ul>';
+        for (var i=1;i<max;i++)
+  	{ //dessin des barres
+   	ch+='<li>'+y[i]+':'+x[i]+'</li>';
+  	}
+ 	ch+='</ul>'; 
+
+ 	container.innerHTML=ch;
+	}
+
+    function makeGraph()
+    {
+    var container = document.getElementById("histo");
+    var labels = document.getElementById("labels");
+    var dnl = container.getElementsByTagName("li");
+    var maxvalue = 0;
+    for(var i = 0; i < (dnl.length-1); i++)
+    {
+	if (parseInt(dnl.item(i).innerHTML.split(":")[0]) > maxvalue){
+	    maxvalue = parseInt(dnl.item(i).innerHTML.split(":")[0]);
+	}
+      }
+    labels.innerHTML = "<span style='margin:16px'></span>";
+    if (maxvalue == 0) maxvalue = 200;
+    for(i = 0; i < dnl.length; i++)
+    {
+        var item = dnl.item(i);
+        var value = item.innerHTML;
+        var content = value.split(":");
+        value = content[0];
+        item.innerHTML = value;
+	if (parseInt(value)>maxvalue){
+		value = maxvalue+10;
+		item.style.borderTop = "1px dotted white";
+	}
+        item.style.top=(199 - value*200/maxvalue) + "px";
+        item.style.left = (i * 61 + 20) + "px";
+        item.style.height = value*200/maxvalue + "px";
+	item.style.width = 60 + "px";
+        item.style.visibility="visible";	
+        left = (i * 60 + 120) + "px";
+//	labels.innerHTML = labels.innerHTML + content[1];
+	var ecart = "";
+	if (parseInt(content[1])<10) ecart= "25";
+	else if (parseInt(content[1])<100) ecart= "21";
+	else if (parseInt(content[1])<1000) ecart= "16";
+	else ecart= "10";  	
+	labels.innerHTML = labels.innerHTML +
+             "<span style='margin:"+ecart+"px'>" + 
+             content[1] + "</span>";      
+    }
+}
+
     </script>
 </body>

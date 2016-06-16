@@ -190,7 +190,8 @@ def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
         bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-        distancegriddimensions = [301,301]
+#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        distancegriddimensions = [31,31] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
@@ -209,10 +210,43 @@ def bargrid2json(request):
         
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
         
-        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False)
+        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
     
+def bargrid2json2(request,hist_maxvalue):
+    if request.method == 'POST':
+        source=request.FILES['docfile'] # InMemoryUploadedFile instance
+        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
+#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        distancegriddimensions = [31,31] #[301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+	histo = distancegrid.histogram(10,int(hist_maxvalue))
+
+#        insidegrid = grid.getInside()
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
+        
+#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
+        
+#        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
+        return HttpResponse(out_json)#, mimetype='text/plain')
+    return HttpResponse("Nothing to do")
+
+
 def compareresult(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)

@@ -284,25 +284,26 @@ class Matrix(object):
 	    occurnumber[0] = self.totalpointNumber()
         return histodict
 
-    def histogram(self,barnumber):
+    def histogram(self,barnum,maxdistance):
 	barlimits = []
 	barlimits.append(0)
 	occurnumber = []
 	occurnumber.append(0)
         histodict = {}
-        if (self.maximum>0) :
-            interval = (self.maximum-1)/float(barnumber)
-            for i in range(barnumber):
+        if (maxdistance>0) :
+            barnumber = barnum-1
+            interval = (maxdistance-1)/float(barnumber)
+            for i in range(barnumber+1):
 		barlimits.append(int(round(1+i*interval)))
 		occurnumber.append(0)
                 histodict[str(int(round(1+i*interval)))] = 0
 	    for i in range(self.totalpointNumber()):
                 k = 0		
-		for j in range(1,barnumber+1):
+		for j in range(1,barnumber+2):
 	            if (self.data[i]>= barlimits[j]) :
                         k = k+1
 		occurnumber[k]=occurnumber[k]+1
-	    histodict = dict(zip(range(barnumber+1),zip(barlimits,occurnumber)))
+	    histodict = dict(zip(range(barnumber+2),zip(barlimits,occurnumber)))
 	else :
 	    histodict['0'] = self.totalpointNumber()
 	    occurnumber[0] = self.totalpointNumber()
@@ -319,7 +320,7 @@ if __name__ == "__main__":
 #    bargrid.addBar([2],5,5)
 #    bargrid.addBar([3],0,10)
     bargrid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
-    distancegriddimensions = [2001,2001]
+    distancegriddimensions = [31,31]#[2001,2001]
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     print "of"    
     print distancegridintervals
@@ -353,7 +354,7 @@ if __name__ == "__main__":
 #    data = distancegrid.toDataPointDistance()
 
     startTime = time.time()
-    histodict = distancegrid.histogram(10)    
+    histodict = distancegrid.histogram(10,distancegrid.maximum)    
     readTime = time.time() - startTime
     print('histogram in {:.2f}s'.format(readTime))
 
