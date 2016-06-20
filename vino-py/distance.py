@@ -252,15 +252,16 @@ class Matrix(object):
                     positions = map(lambda e: e-spacesize+spacesizeup, positions)
             self.maximum = max(self.data)	
         
-    def histogramFromBarGrid(self,bargrid,barnumber):
+    def histogramFromBarGrid(self,bargrid,barnum,maxdistance):
 	barlimits = []
 	barlimits.append(0)
 	occurnumber = []
 	occurnumber.append(0)
         histodict = {}
-        if (self.maximum>0) :
-            interval = (self.maximum-1)/float(barnumber)
-            for i in range(barnumber):
+        if (maxdistance>0) :
+            barnumber = barnum-1
+	    interval = (maxdistance-1)/float(barnumber)
+            for i in range(barnumber+1):
 		barlimits.append(int(round(1+i*interval)))
 		occurnumber.append(0)
                 histodict[str(int(round(1+i*interval)))] = 0
@@ -274,11 +275,11 @@ class Matrix(object):
                     position = position + spacesizes[i]*bar[i]         
                 for i in range(int(position)+int(bar[-2]),int(position)+int(bar[-1]+1)):
                     k = 0		
-	            for j in range(1,barnumber+1):
+	            for j in range(1,barnumber+2):
 	                if (self.data[i]>= barlimits[j]) :
                             k = k+1
 		    occurnumber[k]=occurnumber[k]+1
-	    histodict = dict(zip(range(barnumber+1),zip(barlimits,occurnumber)))
+	    histodict = dict(zip(range(barnumber+2),zip(barlimits,occurnumber)))
 	else :
 	    histodict['0'] = self.totalpointNumber()
 	    occurnumber[0] = self.totalpointNumber()
@@ -331,6 +332,14 @@ if __name__ == "__main__":
 
     print('resize in {:.2f}s'.format(readTime))
 
+    resizebargrid2 = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+    for bar in resizebargrid2.bars:
+        bar[1]=bar[1]+1
+        bar[2]=bar[2]-1
+
+    minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
+
+
 #    print resizebargrid.bars  101 0.17 s ; 1001 114 s
     startTime = time.time()
     distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
@@ -354,14 +363,28 @@ if __name__ == "__main__":
 #    data = distancegrid.toDataPointDistance()
 
     startTime = time.time()
-    histodict = distancegrid.histogram(10,distancegrid.maximum)    
+    histo = distancegrid.histogram(12, 55)#distancegrid.maximum)    
     readTime = time.time() - startTime
     print('histogram in {:.2f}s'.format(readTime))
 
     startTime = time.time()
-    histodict2 = distancegrid.histogramFromBarGrid(resizebargrid,10)
+    histo1 = distancegrid.histogramFromBarGrid(minusgrid12,12,55)#distancegrid.maximum)
     readTime = time.time() - startTime
     print('histogram with bargrid in {:.2f}s'.format(readTime))
+
+    limits=[]
+    occurnumber = []
+    occurnumber1 = []
+
+    for key in histo.keys():
+	limits.append(histo.get(key)[0])
+        occurnumber.append(histo.get(key)[1])
+	occurnumber1.append(histo1.get(key)[1])
+
+    histoCompar = dict(zip(histo.keys(),zip(limits,occurnumber,occurnumber1)))
+
+#	histo[key].append(histo1.get(key)[1])
+
 
 '''
     data = []

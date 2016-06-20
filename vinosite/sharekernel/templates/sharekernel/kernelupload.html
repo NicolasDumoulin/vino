@@ -24,6 +24,7 @@
     <p><input type="submit" id="viewVis" value="View with vis.js" /></p>
     <p><input type="submit" id="viewPlotly" value="View with plotly.js" /></p>
     <p><input type="submit" id="viewHisto" value="View Distance Histogram" /> with maximum value <input id="maxvalue"></p>
+    <p><input type="submit" id="viewHistoComparison" value="View Distance Histogram Comparison" /> with maximum value <input id="maxvalueComparison"></p>
     <div id="viewPanel"></div>
     <div id="histoTitle"></div>
     <div id="histo"></div>
@@ -113,13 +114,47 @@
                     	items.y.push(bar[1]);
 	        	});
 	        	histodata(items.x,items.y);
-	        	makeGraph();
+//	        	makeGraph();
+			makeGraph();
 		          
 	    	})
 	    }
 	    document.getElementById('histoTitle').innerHTML= text;
         });
-	function histodata(x,y)
+
+        $("#viewHistoComparison").click(function(){
+	    var url = "{% url 'sharekernel:bargrid2json3' 0 %}";
+	    var x, text;
+	    document.getElementById('histo').innerHTML = "";
+            // Get the value of the input field with id="numb"
+            x = document.getElementById("maxvalueComparison").value;
+//	    x = 5;
+	    // If x is Not a Number 
+    	    if (isNaN(x) || x=="%20") {
+        	text = "Input not valid : " + x;
+    	    } else {
+        	text = "Distance Histogram Comparison with values between 1 and " + x;
+	    	url = url.replace("0",x);
+	    	loadAndPlot(url,function (data) {
+//                	var container = document.getElementById('viewPanel');
+			var items = {x:[],y:[],z:[]};
+//	        	container.innerHTML="Youpi";
+			$.each(data, function(index,bar) {
+                    	items.x.push(bar[0]);
+                    	items.y.push(bar[1]);
+			items.z.push(bar[2]);
+	        	});
+	        	histodataComparison(items.x,items.y,items.z);
+//	        	makeGraph();
+			makeGraphComparison();
+		          
+	    	})
+	    }
+	    document.getElementById('histoTitle').innerHTML= text;
+        });
+
+
+    function histodata(x,y)
 	{
  	/**** ch est une chaine qui va recevoir toutes les commandes HTML permettant mettre les valeurs de l'hitogrammme dans un tableau html************/
         var container = document.getElementById('histo');
@@ -129,6 +164,22 @@
         for (var i=1;i<max;i++)
   	{ //dessin des barres
    	ch+='<li>'+y[i]+':'+x[i]+'</li>';
+  	}
+ 	ch+='</ul>'; 
+
+ 	container.innerHTML=ch;
+	}
+
+    function histodataComparison(x,y,z)
+	{
+ 	/**** ch est une chaine qui va recevoir toutes les commandes HTML permettant mettre les valeurs de l'hitogrammme dans un tableau html************/
+        var container = document.getElementById('histo');
+	var max = x.length;
+ 	var ch="";
+ 	ch+='<ul>';
+        for (var i=1;i<max;i++)
+  	{ //dessin des barres
+   	ch+='<li>'+y[i]+':'+z[i]+':'+x[i]+'</li>';
   	}
  	ch+='</ul>'; 
 
@@ -175,6 +226,61 @@
 	labels.innerHTML = labels.innerHTML +
              "<span style='margin:"+ecart+"px'>" + 
              content[1] + "</span>";      
+    }
+}
+
+
+    function makeGraphComparison()
+    {
+    var container = document.getElementById("histo");
+    var labels = document.getElementById("labels");
+    var dnl = container.getElementsByTagName("li");
+    var maxvalue = 0;
+    for(var i = 0; i < (dnl.length-1); i++)
+    {
+	if (parseInt(dnl.item(i).innerHTML.split(":")[0]) > maxvalue){
+	    maxvalue = parseInt(dnl.item(i).innerHTML.split(":")[0]);
+	}
+      }
+    labels.innerHTML = "<span style='margin:16px'></span>";
+    if (maxvalue == 0) maxvalue = 200;
+    for(i = 0; i < dnl.length; i++)
+    {
+        var item = dnl.item(i);
+        var value = item.innerHTML;
+        var content = value.split(":");
+        value = content[0];
+	var value1 = value;
+	var value2 = content[1];
+	var value2bis = value2;
+	var topposition = -20;
+	var topposition2 = 0;
+	if (parseInt(value)>maxvalue){
+		value1 = maxvalue+10;
+		topposition = 0;
+		item.style.borderTop = "1px dotted white";
+	}
+	if (parseInt(value2)>maxvalue){
+		value2bis = maxvalue+10;
+		topposition2 = 20;
+	}
+
+        item.innerHTML = "<div style=\"position:absolute;left:0px;top : "+((value1 - value2bis)*200/maxvalue)+"px;width:60px;height:"+value2bis*200/maxvalue +"px;background-color: #cceeff\"><font color=\"blue\"><div style=\"position:absolute;top : "+topposition2+"px;width:59px\">"+value2+"</div></font></div><div style=\"position:absolute;top : "+topposition+"px;width:59px\">"+value+"</div>";
+        item.style.top=(199 - value1*200/maxvalue) + "px";
+        item.style.left = (i * 61 + 20) + "px";
+        item.style.height = value1*200/maxvalue + "px";
+	item.style.width = 60 + "px";
+        item.style.visibility="visible";	
+        left = (i * 60 + 120) + "px";
+//	labels.innerHTML = labels.innerHTML + content[1];
+	var ecart = "";
+	if (parseInt(content[2])<10) ecart= "25";
+	else if (parseInt(content[2])<100) ecart= "21";
+	else if (parseInt(content[2])<1000) ecart= "16";
+	else ecart= "10";  	
+	labels.innerHTML = labels.innerHTML +
+             "<span style='margin:"+ecart+"px'>" + 
+             content[2] + "</span>";      
     }
 }
 

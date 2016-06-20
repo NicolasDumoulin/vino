@@ -233,7 +233,7 @@ def bargrid2json2(request,hist_maxvalue):
 
         distancegrid.distance(norm,lowborders,upborders)
         data = distancegrid.toDataPointDistance()
-	histo = distancegrid.histogram(10,int(hist_maxvalue))
+	histo = distancegrid.histogram(12,int(hist_maxvalue))
 
 #        insidegrid = grid.getInside()
 #        minusgrid = grid.MinusBarGridKernel(insidegrid)        
@@ -246,6 +246,93 @@ def bargrid2json2(request,hist_maxvalue):
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
 
+def bargrid2json3(request,hist_maxvalue):
+    if request.method == 'POST':
+        source=request.FILES['docfile'] # InMemoryUploadedFile instance
+        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
+#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        distancegriddimensions = [31,31] #[301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+	resizebargrid2 = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        for bar in resizebargrid2.bars:
+            bar[1]=bar[1]+1
+            bar[2]=bar[2]-1
+        minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
+	distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+	histo = distancegrid.histogram(10,int(hist_maxvalue))
+        histo1 = distancegrid.histogramFromBarGrid(minusgrid12,10,int(hist_maxvalue))
+
+        limits=[]
+        occurnumber = []
+        occurnumber1 = []
+
+        for key in histo.keys():
+	    limits.append(histo.get(key)[0])
+            occurnumber.append(histo.get(key)[1])
+	    occurnumber1.append(histo1.get(key)[1])
+	histoCompar = {}
+	histoCompar = dict(zip(histo.keys(),zip(limits,occurnumber,occurnumber1)))
+#        insidegrid = grid.getInside()
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
+        
+#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
+        
+#        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+	out_json = json.dumps(histoCompar, sort_keys = True, ensure_ascii=False)
+        return HttpResponse(out_json)#, mimetype='text/plain')
+    return HttpResponse("Nothing to do")
+
+
+def bargrid2json3bis(request,hist_maxvalue):
+    if request.method == 'POST':
+        source=request.FILES['docfile'] # InMemoryUploadedFile instance
+        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
+        distancegriddimensions = [31,31]#[2001,2001]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+#        resizebargrid2 = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+#        for bar in resizebargrid2.bars:
+#            bar[1]=bar[1]+1
+#            bar[2]=bar[2]-1
+
+        minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
+
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+          lowborders.append(False)
+          upborders.append(False)
+        distancegrid.distance(norm,lowborders,upborders)
+        histo = distancegrid.histogram(12, hist_maxvalue)    
+#        histo1 = distancegrid.histogramFromBarGrid(minusgrid12,12,hist_maxvalue)
+
+#        limits=[]
+#        occurnumber = []
+#        occurnumber1 = []
+
+#        for key in histo.keys():
+#	    limits.append(histo.get(key)[0])
+#            occurnumber.append(histo.get(key)[1])
+#	    occurnumber1.append(histo1.get(key)[1])
+
+#        histoCompar = dict(zip(histo.keys(),zip(limits,occurnumber,occurnumber1)))
+
+	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
+        return HttpResponse(out_json)#, mimetype='text/plain')
+    return HttpResponse("Nothing to do")
 
 def compareresult(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
@@ -270,6 +357,8 @@ def compareresult(request, vinoA_id, vinoB_id):
     for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
+
+
 
 def kernelupload(request):
     form = DocumentForm()
