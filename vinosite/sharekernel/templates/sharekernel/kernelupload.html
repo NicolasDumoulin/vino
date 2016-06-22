@@ -1,12 +1,14 @@
+{% extends "base.html" %}
+
 {% load staticfiles %}
+{% block head %}
+    <script src="{% static 'sharekernel/vis.js' %}"></script>
+    <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/histogram.css' %}" />
+{% endblock %}
+{% block body %}
 
-<script src="{% static 'sharekernel/jquery-2.1.4.min.js' %}"></script>
-<script src="{% static 'sharekernel/vis.js' %}"></script>
-<script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/histogram.css' %}" />
-
-<body>
     To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
 
     <!-- Upload form. Note enctype attribute! -->
@@ -28,7 +30,7 @@
     <div id="viewPanel"></div>
     <div id="histoTitle"></div>
     <div id="histo"></div>
-    <div id="labels"></div></div>
+    <div id="labels"></div>
     <script type="text/javascript">
         // adding crsf token inside the ajax query, needed by Django
         $.ajaxSetup({
@@ -285,4 +287,6 @@
 }
 
     </script>
-</body>
+
+    
+{% endblock %}
