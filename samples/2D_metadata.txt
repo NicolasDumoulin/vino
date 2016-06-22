@@ -1,0 +1,43 @@
+//Metadonnées pour la description du problème de viabilité
+#category.text:Environmental Sciences
+
+#viabilityproblem.title:Lake eutrophication bis
+#viabilityproblem.issue:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
+#viabilityproblem.statedimension:2
+#viabilityproblem.statenameandabbreviation:Phosphorus Inputs, L, Phosphorus Concentration, P
+#viabilityproblem.controldimension:1
+#viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation, u
+#viabilityproblem.dynamicsdescription:x'=u, y'=-by+x+r+y^q/(m^q+y^q)
+#viabilityproblem.admissiblecontroldescription:u\in [umin;umax]
+#viabilityproblem.dynamicsparameters:b,r,q,m,umin,umax
+#viabilityproblem.stateconstraintdescription:x\in [Lmin; Lmax], y\in[0,Pmax]
+#viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax 
+#viabilityproblem.targetdescription:none
+#viabilityproblem.targetparameters:none
+
+//Metadonnées pour la description des valeurs des paramètres
+#parameters.dynamicsparametervalues:0.8,1,8,1,-0.09,0.09
+#parameters.stateconstraintparametervalues:0.1,1,1.4
+#parameters.targetparametervalues:none
+
+//Metadonnées correspondant au programme utilisé pour le calcul
+
+#algorithm.name:Programme de Patrick Saint-Pierre
+#algorithm.author:Patrick Saint-Pierre 
+#algorithm.version:none
+#algorithm.publication:Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209.  
+#algorithm.softwarewebsite:none
+#algorithm.softwarecontact:none
+#algorithm.softwareparameters:none
+
+//Métadonnées concernant la description du fichier de sortie. 
+#resultformat.name:bars
+#resultformat.description:Sur chaque ligne du fichier un nombre identique d entiers allant de 0 a #PointNumberPerAxis correspondant a un segment appartenant au noyau approche 
+#resultformat.parameterlist:MinimalValues,MaximalValues,PointNumberPerAxis,PointSize,ColumnDescription
+
+//Métadonnées concernant l'obtention des résultats 
+#results.author:Nicolas Dumoulin
+#results.submissiondate:2015-09-09
+#results.contactemail:sophie.martin@irstea.fr
+#results.softwareparametervalues:none
+#results.formatparametervalues:0.1,0/1,1.4/65537,65537/1/vide,vide,y,xmin,xmax

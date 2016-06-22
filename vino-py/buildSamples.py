@@ -7,7 +7,7 @@ def testRead():
     hm = HDF5Manager([BarGridKernel])
     grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D.txt')
     myre = re.compile('^#(.*):(.*)$')
-    with open('dataessai.txt') as f:
+    with open('../samples/2D_metadata.txt') as f:
       for line in f:
         if line.startswith('#'):
           k,v = myre.match(line).groups()
