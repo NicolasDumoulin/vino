@@ -1,9 +1,6 @@
-{% load staticfiles %}
+{% extends "base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
-
-
-<body>
+{% block body %}
 	<div id="container">
 		<div id="topbar"> 
 		</div>
@@ -12,11 +9,9 @@
 		<div id="main">
 			Several viability kernel approximations have been obtained in many fiels.<br>
  
-			The viability kernel approximations available on this website have been deposed by their authors.<br> They 
-			<ul>
-			<li>Either have been published in scientific revues </li>
-			<li>Or show the efficiency of their approximation algorithms and softwares </li>
- 			</ul>
+			The viability kernel approximations available on this website have been posted by their authors.<br> They 
+			either have been published in scientific revues or show the efficiency of approximation algorithms and softwares used to compute them. <br><br>
+			They are classified into the following categories :<br><br>
 
 			<div id="column_left"> {% if category_list %}
 			    <ul>
@@ -49,5 +44,4 @@
 		</div>
 	<!-- close #container -->
 	</div>
-</body>
-
+{% endblock %}

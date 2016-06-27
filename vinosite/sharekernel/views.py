@@ -47,6 +47,7 @@ def visitresult(request,result_id):
     dynparval = []
     staconparval = []
     tarparval = []
+    softparval = []
     tabvalues = []
     tabvaluesbis = []
     tabvaluesbisbis = []
@@ -62,6 +63,8 @@ def visitresult(request,result_id):
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
+    if tardes[0]=="none":
+        tardes = []
     a = r.algorithm
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
@@ -79,7 +82,10 @@ def visitresult(request,result_id):
         staconparval.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
     for i in range(len(vp.targetparameters.split(","))):
         tarparval.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-
+    if a.softwareparameters.split(",")[0]!="none":
+        for i in range(len(a.softwareparameters.split(","))):
+            softparval.append(''.join([a.softwareparameters.split(",")[i]," = ",r.softwareparametervalues.split(",")[i]]))
+    '''
     r_list = Results.objects.filter(parameters = p)
     if r_list:
         tabvaluesbisbis = []
@@ -105,8 +111,22 @@ def visitresult(request,result_id):
             tabvaluesbis.append(tabvaluesbisbis)
             tabvaluesbisbis = []
         tabvalues.append(tabvaluesbis)
-        tabvaluesbis = []    
-    context = {'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval,'tabvalues' : tabvalues}
+        tabvaluesbis = []
+    '''    
+    version = []
+    if a.version!="none":
+        version.append(a.version)
+    publication = []
+    if a.publication!="none":
+        publication.append(a.publication)
+    website = []
+    if a.softwarewebsite!="none":
+        website.append(a.softwarewebsite)
+    contact = []
+    if a.softwarecontact!="none":
+        contact.append(a.softwarecontact)
+
+    context = {'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
     return render(request, 'sharekernel/visitresult.html', context)            
 
 def visitviabilityproblem(request,viabilityproblem_id):
@@ -130,6 +150,8 @@ def visitviabilityproblem(request,viabilityproblem_id):
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
+    if tardes[0]=="none":
+        tardes = []
     p_list = Parameters.objects.filter(viabilityproblem=vp)
     a_list = Algorithm.objects.all()
     tabvaluesbisbis.append("Parameter Values")
@@ -151,8 +173,9 @@ def visitviabilityproblem(request,viabilityproblem_id):
                 tabvaluesbisbis.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
             for i in range(len(vp.stateconstraintparameters.split(","))):
                 tabvaluesbisbis.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
-            for i in range(len(vp.targetparameters.split(","))):
-                tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
+            if vp.targetparameters.split(",")[0]!="none":
+                for i in range(len(vp.targetparameters.split(","))):
+                    tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
 
 
             tabvaluesbis.append(tabvaluesbisbis)
@@ -170,7 +193,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
                 tabvaluesbisbis = []
             tabvalues.append(tabvaluesbis)
             tabvaluesbis = []    
-    context = {'viabilityproblem' : vp,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab,'tabvalues' : tabvalues}
+    context = {'category' : vp.category,'viabilityproblem' : vp,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab,'tabvalues' : tabvalues}
     return render(request, 'sharekernel/visitviabilityproblem.html', context)            
 
 def kerneluploaded(request):

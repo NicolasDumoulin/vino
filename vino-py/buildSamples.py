@@ -13,8 +13,8 @@ def testRead():
         if line.startswith('#'):
           k,v = myre.match(line).groups()
           grid.metadata[k.strip()]=v.strip()
-    hm.writeKernel(grid, 'test.h5')
-    grid2 = hm.readKernel('test.h5')
+    hm.writeKernel(grid, '2Dlake.h5')
+    grid2 = hm.readKernel('2Dlake.h5')
 #    print(grid2.metadata)
 #    print(metadata.category)
     print(grid2.metadata[METADATA.category])
