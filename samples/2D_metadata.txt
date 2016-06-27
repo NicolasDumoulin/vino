@@ -1,5 +1,6 @@
 //Metadonnées pour la description du problème de viabilité
 #category.text:Environmental Sciences
+#category.color:3
 
 #viabilityproblem.title:Lake eutrophication bis
 #viabilityproblem.issue:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
