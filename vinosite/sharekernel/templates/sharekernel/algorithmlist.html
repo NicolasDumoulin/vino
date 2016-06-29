@@ -1,3 +1,16 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+Please find below the softwares used to compute the results stored in the database :
+<br><br>
+
 {% if algorithm_list %}
     <ul>
     {% for algorithm in algorithm_list %}
@@ -8,3 +21,13 @@
     <p>No algorithms are available.</p>
 {% endif %}
 <a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+
+			<div class="spacer"></div>
+
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+
+{% endblock %}

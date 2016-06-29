@@ -48,6 +48,7 @@ def visitresult(request,result_id):
     staconparval = []
     tarparval = []
     softparval = []
+    formatparval = []
     tabvalues = []
     tabvaluesbis = []
     tabvaluesbisbis = []
@@ -66,6 +67,7 @@ def visitresult(request,result_id):
     if tardes[0]=="none":
         tardes = []
     a = r.algorithm
+    f = r.resultformat
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
     tabvaluesbisbis = []
@@ -85,6 +87,10 @@ def visitresult(request,result_id):
     if a.softwareparameters.split(",")[0]!="none":
         for i in range(len(a.softwareparameters.split(","))):
             softparval.append(''.join([a.softwareparameters.split(",")[i]," = ",r.softwareparametervalues.split(",")[i]]))
+    if f.parameterlist.split(",")[0]!="none":
+        for i in range(len(f.parameterlist.split(","))):
+            formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
+
     '''
     r_list = Results.objects.filter(parameters = p)
     if r_list:
@@ -126,7 +132,7 @@ def visitresult(request,result_id):
     if a.softwarecontact!="none":
         contact.append(a.softwarecontact)
 
-    context = {'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
+    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat,'category' : r.parameters.viabilityproblem.category, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
     return render(request, 'sharekernel/visitresult.html', context)            
 
 def visitviabilityproblem(request,viabilityproblem_id):
@@ -423,12 +429,31 @@ def categorylist(request,category_id,viabilityproblem_id,parameters_id,algorithm
     
 def viabilityproblemlist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
     vp_list = ViabilityProblem.objects.filter(category=Category.objects.get(id=category_id))
-    context = {'viabilityproblem_list' : vp_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
+    context = {'category' : Category.objects.get(id=category_id),'viabilityproblem_list' : vp_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/viabilityproblemlist.html', context)            
     
 def parameterslist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
-    p_list = Parameters.objects.filter(viabilityproblem=ViabilityProblem.objects.get(id=viabilityproblem_id))
-    context = {'parameters_list' : p_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
+    tabvalues = []
+    vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
+    p_list = Parameters.objects.filter(viabilityproblem=vp)
+    if vp.dynamicsparameters.split(",")[0]!="none":
+        for i in range(len(vp.dynamicsparameters.split(","))):
+            tabvalues.append(vp.dynamicsparameters.split(",")[i])
+            for p in p_list:
+                tabvalues.append(p.dynamicsparametervalues.split(",")[i])
+    if vp.stateconstraintparameters.split(",")[0]!="none":
+        for i in range(len(vp.stateconstraintparameters.split(","))):
+            tabvalues.append(vp.stateconstraintparameters.split(",")[i])
+            for p in p_list:
+                tabvalues.append(p.stateconstraintparametervalues.split(",")[i])
+    if vp.targetparameters.split(",")[0]!="none":
+        for i in range(len(vp.targetparameters.split(","))):
+            tabvalues.append(vp.targetparameters.split(",")[i])
+            for p in p_list:
+                tabvalues.append(p.targetparametervalues.split(",")[i])
+
+       
+    context = {'n' : range(len(p_list)),'N' : len(p_list)+1,'tabvalues': tabvalues,'viabilityproblem' : vp,'parameters_list' : p_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/parameterslist.html', context)            
 
 def algorithmlist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):

@@ -6,7 +6,9 @@
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}"> Up </a></div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}"> Up </a><br>
+<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
+</div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
 <h4>{{viabilityproblem.category.category_text}}</h4>
@@ -16,8 +18,14 @@
 <p> It was computed thanks to {{algorithm.name}} {% if version %} version {{algorithm.version}} {% endif %} implemented by {{algorithm.author}} {% if publication %} described in 
 <i>{{algorithm.publication}}</i>{% endif%}. {% if website %}More information is available at {{algorithm.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{algorithm.softwarecontact}}.{% endif %}</p>
 <p>{% if softparval %} The software parameter values were the following : {% for i in softparval%} {{i}} {% endfor %}.{% else %} The software parameter values are not specified.{% endif %}</p>
-<h2>{{viabilityproblem.title}}</h2>
 
+<p>The format of the result file uploaded on this platform is the following : <br>{{resultformat.description}}</p>
+<p>The file format parameter values are the following : 
+<ul>
+{% for format in formatparval %}
+<li>{{format}}</li>
+{% endfor %}
+</ul></p>
 <p><a href="#" id="visualizebutton">Visualize</a></p>
 <p><a href="#" id="comparebutton">Compare with …</a></p>
 <div id="comparison-selection-box">

@@ -1,10 +1,39 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+
+<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+
+Please find below the parameter values for which results on the viability problem of {{viabilityproblem.title}} have been computed and stored in the database :
+<br><br>
 {% if parameters_list %}
-    <ul>
-    {% for parameters in parameters_list %}
-        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters.id algorithm_id resultformat_id %}">{{ parameters.dynamicsparametervalues }}</a></li>
+ 
+
+<table>
+<tr><th>Parameters</th>     {% for parameters in parameters_list %}<th><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters.id algorithm_id resultformat_id %}">Parameter Values</a></th>{% endfor %}</tr>
+<tr>
+    {% for parameters in tabvalues %}
+        <td>{{ parameters }}</td>{% if forloop.counter|divisibleby:N %} </tr><tr>{% endif %}
     {% endfor %}
-    </ul>
+</tr>
+</table>
 {% else %}
     <p>No parameters are available.</p>
 {% endif %}
 <a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+
+			<div class="spacer"></div>
+
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+
+{% endblock %}

@@ -7,8 +7,7 @@
 		<div id="navbar"> <a href="{% url 'sharekernel:home' %}"> HOME </a> <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"> Up </a> </div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
-			 <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"><h4>{{category.text}}</h4></a>
-
+			 <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"><h5>{{category.text}}</h5> </a>
 				<h1>{{viabilityproblem.title}}</h1>
 				<h3>Issues : </h3>
 				{{viabilityproblem.issue}}
