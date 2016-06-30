@@ -1,50 +1,78 @@
-<h3>The file you are going to uptload must begin by :</h3>
+{% extends "base.html" %}
 
-<h2>Metadata for the viability problem description</h2>
-#Category:{% if category %}{{category.category_text}} {% else %} To be completed {% endif %}<br>
-#Title:{% if viabilityproblem %}{{viabilityproblem.title}} {% else %} To be completed {% endif %}<br>
-#Issue:{% if viabilityproblem %}{{viabilityproblem.issue}} {% else %} To be completed {% endif %}<br>
-#StateDimension:{% if viabilityproblem %}{{viabilityproblem.statedimension}} {% else %} To be completed {% endif %}<br>
-#StateNameAndAbbreviation:{% if viabilityproblem %}{{viabilityproblem.statenameandabbreviation}} {% else %} To be completed {% endif %}<br>
-#ControlDimension:{% if viabilityproblem %}{{viabilityproblem.controldimension}} {% else %} To be completed {% endif %}<br>
-#ControlNameAndAbbreviation:{% if viabilityproblem %}{{viabilityproblem.controlnameandabbreviation}} {% else %} To be completed {% endif %}<br>
-#DynamicsDescription:{% if viabilityproblem %}{{viabilityproblem.dynamicsdescription}} {% else %} To be completed {% endif %}<br>
-#AdmissibleControlDescription:{% if viabilityproblem %}{{viabilityproblem.admissiblecontroldescription}} {% else %} To be completed {% endif %}<br>
-#DynamicsParameters:{% if viabilityproblem %}{{viabilityproblem.dynamicsparameters}} {% else %} To be completed {% endif %}<br>
-#StateConstraintDescription:{% if viabilityproblem %}{{viabilityproblem.stateconstraintdescription}} {% else %} To be completed {% endif %}<br>
-#StateConstraintParameters:{% if viabilityproblem %}{{viabilityproblem.stateconstraintparameters}} {% else %} To be completed {% endif %}<br>
-#TargetDescription:{% if viabilityproblem %}{{viabilityproblem.targetdescription}} {% else %} To be completed {% endif %}<br>
-#TargetParameters:{% if viabilityproblem %}{{viabilityproblem.targetparameters}} {% else %} To be completed {% endif %}<br>
+{% block body %}
 
-<h2>Metadata for the parameter values </h2>
-#DynamicsParameterValues:{% if parameters %}{{parameters.dynamicsparametervalues}} {% else %} To be completed {% endif %}<br>
-#StateConstraintParameterValues:{% if parameters %}{{parameters.stateconstraintparametervalues}} {% else %} To be completed {% endif %}<br>
-#TargetParameterValues:{% if parameters %}{{parameters.targetparametervalues}} {% else %} To be completed {% endif %}<br>
+<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+Back to the <a href="/sharekernel/metadatafilespecification/N/N/N/N/N/">specification page.</a>
+<h4>You must fill out the following text describing the metadata associated with the result you want to upload and submit it on the <a href="{% url 'sharekernel:kernelupload' %}">upload page.</a></h4>
+<div style="width:100%;border:1px solid #000;">
+//Metadata describing the viability problem<br>
+<small>
+#category.text:{% if category %}{{category.text}} {% else %} To be completed (e.g., Environmental Sciences){% endif %}<br>
+#category.color:{% if category %}{{category.text}} {% else %} To be completed (e.g., 3){% endif %}<br>
+#viabilityproblem.title{% if viabilityproblem %}{{viabilityproblem.title}} {% else %} To be completed (e.g., Lake eutrophication){% endif %}<br>
+#viabilityproblem.issue:{% if viabilityproblem %}{{viabilityproblem.issue}} {% else %} To be completed (e.g., Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.){% endif %}<br>
+#viabilityproblem.statedimension:{% if viabilityproblem %}{{viabilityproblem.statedimension}} {% else %} To be completed (e.g., 2){% endif %}<br>
+#viabilityproblem.statenameandabbreviation:{% if viabilityproblem %}{{viabilityproblem.statenameandabbreviation}} {% else %} To be completed (e.g., Phosphorus Inputs,L/Phosphorus Concentration,P){% endif %}<br>
+#viabilityproblem.controldimension:{% if viabilityproblem %}{{viabilityproblem.controldimension}} {% else %} To be completed (e.g., 1){% endif %}<br>
+#viabilityproblem.controlnameandabbreviation:{% if viabilityproblem %}{{viabilityproblem.controlnameandabbreviation}} {% else %} To be completed (e.g., Phosphorus Inputs Variation, u){% endif %}<br>
+#viabilityproblem.dynamicsdescription:{% if viabilityproblem %}{{viabilityproblem.dynamicsdescription}} {% else %} To be completed (e.g., x'=u, y'=-by+x+r+y^q/(m^q+y^q)){% endif %}<br>
+#viabilityproblem.admissiblecontroldescription:{% if viabilityproblem %}{{viabilityproblem.admissiblecontroldescription}} {% else %} To be completed (e.g., u in [umin;umax]){% endif %}<br>
+#viabilityproblem.dynamicsparameters:{% if viabilityproblem %}{{viabilityproblem.dynamicsparameters}} {% else %} To be completed (e.g., b,r,q,m,umin,umax){% endif %}<br>
+#viabilityproblem.stateconstraintdescription:{% if viabilityproblem %}{{viabilityproblem.stateconstraintdescription}} {% else %} To be completed (e.g., x in [Lmin; Lmax],y in [0;Pmax]){% endif %}<br>
+#viabilityproblem.stateconstraintparameters:{% if viabilityproblem %}{{viabilityproblem.stateconstraintparameters}} {% else %} To be completed (e.g., Lmin,Lmax,Pmax){% endif %}<br>
+#viabilityproblem.targetdescription:{% if viabilityproblem %}{{viabilityproblem.targetdescription}} {% else %} To be completed {% endif %}<br>
+#viabilityproblem.targetparameters:{% if viabilityproblem %}{{viabilityproblem.targetparameters}} {% else %} To be completed {% endif %}<br>
+</small>
+<br>
+//Metadata describing the parameter values<br>
+<small>
+#parameters.dynamicsparametervalues:{% if parameters %}{{parameters.dynamicsparametervalues}} {% else %} To be completed (e.g., 0.8,1,8,1,-0.09,0.09){% endif %}<br>
+#parameters.stateconstraintparametervalues:{% if parameters %}{{parameters.stateconstraintparametervalues}} {% else %} To be completed (e.g., 0.1,1,1.4){% endif %}<br>
+#parameters.targetparametervalues:{% if parameters %}{{parameters.targetparametervalues}} {% else %} To be completed {% endif %}<br>
+</small>
+<br>
+//Metadata describing the software used to compute the result described by the output file<br>
+<small>
+#algorithm.name:{% if algorithm %}{{algorithm.name}} {% else %} To be completed (e.g., Patrick Saint-Pierre Software){% endif %}<br>
+#algorithm.author:{% if algorithm %}{{algorithm.author}} {% else %} To be completed (e.g., Patrick Saint-Pierre){% endif %}<br>
+#algorithm.version:{% if algorithm %}{{algorithm.version}} {% else %} To be completed {% endif %}<br>
+#algorithm.publication:{% if algorithm %}{{algorithm.publication}} {% else %} To be completed (e.g., Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209){% endif %}<br>
+#algorithm.softwarewebsite:{% if algorithm %}{{algorithm.softwarewebsite}} {% else %} To be completed {% endif %}<br>
+#algorithm.softwarecontact:{% if algorithm %}{{algorithm.softwarecontact}} {% else %} To be completed {% endif %}<br>
+#algorithm.softwareparameters:{% if algorithm %}{{algorithm.softwareparameters}} {% else %} To be completed {% endif %}<br>
+</small>
+<br>
+//Metadata describing the software output file<br>
+<small> 
+#resultformat.name:{% if resultformat %}{{resultformat.name}}{% endif %}<br>
+#resultformat.description:{% if resultformat %}{{resultformat.description}}{% endif %}<br>
+#resultformat.parameterlist:{% if resultformat %}{{resultformat.parameterlist}}{% endif %}<br>
+</small>
+<br>
 
-<h2>Metadata for the software </h2>
-#ProgramName:{% if algorithm %}{{algorithm.name}} {% else %} To be completed {% endif %}<br>
-#ProgramAuthor:{% if algorithm %}{{algorithm.author}} {% else %} To be completed {% endif %}<br>
-#Version:{% if algorithm %}{{algorithm.version}} {% else %} To be completed {% endif %}<br>
-#Publication:{% if algorithm %}{{algorithm.publication}} {% else %} To be completed {% endif %}<br>
-#SoftwareWebSite:{% if algorithm %}{{algorithm.softwarewebsite}} {% else %} To be completed {% endif %}<br>
-#SoftwareContact:{% if algorithm %}{{algorithm.softwarecontact}} {% else %} To be completed {% endif %}<br>
-#SoftwareParameters:{% if algorithm %}{{algorithm.softwareparameters}} {% else %} To be completed {% endif %}<br>
+//Metadata describing the computation of the result described by the output file <br>
+<small>
+#results.title:To be completed<br> 
+#results.author:To be completed<br>
+#results.contactemail:To be completed<br>
+#results.softwareparametervalues::To be completed<br>
+#results.formatparametervalues:To be completed<br>
+</small>
 
-<h2>Metadata for the result format </h2>
-#FormatName:{% if resultformat %}{{resultformat.name}} {% else %} To be completed {% endif %}<br>
-#FormatDescription:{% if resultformat %}{{resultformat.description}} {% else %} To be completed {% endif %}<br>
-#FormatParameterList:{% if resultformat %}{{resultformat.parameterlist}} {% else %} To be completed {% endif %}<br>
+</div>
 
-<h2>Metadata for the results </h2>
-#ResultAuthor:To be completed<br>
-#ResultSubmissionDate:To be completed<br>
-#ResultContactEmail:To be completed<br>
-#SoftwareParameterValues:To be completed<br>
-#FormatParameterValues:To be completed<br>
-
-#Next line begins the data<br>
+			<div class="spacer"></div>
 
 
-Go back the the <a href="/sharekernel/metadatafilespecification/N/N/N/N/N/">specification page.</a>
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
 
-Complete and insert at the beginning of your data and go to the <a href="{% url 'sharekernel:kernelupload' %}">upload page.</a>
+{% endblock %}

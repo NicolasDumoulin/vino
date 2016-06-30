@@ -1,10 +1,32 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+Please find below the result file formats supported by the database. You have to comply with one of them :
+<br><br>
 {% if resultformat_list %}
     <ul>
     {% for resultformat in resultformat_list %}
-        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat.id %}">{{ resultformat.name }}</a></li>
+        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat.id %}">"{{ resultformat.name}}":<br></a>{{ resultformat.description }}</li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No result formats are available.</p>
 {% endif %}
 <a href="{% url 'sharekernel:metadatafilespecification' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+
+			<div class="spacer"></div>
+
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+
+{% endblock %}

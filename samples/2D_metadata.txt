@@ -1,42 +1,44 @@
-//Metadonnées pour la description du problème de viabilité
+//Metadata describing the viability problem
 #category.text:Environmental Sciences
+#category.color:3
 
-#viabilityproblem.title:Lake eutrophication bis
+#viabilityproblem.title:Lake eutrophication
 #viabilityproblem.issue:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
 #viabilityproblem.statedimension:2
-#viabilityproblem.statenameandabbreviation:Phosphorus Inputs, L, Phosphorus Concentration, P
+#viabilityproblem.statenameandabbreviation:Phosphorus Inputs,L/Phosphorus Concentration,P
 #viabilityproblem.controldimension:1
 #viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation, u
 #viabilityproblem.dynamicsdescription:x'=u, y'=-by+x+r+y^q/(m^q+y^q)
-#viabilityproblem.admissiblecontroldescription:u\in [umin;umax]
+#viabilityproblem.admissiblecontroldescription:u in [umin;umax]
 #viabilityproblem.dynamicsparameters:b,r,q,m,umin,umax
-#viabilityproblem.stateconstraintdescription:x\in [Lmin; Lmax], y\in[0,Pmax]
-#viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax 
+#viabilityproblem.stateconstraintdescription:x in [Lmin; Lmax],y in [0;Pmax]
+#viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax
 #viabilityproblem.targetdescription:none
 #viabilityproblem.targetparameters:none
 
-//Metadonnées pour la description des valeurs des paramètres
+//Metadata describing the parameter values
 #parameters.dynamicsparametervalues:0.8,1,8,1,-0.09,0.09
 #parameters.stateconstraintparametervalues:0.1,1,1.4
 #parameters.targetparametervalues:none
 
-//Metadonnées correspondant au programme utilisé pour le calcul
+//Metadata describing the software used to compute the result described by the output file
 
-#algorithm.name:Programme de Patrick Saint-Pierre
+#algorithm.name:Patrick Saint-Pierre Software
 #algorithm.author:Patrick Saint-Pierre 
 #algorithm.version:none
-#algorithm.publication:Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209.  
+#algorithm.publication:Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209  
 #algorithm.softwarewebsite:none
 #algorithm.softwarecontact:none
 #algorithm.softwareparameters:none
 
-//Métadonnées concernant la description du fichier de sortie. 
+//Metadata describing the software output file 
 #resultformat.name:bars
-#resultformat.description:Sur chaque ligne du fichier un nombre identique d entiers allant de 0 a #PointNumberPerAxis correspondant a un segment appartenant au noyau approche 
+#resultformat.description:Each file line contains a given number of integers ranging from 0 to PointNumberPerAxis corresponding to a segment. The result is the union of all these segments. If (4,6,46,57) is written on a line, that means that the problem is 3-dimensional and that points (4,6,46), (4,6,47), ... ,(4,6,57) belong to the result set. Moreover, all real-valued points whose sup-distance is smaller than PointSize/2 also belong to the result set. ColumnDescription corresponds to identity matrix if the file columns correspond to the order according to which variables appear in the model description. Again in dimension 3 for instance, (0,0,0) corresponds to MinimalValues (possibly interchanged according to ColumnDescription) and (PointNumberPerAxis,PointNumberPerAxis,PointNumberPerAxis) to MaximalValues. 
 #resultformat.parameterlist:MinimalValues,MaximalValues,PointNumberPerAxis,PointSize,ColumnDescription
 
-//Métadonnées concernant l'obtention des résultats 
-#results.author:Nicolas Dumoulin
+//Metadata describing the computation of the result described by the output file 
+#results.title:2D-lake-PSP-65536ppa
+#results.author:Sophie Martin
 #results.submissiondate:2015-09-09
 #results.contactemail:sophie.martin@irstea.fr
 #results.softwareparametervalues:none

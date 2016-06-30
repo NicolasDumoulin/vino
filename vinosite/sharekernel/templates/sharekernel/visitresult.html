@@ -6,13 +6,26 @@
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}"> Up </a><br>
+<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
+</div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
 <h4>{{viabilityproblem.category.category_text}}</h4>
 
-<h2>{{viabilityproblem.title}}</h2>
+<h2>{{result.title}}</h2>
+<p>This result was posted by {{result.author}} on {{result.submissiondate}} whose contact email is {{result.contactemail}}.</p>
+<p> It was computed thanks to {{algorithm.name}} {% if version %} version {{algorithm.version}} {% endif %} implemented by {{algorithm.author}} {% if publication %} described in 
+<i>{{algorithm.publication}}</i>{% endif%}. {% if website %}More information is available at {{algorithm.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{algorithm.softwarecontact}}.{% endif %}</p>
+<p>{% if softparval %} The software parameter values were the following : {% for i in softparval%} {{i}} {% endfor %}.{% else %} The software parameter values are not specified.{% endif %}</p>
 
+<p>The format of the result file uploaded on this platform is the following : <br>{{resultformat.description}}</p>
+<p>The file format parameter values are the following : 
+<ul>
+{% for format in formatparval %}
+<li>{{format}}</li>
+{% endfor %}
+</ul></p>
 <p><a href="#" id="visualizebutton">Visualize</a></p>
 <p><a href="#" id="comparebutton">Compare with …</a></p>
 <div id="comparison-selection-box">
@@ -83,6 +96,7 @@ Parameters :
 
 
 			 </div>
+{% if tardes%}
 			<div class="little_block">  
 <h4> Target :</h4>
 
@@ -98,19 +112,10 @@ Parameters :
 </ul>
 
 			 </div>
-
+{% endif %}
 			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
 			<div class="spacer"></div>
-<h2>Calculation informations</h2>
 
-
-<h3>Software Name : {{ algorithm.name }}<br></h3>
-<h3>Author :   {{ algorithm.author }}<br></h3>
-<h3>Version :   {{ algorithm.version }}<br></h3>
-<h3>Publication :   {{ algorithm.publication }}<br></h3>
-<h3>Software Web Site :  {{ algorithm.softwarewebsite }}<br></h3>
-<h3>Contact :   {{ algorithm.softwarecontact }}<br></h3>
-<h3>Sofware Parameters :   {{ algorithm.softwareparameters }}<br></h3>
 
 		<!-- close #main content -->
 		</div>

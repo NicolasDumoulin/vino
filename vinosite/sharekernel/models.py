@@ -51,6 +51,7 @@ class Results(models.Model):
     parameters = models.ForeignKey(Parameters)
     algorithm = models.ForeignKey(Algorithm)
     resultformat = models.ForeignKey(ResultFormat,default = 0)
+    title = models.CharField(max_length=200,default = 0)
     author = models.CharField(max_length=200,default = 0)
     submissiondate = models.DateTimeField('date published')
     contactemail = models.CharField(max_length=200,default = 0)

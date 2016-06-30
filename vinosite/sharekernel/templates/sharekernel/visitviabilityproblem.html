@@ -1,17 +1,13 @@
-{% load staticfiles %}
+{% extends "base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
-
-
-<body>
+{% block body %}
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}"> HOME </a> <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"> Up </a> </div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
-			<h3>{{viabilityproblem.category.category_text}}</h3>
-
+			 <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"><h5>{{category.text}}</h5> </a>
 				<h1>{{viabilityproblem.title}}</h1>
 				<h3>Issues : </h3>
 				{{viabilityproblem.issue}}
@@ -62,6 +58,7 @@ Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
 
 
 			 </div>
+{% if tardes%}
 			<div class="little_block">  
 <h3> Target :</h3>
 
@@ -72,12 +69,12 @@ Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
 Parameters :  {{viabilityproblem.targetparameters}} <br>
 
 			 </div>
-
+{% endif %}
 			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
 			<div class="spacer"></div>
 <h2>Archived viability kernel approximations</h2>
 
-<table border = 2>
+<table border = 2 CELLPADDING = 10 CELLSPACING = 10>
 {% for p in tabvalues %}
 {% if forloop.counter == 1%}
 	<tr> 
@@ -91,7 +88,7 @@ Parameters :  {{viabilityproblem.targetparameters}} <br>
 	{% if forloop.counter == 1%}
 		<td>   {% for ppp in pp %}{{ ppp}}<br>{% endfor %}</td>
 	{% else %}
-		<td>   {% for ppp in pp %}{% if ppp.id  %}<a href="{% url 'sharekernel:visitresult' ppp.id %}">{{ ppp.author}}</a><br><br>{% endif %}{% endfor %}</td>
+		<td>   {% for ppp in pp %}{% if ppp.id  %}<a href="{% url 'sharekernel:visitresult' ppp.id %}">{{ppp.title}}</a><br> by {{ ppp.author}}<br><br>{% endif %}{% endfor %}</td>
 	{% endif%}
 	{% endfor %}   
 {% endif%}
@@ -105,7 +102,7 @@ Parameters :  {{viabilityproblem.targetparameters}} <br>
 		</div>
 	<!-- close #container -->
 	</div>
-</body>
+{% endblock %}
 
 
 

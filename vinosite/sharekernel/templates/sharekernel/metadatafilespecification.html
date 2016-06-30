@@ -1,20 +1,29 @@
-This page helps you to write the metadata and the data for your file to be properly uploaded.<br>
-Please answer the following questions and we will provide detailed instructions.<br>
+{% extends "base.html" %}
 
-<h3>Does the viability problem you deal with belong to an existing category of the database?</h3> 
+{% block body %}
+<div id="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+		<div id="main">
+This page aims at helping you write the metadata and the data for your file to be properly uploaded.<br>
+Please answer the following questions and we will provide you with detailed instructions.<br>
 
-{% if category %}Category : {{category.category_text}}<br>
-                 <a href="{% url 'sharekernel:categorylist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the category database.</a>
+<h4>Does the viability problem you deal with belong to a category covered by the database?</h4> 
 
-			<h3>Do you deal with a viability problem existing in the database? </h3>
+{% if category %}Category : {{category.text}} 
+                 <a href="{% url 'sharekernel:categorylist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}"> (modify)</a>
 
-			{% if viabilityproblem %}Viability Problem : {{viabilityproblem.title}}<br>
-                 <a href="{% url 'sharekernel:viabilityproblemlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the viability problem database.</a>
+			<h4>Do you deal with a viability problem contained in the database? </h4>
 
-                 <h3>Do the parameter values belong to the database?</h3>
+			{% if viabilityproblem %}Viability Problem : {{viabilityproblem.title}}
+                 <a href="{% url 'sharekernel:viabilityproblemlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">(modify)</a>
 
-			{% if parameters %}Parameters : {{parameters.dynamicsparametervalues}}<br>
-                 <a href="{% url 'sharekernel:parameterslist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the parameter database.</a>
+                 <h4>Do the parameter values associated with your result belong to the database?</h4>
+
+			{% if parameters %}Parameters : {{parameters.dynamicsparametervalues}}
+                 <a href="{% url 'sharekernel:parameterslist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">(modify)</a>
 
 	 {% else %} 
 
@@ -36,17 +45,17 @@ Please answer the following questions and we will provide detailed instructions.
 
 
 
-<h3>Does the software you have used belong to the database?</h3>
-{% if algorithm %}Algorithm : {{algorithm.name}}<br>
-                 <a href="{% url 'sharekernel:algorithmlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the algorithm database.</a>
+<h4>Is the software you have used listed in the database?</h4>
+{% if algorithm %}Algorithm : {{algorithm.name}}
+                 <a href="{% url 'sharekernel:algorithmlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">(modify)</a>
 {%else%}
                  <a href="{% url 'sharekernel:algorithmlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the algorithm database.</a>
 
 {% endif %}
-<h3>What result format do you use? </h3>
+<h4>Which result file format do you use? </h4>
 
-{% if resultformat %}Result Format : {{resultformat.name}}<br>
-                 <a href="{% url 'sharekernel:resultformatlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the result format database.</a>
+{% if resultformat %}Result Format : {{resultformat.name}}
+                 <a href="{% url 'sharekernel:resultformatlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">(modify)</a>
 {%else%}
                  <a href="{% url 'sharekernel:resultformatlist' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Browse the result format database.</a>
 
@@ -64,4 +73,12 @@ Please answer the following questions and we will provide detailed instructions.
 
 {% endif %}
 
+			<div class="spacer"></div>
 
+
+		<!-- close #main content -->
+		</div>
+	<!-- close #container -->
+	</div>
+
+{% endblock %}
