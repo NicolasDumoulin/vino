@@ -2,6 +2,18 @@ from BarGridKernel import *
 import unittest2 as unittest
 
 class TestBarGridKernel(unittest.TestCase):
+    def test_addBar(self):
+        grid = BarGridKernel([0, 0, 0], [10, 10, 10], [10, 10, 10])
+        grid.addBar([1, 1], 3, 5)
+        grid.addBar([1, 1], 7, 9)
+        grid.addBar([1, 1], 2, 8)
+        self.assertEqual(len(grid.bars), 1)
+        self.assertEqual(grid.bars[0], [1,1,2,9])
+        grid.addBar([1, 2], 3, 4)
+        grid.addBar([1, 2], 4, 6)
+        self.assertEqual(len(grid.bars), 2)
+        self.assertEqual(grid.bars[1], [1,2,3,6])
+        
     def test_isInSet(self):
         grid = BarGridKernel([0, 0], [10, 10], [10, 10])
         grid.addBar([1], 3, 7)

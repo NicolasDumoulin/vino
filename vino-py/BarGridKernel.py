@@ -419,7 +419,48 @@ class BarGridKernel(Kernel):
 
 
     def addBar(self, coords, inf, sup):
-        self.bars.add(coords[:] + [inf,sup])
+        # First, we collect the bars already present at the position 'coords'
+        # and we merge the bar to add with the existing ones
+        insertion_point = self.bars.bisect(coords)
+        merged = False
+        mergedBarsToRemove=[]
+        rightExpanded = False
+        while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==coords:
+            if inf>self.bars[insertion_point][-1]:
+                break;
+            if rightExpanded:
+                # a previous bar has been modified, we check that it doesn't overlap the current bar
+                if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-1]:
+                    # the previous bar after now intersects the current one
+                    # so let's merge the two bars
+                    self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
+                    if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-2]:
+                        # the previous bar completly overlaps the current one
+                        self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
+                        mergedBarsToRemove.append(insertion_point-1)
+                        rightExpanded = True
+            elif inf>=self.bars[insertion_point][-2] and inf<=self.bars[insertion_point][-1]:
+                # the lower bound of the inserted bar is inside the current one
+                if sup>self.bars[insertion_point][-1]:
+                    # the upper bound is outside the current bar, so we update the upper bound
+                    self.bars[insertion_point][-1] = sup
+                    rightExpanded = True
+                    merged = True
+            elif inf<self.bars[insertion_point][-2]:
+                # the lower bound of the inserted bar is before the current one
+                if sup>=self.bars[insertion_point][-1]:
+                    # the inserted bar crosses the current bar, so we update the lower bound
+                    self.bars[insertion_point][-2] = inf
+                    merged = True
+                    if sup>self.bars[insertion_point][-1]:
+                        # the inserted bound is globally bigger than the current one, so we update also the upper bound
+                        self.bars[insertion_point][-1] = sup
+                        rightExpanded = True
+            insertion_point += 1
+        for index in reversed(mergedBarsToRemove):
+            del self.bars[index]
+        if not merged:
+            self.bars.add(coords[:] + [inf,sup])
         self.kernelMinPoint[:-1] = [min(x) for x in zip(self.kernelMinPoint[:-1],coords)]
         self.kernelMinPoint[-1] = min(self.kernelMinPoint[-1], inf)
         self.kernelMaxPoint[:-1] = [max(x) for x in zip(self.kernelMaxPoint[:-1],coords)]
