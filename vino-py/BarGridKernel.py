@@ -59,7 +59,7 @@ class BarGridKernel(Kernel):
         return np.array(list(self.bars), dtype='int64')
 
     def getTotalPointNumber(self):
-        return sum(map(lambda elt: elt[-1] - elt[-2] + 1, self.bars))
+        return sum([elt[-1] - elt[-2] + 1 for elt in self.bars])
 
     def toRegularGridKernel(self):
         '''
@@ -74,7 +74,7 @@ class BarGridKernel(Kernel):
                                dimensionsExtents, metadata=self.metadata)
         for bar in self.bars:
             barPosition = (bar[:-2]-minPoint[:-1]).tolist()
-            grid.grid[tuple(barPosition)].put(range(bar[-2], bar[-1] + 1), True)
+            grid.grid[tuple(barPosition)].put(list(range(bar[-2], bar[-1] + 1)), True)
         return grid                             
 
     def getInside(self):
@@ -289,7 +289,7 @@ class BarGridKernel(Kernel):
         otherbarsindex = 0
         while (barsindex < len(self.bars)) and (otherbarsindex < len(othergrid.bars)):
             actualbarposition = self.bars[barsindex][:-2]
-            print "actualbarposition[0] ::%d " %actualbarposition[0]
+            print("actualbarposition[0] ::%d " %actualbarposition[0])
 
             while (otherbarsindex < len(othergrid.bars)) and (othergrid.bars[otherbarsindex][:-2] < self.bars[barsindex][:-2]):
                 otherbarsindex = otherbarsindex + 1
@@ -389,7 +389,7 @@ class BarGridKernel(Kernel):
         while(actualbarposition[0]<permutnewIntervalNumberperaxis[0]+1):
             realpoint = permutnewOriginCoords[:-1] + actualbarposition * permutnewpas[:-1]
             intpoint = (realpoint-permutOriginCoords[:-1]) * permutinversepas[:-1]
-            intpoint = map(lambda e: int(e+0.5), intpoint)
+            intpoint = [int(e+0.5) for e in intpoint]
             while (barsindex < len(self.bars)) and (self.bars[barsindex][:2] < intpoint):
                 barsindex = barsindex+1
             barinprocess = False
@@ -420,7 +420,48 @@ class BarGridKernel(Kernel):
 
 
     def addBar(self, coords, inf, sup):
-        self.bars.add(coords[:] + [inf,sup])
+        # First, we collect the bars already present at the position 'coords'
+        # and we merge the bar to add with the existing ones
+        insertion_point = self.bars.bisect(coords)
+        merged = False
+        mergedBarsToRemove=[]
+        rightExpanded = False
+        while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==coords:
+            if inf>self.bars[insertion_point][-1]:
+                break;
+            if rightExpanded:
+                # a previous bar has been modified, we check that it doesn't overlap the current bar
+                if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-1]:
+                    # the previous bar after now intersects the current one
+                    # so let's merge the two bars
+                    self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
+                    if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-2]:
+                        # the previous bar completly overlaps the current one
+                        self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
+                        mergedBarsToRemove.append(insertion_point-1)
+                        rightExpanded = True
+            elif inf>=self.bars[insertion_point][-2] and inf<=self.bars[insertion_point][-1]:
+                # the lower bound of the inserted bar is inside the current one
+                if sup>self.bars[insertion_point][-1]:
+                    # the upper bound is outside the current bar, so we update the upper bound
+                    self.bars[insertion_point][-1] = sup
+                    rightExpanded = True
+                    merged = True
+            elif inf<self.bars[insertion_point][-2]:
+                # the lower bound of the inserted bar is before the current one
+                if sup>=self.bars[insertion_point][-1]:
+                    # the inserted bar crosses the current bar, so we update the lower bound
+                    self.bars[insertion_point][-2] = inf
+                    merged = True
+                    if sup>self.bars[insertion_point][-1]:
+                        # the inserted bound is globally bigger than the current one, so we update also the upper bound
+                        self.bars[insertion_point][-1] = sup
+                        rightExpanded = True
+            insertion_point += 1
+        for index in reversed(mergedBarsToRemove):
+            del self.bars[index]
+        if not merged:
+            self.bars.add(coords[:] + [inf,sup])
         self.kernelMinPoint[:-1] = [min(x) for x in zip(self.kernelMinPoint[:-1],coords)]
         self.kernelMinPoint[-1] = min(self.kernelMinPoint[-1], inf)
         self.kernelMaxPoint[:-1] = [max(x) for x in zip(self.kernelMaxPoint[:-1],coords)]
@@ -447,10 +488,10 @@ class BarGridKernel(Kernel):
             metadata.append([MEDATADA.stateconstraintdescription, f.readline()])
             metadata.append([MEDATADA.targetdescription, f.readline()])
             for i in range(4): f.readline()
-            dimensionsSteps = map(int, re.findall('[0-9]+', f.readline()))
+            dimensionsSteps = list(map(int, re.findall('[0-9]+', f.readline())))
             for i in range(2): f.readline()
-            origin = map(int, re.findall('[0-9]+', f.readline()))
-            maxPoint = map(int, re.findall('[0-9]+', f.readline()))
+            origin = list(map(int, re.findall('[0-9]+', f.readline())))
+            maxPoint = list(map(int, re.findall('[0-9]+', f.readline())))
             for i in range(5): f.readline()
             # ND Why? Why not opposite = maxPoint
             opposite = origin      
@@ -459,8 +500,8 @@ class BarGridKernel(Kernel):
             stop=False
             initxx=False
             # ND Why restrict min/max point to integer position
-            bgk.kernelMinPoint = map(lambda e: e//1, origin)
-            bgk.kernelMaxPoint = map(lambda e: e//1, maxPoint)
+            bgk.kernelMinPoint = [e//1 for e in origin]
+            bgk.kernelMaxPoint = [e//1 for e in maxPoint]
             while not stop:
                 line = f.readline()
                 if 'Initxx' in line:
@@ -469,9 +510,9 @@ class BarGridKernel(Kernel):
                     stop = True
             # reading bars
             for line in f:
-                coords = map(int, re.findall('[0-9]+', line))
+                coords = list(map(int, re.findall('[0-9]+', line)))
                 # ND Why convert point to integer position
-                coords = map(lambda e: e//1, coords)
+                coords = [e//1 for e in coords]
                 bgk.addBar(coords[2:-2], coords[-2], coords[-1])
                 # TODO what is done with modelMetadata and nbDim
         return bgk
@@ -482,16 +523,16 @@ class BarGridKernel(Kernel):
         Returns an object of class BarGridKernel loaded from an output file from the software of Patrick Saint-Pierre.
         '''
         bgk = None
-        origin = map(float, re.findall('-?\d+\.?\d*', f.readline()))
+        origin = list(map(float, re.findall('-?\d+\.?\d*', f.readline())))
         dimension = len(origin)
-        opposite = map(float, re.findall('-?\d+\.?\d*', f.readline()))
-        intervalNumber = map(int, re.findall('[0-9]+', f.readline()))
-        pointSize = map(int, re.findall('[0-9]+', f.readline()))
-        intervalNumber = map(lambda e: e//pointSize[0], intervalNumber)
+        opposite = list(map(float, re.findall('-?\d+\.?\d*', f.readline())))
+        intervalNumber = list(map(int, re.findall('[0-9]+', f.readline())))
+        pointSize = list(map(int, re.findall('[0-9]+', f.readline())))
+        intervalNumber = [e//pointSize[0] for e in intervalNumber]
         # reading columns headers and deducing permutation of variables
         line = f.readline()
         columnNumbertoIgnore = len(re.findall('empty', line))
-        permutVector = map(int, re.findall('[0-9]+', line))
+        permutVector = list(map(int, re.findall('[0-9]+', line)))
         permutation = np.zeros(dimension * dimension,int).reshape(dimension,dimension)
         for i in range(dimension):
             permutation[i][permutVector[i]-1]=1
@@ -511,8 +552,8 @@ class BarGridKernel(Kernel):
             if not line:
                 stop = True
             else:
-                coords = map(int, re.findall('[0-9]+', line))
-                coords = map(lambda e: e // pointSize[0], coords)
+                coords = list(map(int, re.findall('[0-9]+', line)))
+                coords = [e // pointSize[0] for e in coords]
                 bgk.addBar(coords[columnNumbertoIgnore:-2], coords[-2], coords[-1])
                 # TODO what is done with modelMetadata and nbDim
         return bgk
@@ -599,19 +640,19 @@ if __name__ == "__main__":
     grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
 
     total = grid.getTotalPointNumber()  
-    print "grid totalpoint ::%d " % total
+    print("grid totalpoint ::%d " % total)
 
     readTime = time.time() - startTime
-    print('reading raw txt in {:.2f}s'.format(readTime))
-    print "minPoint ::%d " % grid.kernelMinPoint[0]
-    print "maxPoint ::%d " % grid.kernelMaxPoint[0]
+    print(('reading raw txt in {:.2f}s'.format(readTime)))
+    print("minPoint ::%d " % grid.kernelMinPoint[0])
+    print("maxPoint ::%d " % grid.kernelMaxPoint[0])
 
-    print grid.originCoords
-    print grid.oppositeCoords
-    print grid.intervalNumberperaxis
+    print(grid.originCoords)
+    print(grid.oppositeCoords)
+    print(grid.intervalNumberperaxis)
     
     distancegriddimensions = [1001, 1001]
-    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    distancegridintervals = [e-1 for e in distancegriddimensions]
     
     resizebargrid = grid.toBarGridKernel(grid.originCoords, grid.oppositeCoords, distancegridintervals)
 #  print resizebargrid.bars
