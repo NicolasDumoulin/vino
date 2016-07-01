@@ -43,6 +43,7 @@ class BarGridKernel(Kernel):
         da['origin'] = self.originCoords
         da['opposite'] = self.oppositeCoords
         da['intervals'] = self.intervalNumberperaxis
+        da['permutation']= self.permutation
         return da  
        
     @classmethod
@@ -51,7 +52,7 @@ class BarGridKernel(Kernel):
         '''
       Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
       '''
-        return cls(originCoords=attrs['origin'], oppositeCoords=attrs['opposite'], intervalNumberperaxis=attrs['intervals'], data=data.tolist(), metadata=metadata)
+        return cls(originCoords=attrs['origin'], oppositeCoords=attrs['opposite'], intervalNumberperaxis=attrs['intervals'],permutation=attrs['permutation'], data=data.tolist(), metadata=metadata)
 
     @overrides
     def getData(self):
