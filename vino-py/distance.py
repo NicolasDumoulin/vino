@@ -331,7 +331,7 @@ if __name__ == "__main__":
     readTime = time.time() - startTime
 
     print('resize in {:.2f}s'.format(readTime))
-
+    '''
     resizebargrid2 = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
     for bar in resizebargrid2.bars:
         bar[1]=bar[1]+1
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     histoCompar = dict(zip(histo.keys(),zip(limits,occurnumber,occurnumber1)))
 
 #	histo[key].append(histo1.get(key)[1])
-
+    '''
 
 '''
     data = []
