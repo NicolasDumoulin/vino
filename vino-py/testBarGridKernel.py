@@ -13,6 +13,26 @@ class TestBarGridKernel(unittest.TestCase):
         grid.addBar([1, 2], 4, 6)
         self.assertEqual(len(grid.bars), 2)
         self.assertEqual(grid.bars[1], [1,2,3,6])
+
+        grid = BarGridKernel([0, 0, 0], [10, 10, 10], [10, 10, 10])
+        grid.addBar([1, 1], 3, 3)
+        grid.addBar([1, 1], 4, 4)
+        self.assertEqual(len(grid.bars), 1)
+        self.assertEqual(grid.bars[0], [1,1,3,4])
+        
+        grid = BarGridKernel([0, 0, 0], [10, 10, 10], [10, 10, 10])
+        grid.addBar([1, 1], 3, 5)
+        grid.addBar([1, 1], 7, 9)
+        grid.addBar([1, 1], 2, 9)
+        self.assertEqual(len(grid.bars), 1)
+        self.assertEqual(grid.bars[0], [1,1,2,9])
+        
+        grid = BarGridKernel([0, 0, 0], [10, 10, 10], [10, 10, 10])
+        grid.addBar([1, 1], 3, 5)
+        grid.addBar([1, 1], 7, 9)
+        grid.addBar([1, 1], 6, 9)
+        self.assertEqual(len(grid.bars), 1)
+        self.assertEqual(grid.bars[0], [1,1,3,9])
         
     def test_isInSet(self):
         grid = BarGridKernel([0, 0], [10, 10], [10, 10])

@@ -422,18 +422,22 @@ class BarGridKernel(Kernel):
     def addBar(self, coords, inf, sup):
         # First, we collect the bars already present at the position 'coords'
         # and we merge the bar to add with the existing ones
+        # two bars will be merged if at least they touch themselves
+        # "touch" means that a lower bound of one bar is equals to the (upper bound of the other one) + 1
         insertion_point = self.bars.bisect(coords)
         merged = False
         mergedBarsToRemove=[]
         rightExpanded = False
         while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==coords:
-            if inf>self.bars[insertion_point][-1]:
+            if inf > self.bars[insertion_point][-1] + 1:
+                # the new bar doesn't touch the right of the current one
+                # we should test if it isn't equals to the upper bound + 1 to ensure that it doesn't touch
                 insertion_point += 1
                 continue;
             if rightExpanded:
-                # a previous bar has been modified, we check that it doesn't overlap the current bar
-                if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-1]:
-                    # the previous bar after now intersects the current one
+                # a previous bar has been modified, we check that it doesn't cross or touch the current bar
+                if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-1] + 1:
+                    # the previous bar now intersects the lower bound of the current one
                     # so let's merge the two bars
                     self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
                     if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-2]:
@@ -441,20 +445,20 @@ class BarGridKernel(Kernel):
                         self.bars[insertion_point][-2] = self.bars[insertion_point-1][-2]
                         mergedBarsToRemove.append(insertion_point-1)
                         rightExpanded = True
-            elif inf>=self.bars[insertion_point][-2] and inf<=self.bars[insertion_point][-1]:
+            elif inf >= self.bars[insertion_point][-2] and inf <= self.bars[insertion_point][-1] + 1:
                 # the lower bound of the inserted bar is inside the current one
                 merged = True
-                if sup>self.bars[insertion_point][-1]:
+                if sup > self.bars[insertion_point][-1]:
                     # the upper bound is outside the current bar, so we update the upper bound
                     self.bars[insertion_point][-1] = sup
                     rightExpanded = True
-            elif inf<self.bars[insertion_point][-2]:
+            elif inf < self.bars[insertion_point][-2]:
                 # the lower bound of the inserted bar is before the current one
-                if sup>=self.bars[insertion_point][-2]:
-                    # the inserted bar crosses the current bar, so we update the lower bound
+                if sup >= self.bars[insertion_point][-2] - 1:
+                    # the inserted bar crosses or touches the current bar, so we update the lower bound
                     self.bars[insertion_point][-2] = inf
                     merged = True
-                    if sup>self.bars[insertion_point][-1]:
+                    if sup > self.bars[insertion_point][-1]:
                         # the inserted bound is globally bigger than the current one, so we update also the upper bound
                         self.bars[insertion_point][-1] = sup
                         rightExpanded = True
