@@ -427,7 +427,8 @@ class BarGridKernel(Kernel):
         rightExpanded = False
         while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==coords:
             if inf>self.bars[insertion_point][-1]:
-                break;
+                insertion_point += 1
+                continue;
             if rightExpanded:
                 # a previous bar has been modified, we check that it doesn't overlap the current bar
                 if self.bars[insertion_point][-2] <= self.bars[insertion_point-1][-1]:
@@ -441,14 +442,14 @@ class BarGridKernel(Kernel):
                         rightExpanded = True
             elif inf>=self.bars[insertion_point][-2] and inf<=self.bars[insertion_point][-1]:
                 # the lower bound of the inserted bar is inside the current one
+                merged = True
                 if sup>self.bars[insertion_point][-1]:
                     # the upper bound is outside the current bar, so we update the upper bound
                     self.bars[insertion_point][-1] = sup
                     rightExpanded = True
-                    merged = True
             elif inf<self.bars[insertion_point][-2]:
                 # the lower bound of the inserted bar is before the current one
-                if sup>=self.bars[insertion_point][-1]:
+                if sup>=self.bars[insertion_point][-2]:
                     # the inserted bar crosses the current bar, so we update the lower bound
                     self.bars[insertion_point][-2] = inf
                     merged = True
@@ -465,7 +466,6 @@ class BarGridKernel(Kernel):
         self.kernelMinPoint[-1] = min(self.kernelMinPoint[-1], inf)
         self.kernelMaxPoint[:-1] = [max(x) for x in zip(self.kernelMaxPoint[:-1],coords)]
         self.kernelMaxPoint[-1] = max(self.kernelMaxPoint[-1], sup)
-
       
     def getBars(self):
         return self.bars
