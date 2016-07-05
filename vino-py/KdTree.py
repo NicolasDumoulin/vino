@@ -45,7 +45,7 @@ class KdTree(Kernel):
     @classmethod  
     def readViabilitreeFile(cls, f, metadata):
         cells = []
-        dim = self.getStateDimension()
+        dim = metadata[METADATA.statedimension]
         f.readline()
         for line in f:
             row = line.split()
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     import re
     metadata = {}
     myre = re.compile('^#(.*):(.*)$')
-    with open('dataessai.txt') as f:
+    with open('../samples/lake/lake_Isa_R1.txt') as f:
         for line in f:
             if line.startswith('#'):
                 k, v = myre.match(line).groups()
@@ -128,3 +128,7 @@ if __name__ == "__main__":
     metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
     k = KdTree.readViabilitree("../samples/lake/lake_Isa_R1_dat.txt", metadata)
     print(k.cells[0])
+    print("Kdtree loaded with %d cells" % len(k.cells))
+    print([1]*k.getStateDimension())
+    bgk = k.toBarGridKernel([0.0001]*k.getStateDimension())
+    print("KdTree converted to BarGrid with %d bars" % len(bgk.bars))
