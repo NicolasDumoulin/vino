@@ -339,7 +339,7 @@ if __name__ == "__main__":
 
     minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
 
-
+    '''
 #    print resizebargrid.bars  101 0.17 s ; 1001 114 s
     startTime = time.time()
     distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     print('init distance in {:.2f}s'.format(readTime))
 
     
-   
+    
     lowborders = []    
     upborders = []    
     for i in range(len(distancegrid.dimensions)):
@@ -363,10 +363,11 @@ if __name__ == "__main__":
 #    data = distancegrid.toDataPointDistance()
 
     startTime = time.time()
-    histo = distancegrid.histogram(12, 55)#distancegrid.maximum)    
+    histo = distancegrid.histogram(12, 44)#distancegrid.maximum)    
     readTime = time.time() - startTime
     print('histogram in {:.2f}s'.format(readTime))
 
+    '''
     startTime = time.time()
     histo1 = distancegrid.histogramFromBarGrid(minusgrid12,12,55)#distancegrid.maximum)
     readTime = time.time() - startTime
