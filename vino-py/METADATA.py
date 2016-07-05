@@ -2,15 +2,15 @@ class _constants:
     class ConstError(TypeError): pass
 
     def __setattr__(self, name, value):
-        if self.__dict__.has_key(name):
-            raise self.ConstError, "Can't rebind const( % s)" % name
+        if name in self.__dict__:
+            raise self.ConstError("Can't rebind const( % s)" % name)
         self.__dict__[name] = value
 
     def __delattr__(self, name):
-        if self.__dict__.has_key(name):
-            raise self.ConstError, "Can't unbind const(%s)" % name
-        raise NameError, name
-        
+        if name in self.__dict__:
+            raise self.ConstError("Can't unbind const(%s)" % name)
+        raise NameError(name)
+               
 import sys
 constants = _constants()
 
@@ -54,6 +54,6 @@ def gen_list(cls):
     '''
     Utility function for printing constants from Class definition (especially Django data model)
     '''
-    for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
-        print 'constants.' + cls.__name__.lower() + '.' + f.name + " = '" + cls.__name__.lower() + '.' + f.name + "'"
+    for f in [f for f in cls._meta.fields if not f.primary_key and not f.is_relation]:
+        print('constants.' + cls.__name__.lower() + '.' + f.name + " = '" + cls.__name__.lower() + '.' + f.name + "'")
         

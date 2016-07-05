@@ -5,10 +5,14 @@ import METADATA
 
 class Kernel(object):
   def __init__(self, metadata={}):
-    self.metadata = metadata    
-    
-  def getMetadata(self):
-    return self.metadata
+    self.__metadata = metadata    
+  
+  @property
+  def metadata(self):
+    return self.__metadata
+
+  def getStateDimension(self):
+    return self.metadata[METADATA.statedimension]
 
   @abc.abstractmethod
   def getData(self):
