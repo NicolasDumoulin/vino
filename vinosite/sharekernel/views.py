@@ -247,14 +247,9 @@ def bargrid2json(request):
 def ViNOView2D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
-#        source=request.FILES['docfile'] # InMemoryUploadedFile instance
-#        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
-        
         vino = Results.objects.get(id=result_id)
         bargrid = hdf5manager.readKernel(vino.datafile.path)
 
-#        distancegriddimensions = [31,31] #[301,301]
         distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
 
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
@@ -265,21 +260,78 @@ def ViNOView2D(request,result_id,ppa):
         for i in range(len(resizebargrid.bars)):
             resizebargrid.bars[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*resizebargrid.bars[i][:-1]/permutIntervalNumberperaxis
             resizebargrid.bars[i][-1] = permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*resizebargrid.bars[i][-1]/permutIntervalNumberperaxis[-1]
-#        perm = np.arange(len(resizebargrid.originCoords))
         perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
         data = [list(perm)]+list(resizebargrid.bars)
-#	data = resizebargrid.bars 
-#        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
-#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
-#        data = [(0,0,1),(0,1,1),(1,0,1),(1,1,10)]
         out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
 
+
+def ViNODistanceView2D(request,result_id,ppa):
+    import numpy as np
+    if request.method == 'POST':
+        vino = Results.objects.get(id=result_id)
+        bargrid = hdf5manager.readKernel(vino.datafile.path)
+
+        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+        permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
+        permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
+        permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
+        for i in range(len(data)):
+            data[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*data[i][:-1]/permutIntervalNumberperaxis
+        perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
+        data = [list(perm)]+list(data)
+
+        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+        return HttpResponse(out_json)#, mimetype='text/plain')
+    return HttpResponse("Nothing to do")
+
+
+
+def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
+    if request.method == 'POST':
+        vino = Results.objects.get(id=result_id)
+        bargrid = hdf5manager.readKernel(vino.datafile.path)
+        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        norm = EucNorm()
+        lowborders = []    
+        upborders = []    
+        for i in range(len(distancegrid.dimensions)):
+            lowborders.append(False)
+            upborders.append(False)
+
+        distancegrid.distance(norm,lowborders,upborders)
+        data = distancegrid.toDataPointDistance()
+	histo = distancegrid.histogram(12,int(hist_maxvalue))
+
+#        insidegrid = grid.getInside()
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
+        
+#        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
+        
+#        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
+        return HttpResponse(out_json)#, mimetype='text/plain')
+    return HttpResponse("Nothing to do")
 
 def bargrid2jsonNew(request,result_id):
     if request.method == 'POST':
@@ -292,6 +344,7 @@ def bargrid2jsonNew(request,result_id):
 
         distancegriddimensions = [31,31] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+#.kernelMinPoint
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
@@ -345,7 +398,6 @@ def bargrid2json2(request,hist_maxvalue):
 	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
-
 
 
 def bargrid2json2New(request,result_id,hist_maxvalue):
@@ -431,7 +483,9 @@ def bargrid2json3(request,hist_maxvalue):
 
 def visualizeresult(request,result_id):
     r=Results.objects.get(id=result_id)
-    context = {'result':r} 
+    vp=r.parameters.viabilityproblem
+    c=vp.category
+    context = {'result':r,'viabilityproblem':vp,'category':c} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 def compareresult(request, vinoA_id, vinoB_id):
