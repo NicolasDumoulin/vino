@@ -8,11 +8,8 @@ class TestKdTree(unittest.TestCase):
         kdt = KdTree(cells = cells, metadata={ METADATA.statedimension: 3 })
         bgk = kdt.toBarGridKernel(intervalsSizes = [1,1,1], newOriginCoords = [1,4,4], newOppositeCoords = [3,6,9])
         self.assertEqual(len(bgk.bars), 12)
-        #bgk = kdt.toBarGridKernel([1,1,1])
-        print(bgk.originCoords)
-        print(bgk.oppositeCoords)
-        print(bgk.bars)
-        #self.assertEqual(len(bgk.bars), 4)
+        bgk = kdt.toBarGridKernel([1,1,1])
+        self.assertEqual(len(bgk.bars), 4)
         
     def test_isInSet(self):
         cells = [[0,0,0]+p for p in [[1,2,4,5,8,9],[2,3,4,5,8,9],[2,3,5,6,8,9],[2,3,4,5,6,7]]]

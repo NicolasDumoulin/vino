@@ -101,8 +101,8 @@ class KdTree(Kernel):
         for cell in self.cells:
             cell_start = [cell[i] for i in minBoundsCoordinates]
             cell_end = [cell[i+1] for i in minBoundsCoordinates]
-            start_int = newIntervalNumberperaxis * (np.array(cell_start, float) - newOriginCoords)/(newOppositeCoords - newOriginCoords)
-            end_int = newIntervalNumberperaxis * (np.array(cell_end, float) - newOriginCoords)/(newOppositeCoords - newOriginCoords)
+            start_int = np.floor(newIntervalNumberperaxis * (np.array(cell_start, float) + intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
+            end_int = np.ceil(newIntervalNumberperaxis * (np.array(cell_end, float) - intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
             # now adding all the points on the grid of the BGK between start and end of the Kd cell
             next_point = list(start_int[:-1])
             bgk.addBar(next_point, start_int[-1], end_int[-1])
