@@ -6,6 +6,7 @@ from sortedcontainers import SortedList
 import re, math
 from Kernel import Kernel
 from RegularGridKernel import RegularGridKernel
+import copy
 
 class BarGridKernel(Kernel):
     '''
@@ -17,20 +18,27 @@ class BarGridKernel(Kernel):
   may not correspond to the last dimension of the viability problem.
   Therefore the attribute ``permutation`` give a matrix describing the permutation of the dimension.
   '''
-    def __init__(self, originCoords, oppositeCoords, intervalNumberperaxis, permutation=None, data=[], metadata={}):
+    def __init__(self, originCoords, oppositeCoords, intervalNumberperaxis, permutation=None, kernelMinPoint=None, kernelMaxPoint=None,data=[], metadata={}):
         super(BarGridKernel, self).__init__(metadata)
         self.originCoords = np.array(originCoords, float)
         self.oppositeCoords = np.array(oppositeCoords, float)
-        self.intervalNumberperaxis = np.array(intervalNumberperaxis, float)
+        self.intervalNumberperaxis = np.array(intervalNumberperaxis, int)
         self.bars = SortedList(data)
         if permutation is None:
             self.permutation = np.eye(len(originCoords))
         else:
             self.permutation = permutation
-        self.kernelMaxPoint  = [-1] * len(originCoords)
-        self.kernelMinPoint = []
-        for i in range(len(originCoords)):
-            self.kernelMinPoint.append(1)
+        if kernelMinPoint is None:
+            self.kernelMinPoint = []
+            for i in range(len(originCoords)):
+                 self.kernelMinPoint.append(intervalNumberperaxis[i])
+        else :
+            self.kernelMinPoint = kernelMinPoint
+        if kernelMaxPoint is None:
+            self.kernelMaxPoint = [-1] * len(originCoords)
+        else :
+            self.kernelMaxPoint = kernelMaxPoint
+
 
     @staticmethod   
     @overrides
@@ -44,6 +52,8 @@ class BarGridKernel(Kernel):
         da['opposite'] = self.oppositeCoords
         da['intervals'] = self.intervalNumberperaxis
         da['permutation']= self.permutation
+        da['maxPoint']= self.kernelMaxPoint
+        da['minPoint']= self.kernelMinPoint
         return da  
        
     @classmethod
@@ -52,7 +62,7 @@ class BarGridKernel(Kernel):
         '''
       Create an object of class BarGridKernel from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
       '''
-        return cls(originCoords=attrs['origin'], oppositeCoords=attrs['opposite'], intervalNumberperaxis=attrs['intervals'],permutation=attrs['permutation'], data=data.tolist(), metadata=metadata)
+        return cls(originCoords=attrs['origin'], oppositeCoords=attrs['opposite'], intervalNumberperaxis=attrs['intervals'],permutation=attrs['permutation'],kernelMinPoint=attrs['minPoint'],kernelMaxPoint=attrs['maxPoint'], data=data.tolist(), metadata=metadata)
 
     @overrides
     def getData(self):
@@ -276,7 +286,6 @@ class BarGridKernel(Kernel):
                 bordergrid.addBar(self.bars[barsindex][:-2], self.bars[barsindex][-2], self.bars[barsindex][-1])
                 barsindex = barsindex + 1          
         return bordergrid
-
    
     def intersectionwithBarGridKernel(self,othergrid):
         '''
@@ -284,12 +293,12 @@ class BarGridKernel(Kernel):
         with the same underlying grid characteristics 
         '''
         data = []
-        grid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,self.permutation,data,self.metadata)
+        grid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,self.permutation,None,None,data,self.metadata)
         barsindex = 0
         otherbarsindex = 0
         while (barsindex < len(self.bars)) and (otherbarsindex < len(othergrid.bars)):
             actualbarposition = self.bars[barsindex][:-2]
-            print("actualbarposition[0] ::%d " %actualbarposition[0])
+#            print("actualbarposition[0] ::%d " %actualbarposition[0])
 
             while (otherbarsindex < len(othergrid.bars)) and (othergrid.bars[otherbarsindex][:-2] < self.bars[barsindex][:-2]):
                 otherbarsindex = otherbarsindex + 1
@@ -319,7 +328,7 @@ class BarGridKernel(Kernel):
         which are not in the other one. The Bargridkernel have the same underlying grid characteristics 
         '''
         data = []
-        grid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,self.permutation,data,self.metadata)
+        grid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,self.permutation,None,None,data,self.metadata)
         barsindex = 0
         otherbarsindex = 0
         while (barsindex < len(self.bars)) and (otherbarsindex < len(othergrid.bars)):
@@ -385,7 +394,7 @@ class BarGridKernel(Kernel):
         permutOriginCoords = np.dot(self.permutation, self.originCoords)
         permutinversepas = np.dot(self.permutation, (self.intervalNumberperaxis / self.oppositeCoords - self.originCoords))
         data = []
-        grid = BarGridKernel(newOriginCoords,newOppositeCoords,newIntervalNumberperaxis,self.permutation,data,self.metadata)
+        grid = BarGridKernel(newOriginCoords,newOppositeCoords,newIntervalNumberperaxis,self.permutation,None,None,data,self.metadata)
         while(actualbarposition[0]<permutnewIntervalNumberperaxis[0]+1):
             realpoint = permutnewOriginCoords[:-1] + actualbarposition * permutnewpas[:-1]
             intpoint = (realpoint-permutOriginCoords[:-1]) * permutinversepas[:-1]
@@ -630,6 +639,228 @@ class BarGridKernel(Kernel):
                     break
         return result
 
+    def permute(self,permutation):
+        griddata = []
+        unitbars = []
+        dimension = len(self.originCoords)
+        barposition = [0]*(dimension-1)
+        permutegrid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,np.dot(np.transpose(permutation),self.permutation),np.dot(np.transpose(permutation),self.kernelMinPoint),np.dot(np.transpose(permutation),self.kernelMaxPoint),griddata,self.metadata)
+        increment = [0]*len(barposition)
+        increment.append(1)
+        oldincrement = list(np.dot(permutation,np.array(increment,int)))[:-1]
+	oldindex = oldincrement.index(1)
+        newincrement = list(np.dot(np.transpose(permutation),np.array(increment,int)))[:-1]
+	newindex = newincrement.index(1)
+        NmaxUsefullBars = list(np.dot(self.permutation, self.intervalNumberperaxis))[oldindex]
+        barposition.append(0)
+
+        permutnewIntervalNumberperaxis = np.dot(permutegrid.permutation, permutegrid.intervalNumberperaxis)
+        if (newindex == 0):
+            indexbar = 1
+        else :
+            indexbar = 0
+
+        if dimension == 2:        
+	            print "barposition"
+	            print barposition   
+	            usefuloldbars = []
+	            newbars = []
+	            oldbarposition = list(np.dot(permutation,np.array(barposition,int)))[:-1]
+	            for i in range(NmaxUsefullBars+1):
+	                oldbarposition[oldindex] = i
+	                print oldbarposition
+	                insertion_point = self.bars.bisect(oldbarposition)
+	                while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==oldbarposition:
+	                    usefuloldbars.append(self.bars[insertion_point])
+	                    insertion_point = insertion_point+1
+	            print usefuloldbars        
+	            
+	            for oldbar in usefuloldbars:
+#	                print "newoldbar"
+	                print oldbar
+	                level = oldbar[oldindex]
+	                unitbar = barposition[:-1] + [level,level]
+	                mini = oldbar[-2]
+	                maxi = oldbar[-1]
+	                newbartoupdateindex = mini 
+	                if newbars:
+	                    k = 0                
+	                    while k <len(newbars):
+	                        newbar = newbars[k]
+#	        		print "ole"
+#	                        print newbars
+#			        print newbar
+#	                        print k
+	                        if (newbar[newindex] > maxi):
+	                            break
+	                        elif (newbar[newindex] >= mini):
+#		            	    print newbar[newindex]
+	                            if (newbar[newindex] > newbartoupdateindex):
+	                                for l in range(newbartoupdateindex,newbar[newindex]):
+					    unitbar[newindex] = l                                
+					    newbars.insert(k,copy.copy(unitbar))
+	                                    k=k+1
+	                                newbartoupdateindex = newbar[newindex]  
+	                            if (newbar[-1] == level-1):
+	                                newbar[-1] = level
+	                                newbartoupdateindex = newbar[newindex]+1
+	                        k = k+1  
+	                    for l in range(newbartoupdateindex,maxi+1):
+			        unitbar[newindex] = l                                
+			        newbars.insert(k,copy.copy(unitbar))
+	                        k = k+1
+	                else :
+	                    for l in range(mini,maxi+1):
+			        unitbar[newindex] = l                                
+			        newbars.append(copy.copy(unitbar))
+#	            print "newbars" 
+#	            print newbars                        
+	            permutegrid.bars.update(newbars)
+                    
+        else:
+	        while(barposition[indexbar]<permutnewIntervalNumberperaxis[indexbar]+1):
+	            print "barposition"
+	            print barposition   
+	            usefuloldbars = []
+	            newbars = []
+	            oldbarposition = list(np.dot(permutation,np.array(barposition,int)))[:-1]
+	            for i in range(NmaxUsefullBars+1):
+	                oldbarposition[oldindex] = i
+	                print oldbarposition
+	                insertion_point = self.bars.bisect(oldbarposition)
+	                while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==oldbarposition:
+	                    usefuloldbars.append(self.bars[insertion_point])
+	                    insertion_point = insertion_point+1
+	            print usefuloldbars        
+	            
+	            for oldbar in usefuloldbars:
+	                print "newoldbar"
+	                print oldbar
+	                level = oldbar[oldindex]
+	                unitbar = barposition[:-1] + [level,level]
+	                mini = oldbar[-2]
+	                maxi = oldbar[-1]
+	                newbartoupdateindex = mini 
+	                if newbars:
+	                    k = 0                
+	                    while k <len(newbars):
+	                        newbar = newbars[k]
+	        		print "ole"
+	                        print newbars
+			        print newbar
+	                        print k
+	                        if (newbar[newindex] > maxi):
+	                            break
+	                        elif (newbar[newindex] >= mini):
+		            	    print newbar[newindex]
+	                            if (newbar[newindex] > newbartoupdateindex):
+	                                for l in range(newbartoupdateindex,newbar[newindex]):
+					    unitbar[newindex] = l                                
+					    newbars.insert(k,copy.copy(unitbar))
+	                                    k=k+1
+	                                newbartoupdateindex = newbar[newindex]  
+	                            if (newbar[-1] == level-1):
+	                                newbar[-1] = level
+	                                newbartoupdateindex = newbar[newindex]+1
+	                        k = k+1  
+	                    for l in range(newbartoupdateindex,maxi+1):
+			        unitbar[newindex] = l                                
+			        newbars.insert(k,copy.copy(unitbar))
+	                        k = k+1
+	                else :
+	                    for l in range(mini,maxi+1):
+			        unitbar[newindex] = l                                
+			        newbars.append(copy.copy(unitbar))
+	            print "newbars" 
+	            print newbars                        
+	            permutegrid.bars.update(newbars)
+	             
+	            for i in range(dimension-1):
+	                if ((dimension-2-i) != newindex):
+	                    if ((i == dimension - 2- indexbar) or (barposition[dimension-2-i]<permutnewIntervalNumberperaxis[dimension-2-i])):
+	                        barposition[dimension-2-i] = barposition[dimension-2-i]+1
+	                        break
+	                    else :
+	                        barposition[dimension-2-i] = 0
+	            
+        return permutegrid
+
+
+    def buildNewBars(self,barposition,permutation,data):
+        newdata = []
+        unitbar = []
+        increment = [0]*len(barposition)
+        increment.append(1)
+        newincrement = list(np.dot(np.transpose(permutation),np.array(increment,int)))[:-1]
+	newindex = newincrement.index(1)
+        oldincrement = list(np.dot(permutation,np.array(increment,int)))[:-1]
+	oldindex = oldincrement.index(1)
+
+        NmaxNewBars = list(np.dot(self.permutation, self.intervalNumberperaxis))[-1]
+        print newincrement
+        print newindex
+        print oldincrement
+        print oldindex
+
+        print NmaxNewBars
+        
+        for oldbar in data:
+            level = oldbar[oldindex]
+            unitbar = barposition + [level,level]
+            mini = oldbar[-2]
+            maxi = oldbar[-1]
+            newbartoupdateindex = mini 
+            if newdata:                
+                for k in range(len(newdata)):
+		    print "ole"
+                    print newdata
+		    print k
+                    newbar = newdata[k]    
+                    if (newbar[newindex] >= mini) and (newbar[newindex] <= maxi):
+			print newbar[newindex]
+                        if (newbar[newindex] > newbartoupdateindex):
+                            for l in range(newbartoupdateindex,newbar[newindex]):
+				unitbar[newindex] = l                                
+				newdata.insert(k,copy.copy(unitbar))
+                                k=k+1  
+                        if (newbar[-1] == level-1):
+                            newbar[-1] = level
+                            newbartoupdateindex = newbar[newindex]+1 
+                for l in range(newbartoupdateindex,maxi+1):
+		    unitbar[newindex] = l                                
+		    newdata.insert(len(newdata),copy.copy(unitbar))
+            else :
+                for l in range(mini,maxi+1):
+		    unitbar[newindex] = l                                
+		    newdata.append(copy.copy(unitbar))
+                                    
+        return newdata
+
+    def findUsefullBars(self,barposition,permutation):
+        data = []
+        increment = [0]*len(barposition)
+        barposition.append(0)
+        increment.append(1)
+        oldincrement = list(np.dot(permutation,np.array(increment,int)))[:-1]
+	index = oldincrement.index(1)
+        oldbarposition = list(np.dot(permutation,np.array(barposition,int)))[:-1]
+        NmaxUsefullBars = list(np.dot(self.permutation, self.intervalNumberperaxis))[index]
+        print oldbarposition
+        print oldincrement
+        print index
+        print NmaxUsefullBars
+
+        for i in range(NmaxUsefullBars+1):
+            oldbarposition[index] = i
+            insertion_point = self.bars.bisect(oldbarposition)
+            print oldbarposition
+            print insertion_point
+            while insertion_point<len(self.bars) and self.bars[insertion_point][:-2]==oldbarposition:
+                data.append(self.bars[insertion_point])
+                insertion_point = insertion_point+1
+        return data
+
+
 if __name__ == "__main__":
     #grid = BarGridKernel([0,0,0], [1,1,1])
     #grid.addBar([1,2],3,4)
@@ -668,6 +899,28 @@ if __name__ == "__main__":
 #  readTime = time.time() - startTime
 #  print('converting to grid in {:.2f}s'.format(readTime))
 
+    permutation = np.array([[0,1],[1,0]])
+    permutgrid = grid.permute(permutation)
+    permutgrid2 = permutgrid.permute(np.transpose(permutation))
+
+    '''
+    barposition = [1,0]
+#    permutation = np.array([[1,0,0],[0,0,1],[0,1,0]])
+    permutation = np.array([[0,0,1],[1,0,0],[0,1,0]])
+    grid.originCoords = np.array([1,2,3])
+    grid.kernelMinPoint = np.array([0,0,1])
+    grid.kernelMaxPoint = np.array([1,2,20])
+
+    grid.permutation = np.array([[1,0,0],[0,1,0],[0,0,1]])
+    grid.intervalNumberperaxis = np.array([2,4,22]) 
+    grid.bars = SortedList([[0,0,4,7],[0,1,3,8],[0,1,13,18],[0,2,6,7],[0,3,3,8],[1,0,4,19],[1,1,1,9],[1,1,12,20],[1,2,6,17],[1,3,3,18]])
+#    usefullbars = grid.findUsefullBars(barposition,permutation)
+#    barposition = [1,0]
+#    newbars = grid.buildNewBars(barposition,permutation,usefullbars)
+#    barposition = [1,0]
+    permutgrid = grid.permute(permutation)
+    permutgrid2 = permutgrid.permute(np.transpose(permutation))
+    '''        
 '''
   startTime = time.time()
   bordergrid = grid.getBorder()

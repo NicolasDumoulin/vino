@@ -325,13 +325,15 @@ if __name__ == "__main__":
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     print "of"    
     print distancegridintervals
+    print bargrid.kernelMinPoint
+    print bargrid.kernelMaxPoint
 
     startTime = time.time()
     resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
     readTime = time.time() - startTime
 
     print('resize in {:.2f}s'.format(readTime))
-    '''
+    
     resizebargrid2 = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
     for bar in resizebargrid2.bars:
         bar[1]=bar[1]+1
@@ -339,6 +341,7 @@ if __name__ == "__main__":
 
     minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
 
+    minusgrid21= resizebargrid2.MinusBarGridKernel(resizebargrid)
     '''
 #    print resizebargrid.bars  101 0.17 s ; 1001 114 s
     startTime = time.time()
@@ -367,7 +370,7 @@ if __name__ == "__main__":
     readTime = time.time() - startTime
     print('histogram in {:.2f}s'.format(readTime))
 
-    '''
+    
     startTime = time.time()
     histo1 = distancegrid.histogramFromBarGrid(minusgrid12,12,55)#distancegrid.maximum)
     readTime = time.time() - startTime

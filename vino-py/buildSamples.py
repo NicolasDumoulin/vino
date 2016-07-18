@@ -1,4 +1,5 @@
 from BarGridKernel import BarGridKernel
+from KdTree import KdTree
 from hdf5common import HDF5Manager,HDF5Writer,HDF5Reader
 import re
 import METADATA
@@ -35,6 +36,7 @@ def CompareProcedure():
         if bargrid.bars[i][2]!=bargrid2.bars[i][2]:
             print bargrid.bars[i]
             print bargrid2.bars[i]
+            print "merde"
 
     print(bargrid.originCoords)
     print(bargridoh.originCoords)
@@ -68,6 +70,7 @@ def testRead():
         if line.startswith('#'):
           k,v = myre.match(line).groups()
           grid.metadata[k.strip()]=v.strip()
+    grid.metadata[METADATA.statedimension] = int(grid.metadata[METADATA.statedimension])
     grid.metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime()) 
     print grid.permutation
     print grid.originCoords
@@ -80,27 +83,30 @@ def testRead():
     print(grid2.metadata[METADATA.results_formatparametervalues])
     print grid2.permutation
     print grid2.originCoords
+    print(grid2.kernelMinPoint)
+    print(grid2.kernelMaxPoint)
+    return grid2
 
-
-def testReadEssai():
-    hm = HDF5Manager([BarGridKernel])
-    
-    grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
+def testReadKdTree(): 
+    hm = HDF5Manager([KdTree])
+    metadata = {}
     myre = re.compile('^#(.*):(.*)$')
-    with open('../samples/2D_platform.txt') as f:
-      for line in f:
-        if line.startswith('#'):
-          k,v = myre.match(line).groups()
-          grid.metadata[k.strip()]=v.strip()
-    grid.metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime()) 
-    hm.writeKernel(grid, '2D_metadata_from_platform.h5')
-    grid2 = hm.readKernel('2D_metadata_from_platform.h5')
-#    print(grid2.metadata)
-#    print(metadata.category)
-    print(grid2.metadata[METADATA.category])
-    print(grid2.metadata[METADATA.results_submissiondate])
+    with open('../samples/lake/2D_lake_Isa_metadata.txt') as f:
+        for line in f:
+            if line.startswith('#'):
+                k, v = myre.match(line).groups()
+                metadata[k.strip()] = v.strip()
+    metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
+    metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime())     
+    k = KdTree.readViabilitree("../samples/lake/lake_Isa_R1_dat.txt", metadata)
+    print(k.cells[0])
+    print("Kdtree loaded with %d cells" % len(k.cells))
+    hm.writeKernel(k, '2D_lake_Isa.h5')
+    k2 = hm.readKernel('2D_lake_Isa.h5')
+    return k
 
-
+    
 if __name__ == "__main__":
-    testRead()
+    g=testRead()
 #    CompareProcedure()
+    k=testReadKdTree()

@@ -41,6 +41,19 @@ class KdTree(Kernel):
     @overrides
     def getFormatCode():
         return "kdtree"
+       
+    @classmethod
+    @overrides
+    def initFromHDF5(cls, metadata, attrs, data):
+        '''
+      Create an object of class KdTree from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
+      '''
+        return cls(cells=data.tolist(), metadata=metadata)
+
+    @overrides
+    def getData(self):
+        return np.array(list(self.cells), dtype='float')
+
 
     @classmethod  
     def readViabilitreeFile(cls, f, metadata):
@@ -120,7 +133,7 @@ if __name__ == "__main__":
     import re
     metadata = {}
     myre = re.compile('^#(.*):(.*)$')
-    with open('../samples/lake/lake_Isa_R1.txt') as f:
+    with open('../samples/lake/2D_lake_Isa_metadata.txt') as f:
         for line in f:
             if line.startswith('#'):
                 k, v = myre.match(line).groups()

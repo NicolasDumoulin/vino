@@ -11,6 +11,9 @@ class Kernel(object):
   def metadata(self):
     return self.__metadata
 
+  def getMetadata(self):
+    return self.__metadata
+
   def getStateDimension(self):
     return self.metadata[METADATA.statedimension]
 

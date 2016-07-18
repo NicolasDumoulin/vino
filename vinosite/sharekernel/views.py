@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.files import File
 from BarGridKernel import BarGridKernel
+from KdTree import KdTree
 from hdf5common import HDF5Reader, HDF5Manager
 from distance import Matrix, EucNorm
 
@@ -86,7 +87,7 @@ def visitresult(request,result_id):
         tarparval.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
     if a.softwareparameters.split(",")[0]!="none":
         for i in range(len(a.softwareparameters.split(","))):
-            softparval.append(''.join([a.softwareparameters.split(",")[i]," = ",r.softwareparametervalues.split(",")[i]]))
+            softparval.append(''.join([a.softwareparameters.split(",")[i]," = ",r.softwareparametervalues.split("/")[i]]))
     if f.parameterlist.split(",")[0]!="none":
         for i in range(len(f.parameterlist.split(","))):
             formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
@@ -248,23 +249,33 @@ def ViNOView2D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        bargrid = hdf5manager.readKernel(vino.datafile.path)
+        if vino.resultformat.name =='bars':
+            hm = HDF5Manager([BarGridKernel])
+            bargrid = hm.readKernel(vino.datafile.path)
 
-        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+            distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
 
-        distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
-        permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
-        permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
-        permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
-        for i in range(len(resizebargrid.bars)):
-            resizebargrid.bars[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*resizebargrid.bars[i][:-1]/permutIntervalNumberperaxis
-            resizebargrid.bars[i][-1] = permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*resizebargrid.bars[i][-1]/permutIntervalNumberperaxis[-1]
-        perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
-        data = [list(perm)]+list(resizebargrid.bars)
-        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+            resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+            permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
+            permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
+            permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
+            for i in range(len(resizebargrid.bars)):
+                resizebargrid.bars[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*resizebargrid.bars[i][:-1]/permutIntervalNumberperaxis
+                resizebargrid.bars[i][-1] = permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*resizebargrid.bars[i][-1]/permutIntervalNumberperaxis[-1]
+            perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
+            data = [list(bargrid.originCoords) + list(bargrid.oppositeCoords)+list((bargrid.oppositeCoords-bargrid.originCoords)/distancegridintervals)+list(perm)]+list(resizebargrid.bars)
+            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
-        return HttpResponse(out_json)#, mimetype='text/plain')
+            return HttpResponse(out_json)#, mimetype='text/plain')
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+            kdt = hm.readKernel(vino.datafile.path)
+            data = list(kdt.cells)
+            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
+
     return HttpResponse("Nothing to do")
 
 
@@ -485,10 +496,45 @@ def visualizeresult(request,result_id):
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     c=vp.category
-    context = {'result':r,'viabilityproblem':vp,'category':c} 
+    rf=r.resultformat
+    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 def compareresult(request, vinoA_id, vinoB_id):
+    vinoA = Results.objects.get(id=vinoA_id)
+    vinoB = Results.objects.get(id=vinoB_id)
+    # TODO configurable new dimensions
+    distancegriddimensions = [61]*vinoA.parameters.viabilityproblem.statedimension
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    gridA = hdf5manager.readKernel(vinoA.datafile.path)
+    gridB = hdf5manager.readKernel(vinoB.datafile.path)
+#    distancegridMaxValues = max(gridA.kernelMaxPoint,gridB.kernelMaxPoint)
+#    distancegridMinValues = max(gridA.kernelMinPoint,gridB.kernelMinPoint)
+    print gridA.kernelMinPoint
+    print gridA.kernelMaxPoint
+    print gridB.kernelMinPoint
+    print gridB.kernelMaxPoint
+
+
+    gridA = gridA.toBarGridKernel(gridA.originCoords, gridA.oppositeCoords, distancegridintervals)
+    # TODO remove this fake
+    for bar in gridA.bars:
+        bar[1]=bar[1]+1
+        bar[2]=bar[2]-1
+    gridB = hdf5manager.readKernel(vinoB.datafile.path)
+    gridB = gridB.toBarGridKernel(gridB.originCoords, gridB.oppositeCoords, distancegridintervals)
+    minusgridAB = gridA.MinusBarGridKernel(gridB)
+    minusgridBA = gridB.MinusBarGridKernel(gridA)
+    intersection = gridA.intersectionwithBarGridKernel(gridB)
+    context = {
+        'vinoA': vinoA, 'vinoB': vinoB
+    }
+    for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
+        context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
+    return render(request, 'sharekernel/compareTwoVinos.html', context)            
+
+
+def compareresultbis(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)
     # TODO configurable new dimensions
@@ -511,8 +557,6 @@ def compareresult(request, vinoA_id, vinoB_id):
     for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
-
-
 
 def kernelupload(request):
     form = DocumentForm()
@@ -624,11 +668,52 @@ def findandsaveobject(cls, metadata, foreignkeys={}, fields={}):
     # find objects with same metadata and foreign keys
     p = [ o for o in cls.objects.all()
             if all(
-                metadata.get(cls.__name__.lower()+'.'+f.name) == str(getattr(o, f.name))
+                str(metadata.get(cls.__name__.lower()+'.'+f.name)) == str(getattr(o, f.name))
                 # list all model attributes except db keys
                 for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields)
             ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
         ]
+    if not p:
+        # no object found, creating a new one
+        p = cls()
+        # setting metadata
+        for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
+            try:
+                setattr(p, f.name, metadata[cls.__name__.lower()+'.'+f.name])
+            except:
+                print("metadata not found: "+cls.__name__.lower()+'.'+f.name)
+        # setting additional field (data file)
+        for fn,f in fields.iteritems():
+            setattr(p, fn, f)
+        # setting foreign keys
+        for f,fk in foreignkeys.iteritems():
+            setattr(p, f, fk)
+        p.save()
+    else :
+        p=p[0]
+    return p
+
+def findandsaveobjectter(cls, metadata, foreignkeys={}, fields={}):
+    '''
+    Try to find object with same metadata, or return a new object
+    '''
+    # find objects with same metadata and foreign keys
+    tab = []
+    p = [ o for o in cls.objects.all()
+            if all(
+                str(metadata.get(cls.__name__.lower()+'.'+f.name)) == str(getattr(o, f.name))
+                # list all model attributes except db keys
+                for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields)
+            ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
+        ]
+    for o in cls.objects.all():
+        for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
+            tab.append(metadata.get(cls.__name__.lower()+'.'+f.name))
+            tab.append(str(getattr(o, f.name)))
+            if tab[-2]!=tab[-1]:
+                print tab[-2]
+                print tab[-1]
+
     if not p:
         # no object found, creating a new one
         p = cls()
@@ -666,6 +751,10 @@ def findandsaveobjectbis(cls, metadata, foreignkeys={}, fields={}):
         for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
             tab.append(metadata.get(cls.__name__.lower()+'.'+f.name))
             tab.append(str(getattr(o, f.name)))
+            if tab[-2]!=tab[-1]:
+                print tab[-2]
+                print tab[-1]
+
     if not p:
         # no object found, creating a new one
         p = cls()
@@ -684,7 +773,7 @@ def findandsaveobjectbis(cls, metadata, foreignkeys={}, fields={}):
         p.save()
     else :
         p=p[0]
-    return tab
+    return p
 
 def hdf5record(request):
     if request.method == 'POST':
@@ -702,8 +791,8 @@ def hdf5record(request):
             p = findandsaveobject(Parameters, metadata, foreignkeys={"viabilityproblem": vp})
             rf = findandsaveobject(ResultFormat, metadata)
             a = findandsaveobject(Algorithm, metadata)
-            r = findandsaveobjectbis(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
-            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata)+str(r))
+            r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
+            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
     context = {}
     return render(request, 'sharekernel/kerneluploaded.html', context)        
      
