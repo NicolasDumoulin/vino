@@ -245,6 +245,44 @@ def bargrid2json(request):
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
 
+def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
+    import numpy as np
+    vinos = []
+    plotmin = [0,0]
+    plotmax = [1,1.4]
+    if request.method == 'POST':
+      vinos.append(Results.objects.get(id=vinoA_id))
+      vinos.append(Results.objects.get(id=vinoB_id))
+      data = [[vinos[0].resultformat.name,vinos[1].resultformat.name,'bars','bars','bars','bars','bars']]
+      print data
+      for vino in vinos:
+        if vino.resultformat.name =='bars':
+            hm = HDF5Manager([BarGridKernel])
+            bargrid = hm.readKernel(vino.datafile.path)
+            #To delete to show the original bargrid
+            distancegriddimensions = [31,31]#[int(ppa),int(ppa)] #[301,301]
+            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+            bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+            data.append(bargridbis.getDataToPlot())
+            
+            distancegriddimensions = [31,31]#[int(ppa),int(ppa)] #[301,301]
+            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+            resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+            data.append(resizebargrid.getDataToPlot())
+          
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+            kdt = hm.readKernel(vino.datafile.path)
+            data.append(list(kdt.cells))
+            resizebargrid2 = kdt.toBarGridKernel([0.001]*kdt.getStateDimension())
+            data.append(resizebargrid2.getDataToPlot())
+
+      out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+      return HttpResponse(out_json)#, mimetype='text/plain')
+
+    return HttpResponse("Nothing to do")
+
+
 def ViNOView2D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
@@ -503,34 +541,13 @@ def visualizeresult(request,result_id):
 def compareresult(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)
-    # TODO configurable new dimensions
-    distancegriddimensions = [61]*vinoA.parameters.viabilityproblem.statedimension
-    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-    gridA = hdf5manager.readKernel(vinoA.datafile.path)
-    gridB = hdf5manager.readKernel(vinoB.datafile.path)
-#    distancegridMaxValues = max(gridA.kernelMaxPoint,gridB.kernelMaxPoint)
-#    distancegridMinValues = max(gridA.kernelMinPoint,gridB.kernelMinPoint)
-    print gridA.kernelMinPoint
-    print gridA.kernelMaxPoint
-    print gridB.kernelMinPoint
-    print gridB.kernelMaxPoint
-
-
-    gridA = gridA.toBarGridKernel(gridA.originCoords, gridA.oppositeCoords, distancegridintervals)
-    # TODO remove this fake
-    for bar in gridA.bars:
-        bar[1]=bar[1]+1
-        bar[2]=bar[2]-1
-    gridB = hdf5manager.readKernel(vinoB.datafile.path)
-    gridB = gridB.toBarGridKernel(gridB.originCoords, gridB.oppositeCoords, distancegridintervals)
-    minusgridAB = gridA.MinusBarGridKernel(gridB)
-    minusgridBA = gridB.MinusBarGridKernel(gridA)
-    intersection = gridA.intersectionwithBarGridKernel(gridB)
-    context = {
-        'vinoA': vinoA, 'vinoB': vinoB
-    }
-    for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
-        context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
+    vpA=vinoA.parameters.viabilityproblem
+    cA=vpA.category
+    rfA=vinoA.resultformat
+    vpB=vinoB.parameters.viabilityproblem
+    cB=vpB.category
+    rfB=vinoB.resultformat
+    context = {'vinoA':vinoA,'viabilityproblemA':vpA,'categoryA':cA,'resultformatA':rfA,'vinoB':vinoB,'viabilityproblemB':vpB,'categoryB':cB,'resultformatB':rfB} 
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
 

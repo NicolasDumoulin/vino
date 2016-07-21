@@ -2,16 +2,37 @@
 
 {% load staticfiles %}
 {% block head %}
+    <script src="{% static 'sharekernel/vinoplot.js' %}"></script>
     <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
 {% endblock %}
 
 {% block body %}
 
 <div class="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
+<a href="{% url 'sharekernel:visitresult'  vinoA.id %}">{{vinoA.title}}</a> -- <a href="{% url 'sharekernel:visitresult'  vinoB.id %}">{{vinoB.title}}</a><br><br>
+
+            <h2>ViNOs comparison</h2>
+<ul>
+<li> ViNO A entitled {{vinoA.title}} was computed thanks to {{vinoA.algorithm.name}} by {{vinoA.author}} submitted on {{vinoA.submissiondate}}. The result format is {{vinoA.resultformat.name}}.</li>
+<li> ViNO B entitled {{vinoB.title}} was computed thanks to {{vinoB.algorithm.name}} by {{vinoB.author}} submitted on {{vinoB.submissiondate}}. The result format is {{vinoB.resultformat.name}}.</li>
+</ul>
+<div id="oo"></div>
+<div id="oobis"></div>
+            <p>First, choose the number of points per axis of the regular grid on which the comparison will be performed : <input id="ppa"> points per axis (max : 200). <input type="submit" id="comparisonGo" value="Go" /></p>
+<p>Then, you can visualize  : </p>
+<ul>
+<li> ViNO A : <button type="button" id="viewAoriginal" disabled> Original </button> <button type="button" id="viewAongrid" disabled> Marks on the comparison grid </button> 
+</li>
+<li> ViNO B : <button type="button" id="viewBoriginal" disabled> Original </button> <button type="button" id="viewBongrid" disabled> Marks on the comparison grid </button></li>
+<li> On the comparison grid :
+ <ul> <li> <button type="button" id="viewABongrid" disabled> ViNO A - ViNO B</button></li><li><button type="button" id="viewBAongrid" disabled> ViNO B - ViNO A</button> </li>
+<li> <button type="button" id="viewAinterBongrid" disabled> Intersection ViNO A ViNO B</button></li></ul></li>
+</ul> 
     <div class="row">
         <div class="col-md-4">
-            <h2>ViNOs comparison</h2>
-            <p>First, choose the number of points per axis of the regular grid on which the comparison will be performed : <input id="ppa"> points per axis (max : 200). <input type="submit" id="comparisonGo" value="Go" /></p>
             <p>ViNOs compared:<ul>
                     <li>
                         <button type="button" id="viewA" style="background-color:#FF0000" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
@@ -41,6 +62,178 @@
     </div>
 </div>
 <script type="text/javascript">
+        // adding crsf token inside the ajax query, needed by Django
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie != '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                        }
+                    }
+                    return cookieValue;
+                }
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    // Only send the token to relative URLs i.e. locally.
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                }
+            }
+        });
+        function loadAndPlot(url,callback) {
+//            $('#viewPanel').empty();
+            $.ajax({ url: url,
+                    type: "POST",
+                    data: new FormData($('#uploadForm')[0]),
+                    processData: false,
+                    contentType: false,
+                    dataType:"json",
+                    success: callback
+            })
+            return false;
+        }
+    function createmarkers(){
+	var item = {x:[1,1],y:[1,2], mode:'markers', type: 'scatter', marker: { size : 9,color : [] }, hoverinfo:'none' };
+	return item;
+	}
+    function createMarkers(){
+	var item = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 2}, hoverinfo:'none' };
+	return item;
+	}
+
+    var plotData = [
+        ['viewAoriginal', 'rgba(112, 219, 112,0.7)', 'rgba(41, 163, 41,1)', $('#viewAoriginal'),-1,{},{},-1,-1],
+        ['viewAongrid', 'rgba(128, 255, 128,0.7)', 'rgba(51, 255, 51,1)', $('#viewAongrid'),-1,{},{},-1,-1],
+        ['viewBoriginal', 'rgba(255, 179, 102,0.7)', 'rgba(255, 153, 51,1)', $('#viewBoriginal'), {},{},{},-1,-1],
+        ['viewBongrid', 'rgba(255, 153, 102,0.7)', 'rgba(255, 102, 26,1)', $('#viewBongrid'),-1,{},{},-1,-1],
+        ['viewABongrid', 'rgba(128, 255, 128,0.7)', 'rgba(51, 255, 51,1)', $('#viewABongrid'),-1,{},{},-1,-1],
+        ['viewBAongrid', 'rgba(255, 153, 102,0.7)', 'rgba(255, 102, 26,1)', $('#viewBAongrid'),-1,{},{},-1,-1],
+        ['viewAinterBongrid', 'rgba(204, 153, 102,0.7)', 'rgba(172, 115, 57,1)', $('#viewAinterBongrid'),-1,{},{},-1,-1]
+    ];
+
+    $("#comparisonGo").click(function(){
+    	var container = document.getElementById('viewPanel');
+	var origin = {x:[0],y:[0], mode:'markers', type: 'scatter', marker: { size : 2}, hoverinfo:'none' };
+    	var item;
+    	var trace = [];
+	var layout = {margin:{t:10},width: 600,height: 600,shapes : []};
+	var update;
+	var addshapes;
+	var url = "{% url 'sharekernel:ViNOComparison2D' vinoA.id vinoB.id 30 %}"
+	var vinotype = [];
+	loadAndPlot(url,function (data) {
+		$.each(data, function(rank,vino) {
+			if (rank>0){
+			    item = createMarkers();
+			    trace = [];
+			    if (vinotype[rank-1] == 'kdtree'){	
+				$.each(vino, function(index,bar) {
+		                        item.x.push(bar[0]);
+                		        item.y.push(bar[1]);
+					trace.push(OtherRectangle(bar[2],bar[3],bar[4],bar[5],plotData[rank-1][2],plotData[rank-1][1]));
+		              });
+//                var layout = {showlegend: false,margin:{t:10},width: 600,height: 600,shapes:tracebis};
+				item.marker.color = plotData[rank-1][2];
+  				plotData[rank-1][5] = [item];
+				plotData[rank-1][6] = trace;
+			    }
+			    else if (vinotype[rank-1] == 'bars'){
+				var x = [];
+				var y = [];                
+				var map = [];                
+		                var mapinit = [x,y];
+				var mapitems = [];                
+          		        var mapinititems = [item.x,item.y];
+				var xstep,ystep;
+                		var xbounds = [];
+                		var ybounds = [];
+		                $.each(vino, function(index,bar) {
+		                    if (index==0){
+					xstep = bar[4]/2;
+					ystep = bar[5]/2;
+					xbounds.push(bar[0]-xstep);
+					xbounds.push(bar[2]+xstep);
+					ybounds.push(bar[1]-ystep);
+					ybounds.push(bar[3]+ystep);
+					map.push(mapinit[bar[6]]);
+					map.push(mapinit[bar[7]]);
+					mapitems.push(mapinititems[bar[6]]);
+					mapitems.push(mapinititems[bar[7]]);
+		                        x.push(0);
+					x.push(1);
+					y.push(0);
+					y.push(1);
+				    }
+				    else {
+					map[0][0]=bar[0];
+					map[0][1]=bar[0];
+					map[1][0]=bar[1];
+					map[1][1]=bar[2];
+		                        mapitems[0].push(bar[0]);
+		                        mapitems[0].push(bar[0]);
+		                        mapitems[1].push(bar[1]);
+		                        mapitems[1].push(bar[2]);
+					trace.push(bargridRectangle(x,y,xstep,ystep,plotData[rank-1][2],plotData[rank-1][1]));
+				    }
+				})
+				item.marker.color = plotData[rank-1][2];
+  				plotData[rank-1][5] = [item];
+				plotData[rank-1][6] = trace;
+
+
+			    }
+			}
+			else {
+			    $.each(vino, function(index,vinoType) {
+				vinotype.push(vinoType);
+			    })
+			}
+		});
+	});
+    	$.each(plotData, function(index,data) {
+		document.getElementById(data[0]).style.backgroundColor = data[1];
+		document.getElementById(data[0]).disabled = '';
+        	data[3].click(function(){            
+            		if (data[3].hasClass('checked')) {
+                		Plotly.deleteTraces(container,data[4]);
+				addshapes = layout.shapes.slice(0,data[7]).concat(layout.shapes.slice(data[8]+1,layout.shapes.length));
+				update = {shapes : addshapes};
+				Plotly.relayout(container, update);
+				data[3].removeClass('checked');
+				$.each(plotData, function(indexbis,databis) {
+					if (databis[4] > data[4]){
+						databis[4]=databis[4]-1;
+						databis[7]=databis[7]-(data[8]-data[7]+1);
+						databis[8]=databis[8]-(data[8]-data[7]+1);
+					}
+				});
+				data[4] = -1;
+				data[7] = -1;
+				data[8] = -1;
+
+		        } else {
+				addshapes = layout.shapes.concat(data[6]);
+ 				data[7]=layout.shapes.length;
+ 				data[8]=addshapes.length-1;
+				update = {shapes : addshapes};
+				Plotly.relayout(container, update);
+				Plotly.addTraces(container, data[5]);				
+				data[3].toggleClass('checked');
+ 				data[4]=container.data.length-1;
+
+           		}
+
+        	});
+    	});
+    	Plotly.newPlot(container,[origin],layout);
+    });
+/*
     $('.btn').button();
     var container = $('#viewPanel')[0];
     var plotsData = [
@@ -69,6 +262,7 @@
         });
     });
     Plotly.newPlot(container,[],{margin:{t:0}});
+*/
 </script>
 
 {% endblock %}

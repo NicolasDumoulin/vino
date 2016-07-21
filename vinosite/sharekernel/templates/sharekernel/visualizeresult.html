@@ -2,6 +2,7 @@
 
 {% load staticfiles %}
 {% block head %}
+    <script src="{% static 'sharekernel/vinoplot.js' %}"></script>
     <script src="{% static 'sharekernel/vis.js' %}"></script>
     <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
@@ -84,17 +85,125 @@
 	return barTrace ;
 	}
 
-	function Rectangle(x,y,xstep,ystep){
-	var rectangle ={'type': 'rect','x0': x[0]-xstep,'y0': y[0]-ystep,'x1': x[1]+xstep,'y1': y[1]+ystep,'line': {'color': 'rgba(128, 0, 128, 1)','width': 1},'fillcolor': 'rgba(128, 0, 128, 0.7)'};
+	function bargridRectangle(x,y,xstep,ystep,colorline,fillcolor){
+	var rectangle ={'type': 'rect','x0': x[0]-xstep,'y0': y[0]-ystep,'x1': x[1]+xstep,'y1': y[1]+ystep,'line': {'color': colorline,'width': 1},'fillcolor': fillcolor};
 	return rectangle;
 	}
 
-	function OtherRectangle(xmin,xmax,ymin,ymax){
+	function OtherRectanglebis(xmin,xmax,ymin,ymax){
 	var rectangle ={'type': 'rect','x0': xmin,'y0': ymin,'x1': xmax,'y1': ymax,'line': {'color': 'rgba(128, 0, 128, 1)','width': 1},'fillcolor': 'rgba(128, 0, 128, 0.7)'};
 	return rectangle;
 	}
 
+	function bargridPlot(url,x,container,colormarker,colorline,fillcolor){
+    	    if (isNaN(x) || x=="%20" || x>1000) {
+        	text = "Input not valid : " + x;
+//		var container = document.getElementById('viewPanelBW');
+		container.innerHTML=text;
+    	    } else {
+	    url = url.replace("0",x);
+	    loadAndPlot(url,function (data) {
+//                var container = document.getElementById('viewPanelBW');
+                var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: colormarker }, hoverinfo:'none' };
+                var trace = [];
+                var tracebis = [];
+		var x = [];
+		var y = [];                
+		var map = [];                
+                var mapinit = [x,y];
+		var mapitems = [];                
+                var mapinititems = [items.x,items.y];
+		var xstep,ystep;
+                var xbounds = [];
+                var ybounds = [];
+                
+                $.each(data, function(index,bar) {
+                    if (index==0){
+			xstep = bar[4]/2;
+			ystep = bar[5]/2;
+			xbounds.push(bar[0]-xstep);
+			xbounds.push(bar[2]+xstep);
+			ybounds.push(bar[1]-ystep);
+			ybounds.push(bar[3]+ystep);
+			map.push(mapinit[bar[6]]);
+			map.push(mapinit[bar[7]]);
+			mapitems.push(mapinititems[bar[6]]);
+			mapitems.push(mapinititems[bar[7]]);
+                        x.push(0);
+			x.push(1);
+			y.push(0);
+			y.push(1);
+		    }
+		    else {
+			map[0][0]=bar[0];
+			map[0][1]=bar[0];
+			map[1][0]=bar[1];
+			map[1][1]=bar[2];
+                        mapitems[0].push(bar[0]);
+                        mapitems[0].push(bar[0]);
+                        mapitems[1].push(bar[1]);
+                        mapitems[1].push(bar[2]);
+
+			tracebis.push(bargridRectangle(x,y,xstep,ystep,colorline,fillcolor));
+		    }
+              });
+             var layout = {showlegend: false,margin:{t:10},width: 600,height: 600,shapes : tracebis,xaxis:{range : xbounds},yaxis:{range : ybounds}};
+	     trace = [items];
+	     Plotly.newPlot(container,trace,layout);
+	})}
+	}
         $("#viewPlotlyBW2D").click(function(){
+            var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
+            {% if resultformat.name == 'bars' %}
+	    document.getElementById('viewPanelBW').innerHTML = "";
+            var x = document.getElementById("ppa").value;
+	    var container = document.getElementById('viewPanelBW');
+	    var colormarker = 'rgb(255,0,0,0.4)';
+	    var colorline = 'rgba(128, 0, 128, 1)';
+	    var fillcolor = 'rgba(128, 0, 128, 0.7)';
+	    bargridPlot(url,x,container,colormarker,colorline,fillcolor);
+            
+            {% elif resultformat.name == 'kdtree' %}
+	    document.getElementById('viewPanelBW').innerHTML = "";
+            loadAndPlot(url,function (data) {
+                var container = document.getElementById('viewPanelBW');
+                var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
+                var trace = [];
+                var tracebis = [];
+		var x = [0,0];
+		var y = [0,0];                
+		var map = [];                
+                var mapinit = [x,y];
+		var mapitems = [];                
+                var mapinititems = [items.x,items.y];
+		var xstep,ystep;
+                var xbounds = [];
+                var ybounds = [];
+                
+                $.each(data, function(index,bar) {
+                        items.x.push(bar[0]);
+                        items.y.push(bar[1]);
+
+//			trace.push(BarTrace(x,y));
+			tracebis.push(OtherRectanglebis(bar[2],bar[3],bar[4],bar[5]));
+//                    map[0].push(bar[0]);
+//                    map[0].push(bar[0]);
+//                   map[1].push(bar[1]);
+//                    map[1].push(bar[2]);
+//                    items.marker.color.push(1);
+//                    items.marker.color.push(1);
+		    
+              });
+//                Plotly.newPlot(container,[items],{margin:{t:0}});
+                var layout = {showlegend: false,margin:{t:10},width: 600,height: 600,shapes:tracebis};
+//                var layout = {showlegend: false,margin:{t:0}};
+  		trace = [items]
+                Plotly.newPlot(container,trace,layout);
+            })
+ {% endif %}
+        });
+
+        $("#viewPlotlyBW2Dbis").click(function(){
             var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
             {% if resultformat.name == 'bars' %}
 	    document.getElementById('viewPanelBW').innerHTML = "";

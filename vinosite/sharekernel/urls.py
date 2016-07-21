@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^hdf5record/$', views.hdf5record, name='hdf5record'),
     url(r'^verify/$', views.verify, name='verify'),
     url(r'^kernelupload/$', views.kernelupload, name='kernelupload'),
+    url(r'^ViNOComparison2D/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOComparison2D, name='ViNOComparison2D'),
     url(r'^ViNOView2D/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOView2D, name='ViNOView2D'),
     url(r'^ViNODistanceView2D/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNODistanceView2D, name='ViNODistanceView2D'),
     url(r'^ViNOHistogramDistance/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/(?P<hist_maxvalue>([0-9]|N)+)/$', views.ViNOHistogramDistance, name='ViNOHistogramDistance'),
