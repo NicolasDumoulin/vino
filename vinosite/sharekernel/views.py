@@ -248,6 +248,7 @@ def bargrid2json(request):
 def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
     import numpy as np
     vinos = []
+    resizebargrids = []
     plotmin = [0,0]
     plotmax = [1,1.4]
     if request.method == 'POST':
@@ -260,23 +261,28 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
             #To delete to show the original bargrid
-            distancegriddimensions = [31,31]#[int(ppa),int(ppa)] #[301,301]
+            distancegriddimensions = [501,501]#[int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
             bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
             data.append(bargridbis.getDataToPlot())
             
-            distancegriddimensions = [31,31]#[int(ppa),int(ppa)] #[301,301]
+            distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-            resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
-            data.append(resizebargrid.getDataToPlot())
+            resizebargrids.append(bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals))
+            data.append(resizebargrids[-1].getDataToPlot())
           
         elif vino.resultformat.name =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
             data.append(list(kdt.cells))
-            resizebargrid2 = kdt.toBarGridKernel([0.001]*kdt.getStateDimension())
-            data.append(resizebargrid2.getDataToPlot())
-
+            resizebargrids.append(kdt.toBarGridKernel([0.001]*kdt.getStateDimension()))
+            data.append(resizebargrids[-1].getDataToPlot())
+      aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
+      bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
+      ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
+      data.append(aminusb.getDataToPlot())
+      data.append(bminusa.getDataToPlot())
+      data.append(ainterb.getDataToPlot())
       out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
       return HttpResponse(out_json)#, mimetype='text/plain')
 
@@ -309,7 +315,7 @@ def ViNOView2D(request,result_id,ppa):
         elif vino.resultformat.name =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
-            data = list(kdt.cells)
+            data = [list(kdt.originCoords)+list(kdt.oppositeCoords)]+list(kdt.cells)
             out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
@@ -332,8 +338,8 @@ def ViNODistanceView2D(request,result_id,ppa):
         lowborders = []    
         upborders = []    
         for i in range(len(distancegrid.dimensions)):
-            lowborders.append(False)
-            upborders.append(False)
+            lowborders.append(True)
+            upborders.append(True)
 
         distancegrid.distance(norm,lowborders,upborders)
         data = distancegrid.toDataPointDistance()

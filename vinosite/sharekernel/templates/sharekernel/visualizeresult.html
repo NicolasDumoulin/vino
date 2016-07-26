@@ -292,18 +292,19 @@
                 var ybounds = [];
                 
                 $.each(data, function(index,bar) {
-                        items.x.push(bar[0]);
-                        items.y.push(bar[1]);
+                        if (index>=1){
+				items.x.push(bar[0]);
+  	                        items.y.push(bar[1]);
 
 //			trace.push(BarTrace(x,y));
-			tracebis.push(OtherRectangle(bar[2],bar[3],bar[4],bar[5]));
+				tracebis.push(OtherRectangle(bar[2],bar[3],bar[4],bar[5]));
 //                    map[0].push(bar[0]);
 //                    map[0].push(bar[0]);
 //                   map[1].push(bar[1]);
 //                    map[1].push(bar[2]);
 //                    items.marker.color.push(1);
 //                    items.marker.color.push(1);
-		    
+		    	}
               });
 //                Plotly.newPlot(container,[items],{margin:{t:0}});
                 var layout = {showlegend: false,margin:{t:10},width: 600,height: 600,shapes:tracebis};

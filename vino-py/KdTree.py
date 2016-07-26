@@ -13,6 +13,9 @@ class KdTree(Kernel):
     def __init__(self, cells=[], metadata={}):
         super(KdTree, self).__init__(metadata)
         self.cells = cells
+        minBoundsCoordinates = self.getMinBoundsCoordinates()
+        self.originCoords = np.array([min([c[i] for c in self.cells]) for i in minBoundsCoordinates], float)
+        self.oppositeCoords = np.array([max([c[i+1] for c in self.cells]) for i in minBoundsCoordinates], float)
 
     @property
     def cells(self):
