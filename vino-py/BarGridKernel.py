@@ -68,15 +68,32 @@ class BarGridKernel(Kernel):
     def getData(self):
         return np.array(list(self.bars), dtype='int64')
 
+    def getMinBounds(self):
+        minbounds = []
+        permutOriginCoords = np.dot(self.permutation, self.originCoords)
+        permutOppositeCoords = np.dot(self.permutation, self.oppositeCoords)
+        permutIntervalNumberperaxis = np.dot(self.permutation, self.intervalNumberperaxis)
+        minbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMinPoint/permutIntervalNumberperaxis)-(self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)
+	return minbounds
+
+    def getMaxBounds(self):
+        maxbounds = []
+        permutOriginCoords = np.dot(self.permutation, self.originCoords)
+        permutOppositeCoords = np.dot(self.permutation, self.oppositeCoords)
+        permutIntervalNumberperaxis = np.dot(self.permutation, self.intervalNumberperaxis)
+        maxbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMaxPoint/permutIntervalNumberperaxis)+(self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)
+	return maxbounds
+
     def getDataToPlot(self):
         data = []
+
         permutOriginCoords = np.dot(self.permutation, self.originCoords)
         permutOppositeCoords = np.dot(self.permutation, self.oppositeCoords)
         permutIntervalNumberperaxis = np.dot(self.permutation, self.intervalNumberperaxis)
         for i in range(len(self.bars)):
            data.append(list(permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*np.array(self.bars[i][:-1])/permutIntervalNumberperaxis)+[permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*self.bars[i][-1]/permutIntervalNumberperaxis[-1]])
         perm = np.dot(self.permutation,np.arange(len(self.originCoords)))
-        data = [list(self.originCoords) + list(self.oppositeCoords)+list((self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)+list(perm)]+list(data)
+        data = [list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMinPoint/permutIntervalNumberperaxis)) +    list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMaxPoint/permutIntervalNumberperaxis))+list((self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)+list(perm)]+list(data)
         return data
 
     def getTotalPointNumber(self):

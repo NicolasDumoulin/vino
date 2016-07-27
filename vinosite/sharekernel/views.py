@@ -248,41 +248,74 @@ def bargrid2json(request):
 def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
     import numpy as np
     vinos = []
+    pyvinos = []
     resizebargrids = []
-    plotmin = [0,0]
-    plotmax = [1,1.4]
+    minbounds = []
+    maxbounds = []
+    permutation = []
     if request.method == 'POST':
       vinos.append(Results.objects.get(id=vinoA_id))
       vinos.append(Results.objects.get(id=vinoB_id))
       data = [[vinos[0].resultformat.name,vinos[1].resultformat.name,'bars','bars','bars','bars','bars']]
-      print data
       for vino in vinos:
         if vino.resultformat.name =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
+            pyvinos.append(bargrid)
+            intervalSizes = (bargrid.oppositeCoords-bargrid.originCoords)/bargrid.intervalNumberperaxis
+            if (len(minbounds) > 0):
+                minbounds = [min(minbounds[i],bargrid.getMinBounds()[i]) for i in range(len(minbounds))]
+                maxbounds = [max(maxbounds[i],bargrid.getMaxBounds()[i]) for i in range(len(maxbounds))]
+
+	    else :
+	        minbounds = bargrid.getMinBounds()
+	        maxbounds = bargrid.getMaxBounds()
             #To delete to show the original bargrid
             distancegriddimensions = [501,501]#[int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
             bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
-            data.append(bargridbis.getDataToPlot())
-            
-            distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
-            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-            resizebargrids.append(bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals))
-            data.append(resizebargrids[-1].getDataToPlot())
-          
+            data.append(bargrid.getDataToPlot())
         elif vino.resultformat.name =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
-            data.append(list(kdt.cells))
-            resizebargrids.append(kdt.toBarGridKernel([0.001]*kdt.getStateDimension()))
+            pyvinos.append(kdt)
+            if (len(minbounds) > 0):
+                minbounds = [min(minbounds[i],list(kdt.originCoords)[i]) for i in range(len(minbounds))]
+                maxbounds = [max(maxbounds[i],list(kdt.oppositeCoords)[i]) for i in range(len(maxbounds))]
+
+	    else :
+	        minbounds = list(kdt.originCoords)
+	        maxbounds = list(kdt.oppositeCoords)
+            data.append(kdt.getDataToPlot())
+        print minbounds
+        print maxbounds
+        print "houp"
+           
+      distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+      distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+      neworigin = list(np.array(minbounds)+(np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)/2)
+      newopposite = list(np.array(maxbounds)-(np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)/2)
+      print distancegridintervals
+      print neworigin
+      print newopposite
+      print "hep"
+
+      for pyvino in pyvinos:
+        if pyvino.getFormatCode() =='bars':
+            print "bargrid"
+            resizebargrids.append(pyvino.toBarGridKernel(neworigin, newopposite, distancegridintervals))
             data.append(resizebargrids[-1].getDataToPlot())
-      aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
-      bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
-      ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
-      data.append(aminusb.getDataToPlot())
-      data.append(bminusa.getDataToPlot())
-      data.append(ainterb.getDataToPlot())
+        elif pyvino.getFormatCode() =='kdtree':
+            print "kdtree"
+            resizebargrids.append(pyvino.toBarGridKernelbis(distancegridintervals,neworigin,newopposite))
+            data.append(resizebargrids[-1].getDataToPlot())
+
+#      aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
+#      bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
+#      ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
+#      data.append(aminusb.getDataToPlot())
+#      data.append(bminusa.getDataToPlot())
+#      data.append(ainterb.getDataToPlot())
       out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
       return HttpResponse(out_json)#, mimetype='text/plain')
 

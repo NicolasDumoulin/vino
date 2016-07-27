@@ -92,8 +92,8 @@
 
     var plotData = [
         ['viewAoriginal', 'rgba(112, 219, 112,0.7)', 'rgba(41, 163, 41,1)', $('#viewAoriginal'),-1,{},{},-1,-1],
-        ['viewAongrid', 'rgba(128, 255, 128,0.7)', 'rgba(51, 255, 51,1)', $('#viewAongrid'),-1,{},{},-1,-1],
         ['viewBoriginal', 'rgba(255, 179, 102,0.7)', 'rgba(255, 153, 51,1)', $('#viewBoriginal'), -1,{},{},-1,-1],
+        ['viewAongrid', 'rgba(128, 255, 128,0.7)', 'rgba(51, 255, 51,1)', $('#viewAongrid'),-1,{},{},-1,-1],
         ['viewBongrid', 'rgba(255, 153, 102,0.7)', 'rgba(255, 102, 26,1)', $('#viewBongrid'),-1,{},{},-1,-1],
         ['viewABongrid', 'rgba(128, 255, 128,0.7)', 'rgba(51, 255, 51,1)', $('#viewABongrid'),-1,{},{},-1,-1],
         ['viewBAongrid', 'rgba(255, 153, 102,0.7)', 'rgba(255, 102, 26,1)', $('#viewBAongrid'),-1,{},{},-1,-1],
@@ -147,7 +147,7 @@
     });
     $("#initPlot").click(function(){
     	var container = document.getElementById('viewPanel');
-        var layout = {margin:{t:10},width: 600,height: 600,shapes : [],xaxis:{range : xbounds},yaxis:{range : ybounds}};
+        var layout = {margin:{t:10},width: 600,height: 400,shapes : [],xaxis:{range : xbounds},yaxis:{range : ybounds}};
         var minmax = {x:xbounds,y:ybounds, mode:'markers', type: 'scatter', marker: { size : 20}, hoverinfo:'none' };
     	  $.each(plotData, function(index,data) {
 		document.getElementById(data[0]).style.backgroundColor = data[1];
@@ -186,7 +186,7 @@
 			    trace = [];
 			    if (vinotype[rank-1] == 'kdtree'){	
 				$.each(vino, function(index,bar) {
-		                    if (index==0){
+		                    if (index>0){
 					
 /*					if (xbounds.length > 0){
 						if (xbounds[0] > bar[0]) {xbounds[0] = bar[0];}
@@ -199,9 +199,9 @@
 						xbounds.push(bar[2]);
 						ybounds.push(bar[1]);
 						ybounds.push(bar[3]);
-					}*/
+					}
 				    }
-				    else{
+				    else{*/
 		                        item.x.push(bar[0]);
                 		        item.y.push(bar[1]);
 					trace.push(OtherRectangle(bar[2],bar[3],bar[4],bar[5],plotData[rank-1][2],plotData[rank-1][1]));

@@ -1,3 +1,4 @@
+from hdf5common import HDF5Reader, HDF5Manager
 from BarGridKernel import BarGridKernel
 from Kernel import Kernel
 import METADATA
@@ -45,6 +46,11 @@ class KdTree(Kernel):
     def getFormatCode():
         return "kdtree"
        
+    def getDataToPlot(self):
+        data = []
+        data = [list(self.originCoords)+list(self.oppositeCoords)]+list(self.cells)
+        return data
+
     @classmethod
     @overrides
     def initFromHDF5(cls, metadata, attrs, data):
@@ -132,6 +138,80 @@ class KdTree(Kernel):
                 bgk.addBar(next_point, start_int[-1], end_int[-1])
         return bgk
 
+    def toBarGridKernelbis(self, intervalNumberperaxis, newOriginCoords = None, newOppositeCoords = None):
+        '''
+        Convert to a BarGridKernel with another underlying grid, with a given number of intervals per axis.
+        If no origin or opposite is given, it will be deduced from the lower or upper cell.
+        Returns an instance of BarGridKernel.
+        '''
+        minBoundsCoordinates = self.getMinBoundsCoordinates()
+        intervalsSizes = (np.array([max([c[i+1] for c in self.cells]) for i in minBoundsCoordinates], float)-np.array([min([c[i] for c in self.cells]) for i in minBoundsCoordinates], float))/(np.array(intervalNumberperaxis)+np.array([1]*len(intervalNumberperaxis)))
+        if not newOriginCoords:
+            newOriginCoords = np.array([min([c[i] for c in self.cells]) for i in minBoundsCoordinates], float) + intervalsSizes / 2
+        else:
+            newOriginCoords = np.array(newOriginCoords, float)
+        if not newOppositeCoords:
+            newOppositeCoords = np.array([max([c[i+1] for c in self.cells]) for i in minBoundsCoordinates], float) - intervalsSizes / 2
+        else:
+            newOppositeCoords = np.array(newOppositeCoords, float)
+#        newIntervalNumberperaxis = (newOppositeCoords - newOriginCoords) / intervalsSizes
+        bgk = BarGridKernel(newOriginCoords, newOppositeCoords, intervalNumberperaxis)
+        print list(newOppositeCoords)
+        print list(intervalsSizes)
+
+        for cell in self.cells:
+            cell_start = [cell[i] for i in minBoundsCoordinates]
+            cell_end = [cell[i+1] for i in minBoundsCoordinates]
+            start_int = np.floor(np.array(intervalNumberperaxis) * (np.array(cell_start, float) + intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
+            start_int = np.array([max(start_int[i],0) for i in range(len(start_int))],int)
+
+            end_int = np.ceil(np.array(intervalNumberperaxis) * (np.array(cell_end, float) - intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
+            end_int = np.array([min(end_int[i],intervalNumberperaxis[i]) for i in range(len(end_int))],int)
+            # now adding all the points on the grid of the BGK between start and end of the Kd cell
+            next_point = list(start_int[:-1])
+            bgk.addBar(next_point, start_int[-1], end_int[-1])
+            while any(next_point!=end_int[:-1]):
+                for i,coord in reversed(list(enumerate(next_point))):
+                    if next_point[i] < end_int[i]:
+                        next_point[i] += 1
+                        break
+                    else:
+                        next_point[i] = start_int[i]
+                bgk.addBar(next_point, start_int[-1], end_int[-1])
+        return bgk
+
+
+if __name__ == "__main__":
+    data = []
+    origin = []
+    opposite = []
+    resizebargrids = []
+    hm = HDF5Manager([BarGridKernel])
+    bargrid = hm.readKernel('2Dlake_light.h5')
+    data1 = bargrid.getDataToPlot()
+    intervalSizes = (bargrid.oppositeCoords-bargrid.originCoords)/bargrid.intervalNumberperaxis
+    if (len(origin) > 0):
+        origin = [min(origin[i],list(bargrid.originCoords-intervalSizes/2)[i]) for i in range(len(origin))]
+        opposite = [max(opposite[i],list(bargrid.oppositeCoords+intervalSizes/2)[i]) for i in range(len(opposite))]
+
+    else :
+        origin = list(bargrid.originCoords-intervalSizes/2)
+	opposite = list(bargrid.oppositeCoords+intervalSizes/2)
+
+    #To delete to show the original bargrid
+    distancegriddimensions = [10,10]#[int(ppa),int(ppa)] #[301,301]
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+    data.append(bargridbis.getDataToPlot())
+            
+    distancegriddimensions = [10,10]
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    resizebargrids.append(bargrid.toBarGridKernel(origin, opposite, distancegridintervals))
+    data.append(resizebargrids[-1].getDataToPlot())
+    hm = HDF5Manager([KdTree])
+    kdt = hm.readKernel('2D_lake_Isa.h5')
+#    data.append(kdt.getDataToPlot())
+'''
 if __name__ == "__main__":
     import re
     metadata = {}
@@ -146,5 +226,7 @@ if __name__ == "__main__":
     print(k.cells[0])
     print("Kdtree loaded with %d cells" % len(k.cells))
     print([1]*k.getStateDimension())
-    bgk = k.toBarGridKernel([0.0001]*k.getStateDimension())
+    bgk = k.toBarGridKernelbis([50]*k.getStateDimension())
     print("KdTree converted to BarGrid with %d bars" % len(bgk.bars))
+    data = k.getDataToPlot()
+'''
