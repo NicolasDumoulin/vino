@@ -183,34 +183,44 @@ class KdTree(Kernel):
 
 if __name__ == "__main__":
     data = []
-    origin = []
-    opposite = []
+    minbounds = []
+    maxbounds = []
+    neworigin = []
+    newopposite = []
+
     resizebargrids = []
     hm = HDF5Manager([BarGridKernel])
     bargrid = hm.readKernel('2Dlake_light.h5')
     data1 = bargrid.getDataToPlot()
-    intervalSizes = (bargrid.oppositeCoords-bargrid.originCoords)/bargrid.intervalNumberperaxis
-    if (len(origin) > 0):
-        origin = [min(origin[i],list(bargrid.originCoords-intervalSizes/2)[i]) for i in range(len(origin))]
-        opposite = [max(opposite[i],list(bargrid.oppositeCoords+intervalSizes/2)[i]) for i in range(len(opposite))]
+
+    intervalSizes = np.array(bargrid.getIntervalSizes())
+    if (len(minbounds) > 0):
+        minbounds = [min(minbounds[i],list(np.array(bargrid.getMinBounds())-intervalSizes/2)[i]) for i in range(len(minbounds))]
+        maxbounds = [max(maxbounds[i],list(np.array(bargrid.getMaxBounds())+intervalSizes/2)[i]) for i in range(len(maxbounds))]
 
     else :
-        origin = list(bargrid.originCoords-intervalSizes/2)
-	opposite = list(bargrid.oppositeCoords+intervalSizes/2)
-
+        minbounds = list(np.array(bargrid.getMinBounds())-intervalSizes/2)
+	maxbounds = list(np.array(bargrid.getMaxBounds())+intervalSizes/2)
+    '''
     #To delete to show the original bargrid
     distancegriddimensions = [10,10]#[int(ppa),int(ppa)] #[301,301]
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
     data.append(bargridbis.getDataToPlot())
-            
+    '''  
     distancegriddimensions = [10,10]
+    newintervalsizes = (np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)
+    neworigin = list(np.array(minbounds)+newintervalsizes/2)
+    newopposite = list(np.array(maxbounds)-newintervalsizes/2)
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-    resizebargrids.append(bargrid.toBarGridKernel(origin, opposite, distancegridintervals))
+    resizebargrids.append(bargrid.toBarGridKernel(neworigin, newopposite, distancegridintervals))
     data.append(resizebargrids[-1].getDataToPlot())
+    data2=resizebargrids[-1].getDataToPlot()
+
     hm = HDF5Manager([KdTree])
     kdt = hm.readKernel('2D_lake_Isa.h5')
 #    data.append(kdt.getDataToPlot())
+    
 '''
 if __name__ == "__main__":
     import re

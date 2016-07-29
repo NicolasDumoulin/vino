@@ -68,20 +68,34 @@ class BarGridKernel(Kernel):
     def getData(self):
         return np.array(list(self.bars), dtype='int64')
 
+    def getIntervalSizes(self):
+        '''
+	Give the coordinates of the point of the grid with minimal coordinates
+        ''' 
+        intervalsizes = []
+        intervalsizes = list((self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)
+	return intervalsizes
+
     def getMinBounds(self):
+        '''
+	Give the coordinates of the point of the grid with minimal coordinates
+        ''' 
         minbounds = []
         permutOriginCoords = np.dot(self.permutation, self.originCoords)
         permutOppositeCoords = np.dot(self.permutation, self.oppositeCoords)
         permutIntervalNumberperaxis = np.dot(self.permutation, self.intervalNumberperaxis)
-        minbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMinPoint/permutIntervalNumberperaxis)-(self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)
+        minbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMinPoint/permutIntervalNumberperaxis))
 	return minbounds
 
     def getMaxBounds(self):
+        '''
+	Give the coordinates of the point of the grid with maximal coordinates
+        ''' 
         maxbounds = []
         permutOriginCoords = np.dot(self.permutation, self.originCoords)
         permutOppositeCoords = np.dot(self.permutation, self.oppositeCoords)
         permutIntervalNumberperaxis = np.dot(self.permutation, self.intervalNumberperaxis)
-        maxbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMaxPoint/permutIntervalNumberperaxis)+(self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)
+        maxbounds = list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMaxPoint/permutIntervalNumberperaxis))
 	return maxbounds
 
     def getDataToPlot(self):
@@ -93,7 +107,7 @@ class BarGridKernel(Kernel):
         for i in range(len(self.bars)):
            data.append(list(permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*np.array(self.bars[i][:-1])/permutIntervalNumberperaxis)+[permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*self.bars[i][-1]/permutIntervalNumberperaxis[-1]])
         perm = np.dot(self.permutation,np.arange(len(self.originCoords)))
-        data = [list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMinPoint/permutIntervalNumberperaxis)) +    list(np.dot(np.transpose(self.permutation),permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*self.kernelMaxPoint/permutIntervalNumberperaxis))+list((self.oppositeCoords-self.originCoords)/self.intervalNumberperaxis)+list(perm)]+list(data)
+        data = [self.getMinBounds()+ self.getMaxBounds()+self.getIntervalSizes()+list(perm)]+list(data)
         return data
 
     def getTotalPointNumber(self):
@@ -420,9 +434,12 @@ class BarGridKernel(Kernel):
         permutnewIntervalNumberperaxis = np.dot(self.permutation, newIntervalNumberperaxis)
         permutnewpas = np.dot(self.permutation,(np.array(newOppositeCoords,float) - newOriginCoords) / newIntervalNumberperaxis)
         permutOriginCoords = np.dot(self.permutation, self.originCoords)
-        permutinversepas = np.dot(self.permutation, (self.intervalNumberperaxis / self.oppositeCoords - self.originCoords))
+        permutinversepas = np.dot(self.permutation, self.intervalNumberperaxis / (self.oppositeCoords - self.originCoords))
         data = []
         grid = BarGridKernel(newOriginCoords,newOppositeCoords,newIntervalNumberperaxis,self.permutation,None,None,data,self.metadata)
+#        oups = 0
+#        while (oups < 1) :
+#            oups = 1
         while(actualbarposition[0]<permutnewIntervalNumberperaxis[0]+1):
             realpoint = permutnewOriginCoords[:-1] + actualbarposition * permutnewpas[:-1]
             intpoint = (realpoint-permutOriginCoords[:-1]) * permutinversepas[:-1]
@@ -430,6 +447,7 @@ class BarGridKernel(Kernel):
             while (barsindex < len(self.bars)) and (self.bars[barsindex][:2] < intpoint):
                 barsindex = barsindex+1
             barinprocess = False
+#            print intpoint
             while (barsindex < len(self.bars)) and (self.bars[barsindex][:-2] == intpoint):
                 inf = self.bars[barsindex][-2]
                 realinf = inf/permutinversepas[-1] +permutOriginCoords[-1]
@@ -437,6 +455,11 @@ class BarGridKernel(Kernel):
                 sup = self.bars[barsindex][-1]
                 realsup = sup/permutinversepas[-1] +permutOriginCoords[-1]
                 intsup = int((realsup-permutnewOriginCoords[-1])/permutnewpas[-1]+0.5)
+#                print realinf
+#                print realsup
+#                print intinf
+#                print intsup
+
                 if (intinf<permutnewIntervalNumberperaxis[-1]+1) or (intsup >=0):
                     if barinprocess == True :
                         if intinf == grid.bars[-1][-1]:
