@@ -97,13 +97,19 @@ def testReadKdTree():
                 k, v = myre.match(line).groups()
                 metadata[k.strip()] = v.strip()
     metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
-    metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime())     
-    k = KdTree.readViabilitree("../samples/lake/lake_Isa_R1_dat.txt", metadata)
+    metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime()) 
+#    return metadata
+    
+    explorationdomain = metadata[METADATA.results_softwareparametervalues].split("/")[0].split(",")
+    origin = explorationdomain[:len(explorationdomain)/2]
+    opposite = explorationdomain[len(explorationdomain)/2:]    
+    k = KdTree.readViabilitree("../samples/lake/lake_Isa_R1_dat.txt", metadata,origin,opposite)
     print(k.cells[0])
     print("Kdtree loaded with %d cells" % len(k.cells))
     hm.writeKernel(k, '2D_lake_Isa.h5')
     k2 = hm.readKernel('2D_lake_Isa.h5')
-    return k
+    return k2
+    
 
     
 if __name__ == "__main__":

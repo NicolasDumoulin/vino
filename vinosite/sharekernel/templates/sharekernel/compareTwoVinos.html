@@ -187,21 +187,6 @@
 			    if (vinotype[rank-1] == 'kdtree'){	
 				$.each(vino, function(index,bar) {
 		                    if (index>0){
-					
-/*					if (xbounds.length > 0){
-						if (xbounds[0] > bar[0]) {xbounds[0] = bar[0];}
-						if (xbounds[1] < bar[2]) {xbounds[1] = bar[2];}
-						if (ybounds[0] > bar[1]) {ybounds[0] = bar[1];}
-						if (ybounds[1] < bar[3]) {ybounds[1] = bar[3];}
-					}
-					else{
-						xbounds.push(bar[0]);
-						xbounds.push(bar[2]);
-						ybounds.push(bar[1]);
-						ybounds.push(bar[3]);
-					}
-				    }
-				    else{*/
 		                        item.x.push(bar[0]);
                 		        item.y.push(bar[1]);
 					trace.push(OtherRectangle(bar[2],bar[3],bar[4],bar[5],plotData[rank-1][2],plotData[rank-1][1]));
@@ -223,8 +208,8 @@
 		                    if (index==0){
 					xstep = bar[4]/2;
 					ystep = bar[5]/2;
-	  
-					if (xbounds.length > 0){
+	                                if (rank == 3){ 
+/*					if (xbounds.length > 0){
 			
 						if (xbounds[0] > bar[0]-xstep) {xbounds[0] = bar[0]-xstep;}
 						if (xbounds[1] < bar[2]+xstep) {xbounds[1] = bar[2]+xstep;//document.getElementById('oobis').innerHTML = xbounds[1];
@@ -232,12 +217,12 @@
 						if (ybounds[0] > bar[1]-ystep) {ybounds[0] = bar[1]-ystep;}
 						if (ybounds[1] < bar[3]+ystep) {ybounds[1] = bar[3]+ystep;}
 					}
-					else{
+					else{*/
 
-						xbounds.push(bar[0]-xstep);
-						xbounds.push(bar[2]+xstep);
-						ybounds.push(bar[1]-ystep);
-						ybounds.push(bar[3]+ystep);
+						xbounds.push(bar[0]);
+						xbounds.push(bar[2]);
+						ybounds.push(bar[1]);
+						ybounds.push(bar[3]);
 
 
 					}

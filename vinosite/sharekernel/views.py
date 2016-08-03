@@ -264,12 +264,12 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             pyvinos.append(bargrid)
             intervalSizes = np.array(bargrid.getIntervalSizes())
             if (len(minbounds) > 0):
-                minbounds = [min(minbounds[i],list(np.array(bargrid.getMinBounds())-intervalSizes/2)[i]) for i in range(len(minbounds))]
-                maxbounds = [max(maxbounds[i],list(np.array(bargrid.getMaxBounds())+intervalSizes/2)[i]) for i in range(len(maxbounds))]
+                minbounds = [min(minbounds[i],list(bargrid.getMinBounds())[i]) for i in range(len(minbounds))]
+                maxbounds = [max(maxbounds[i],list(bargrid.getMaxBounds())[i]) for i in range(len(maxbounds))]
 
             else :
-                minbounds = list(np.array(bargrid.getMinBounds())-intervalSizes/2)
-	        maxbounds = list(np.array(bargrid.getMaxBounds())+intervalSizes/2)
+                minbounds = list(bargrid.getMinBounds())
+	        maxbounds = list(bargrid.getMaxBounds())
             #To delete to show the original bargrid
             distancegriddimensions = [501,501]#[int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
@@ -280,16 +280,13 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             kdt = hm.readKernel(vino.datafile.path)
             pyvinos.append(kdt)
             if (len(minbounds) > 0):
-                minbounds = [min(minbounds[i],list(kdt.originCoords)[i]) for i in range(len(minbounds))]
-                maxbounds = [max(maxbounds[i],list(kdt.oppositeCoords)[i]) for i in range(len(maxbounds))]
+                minbounds = [min(minbounds[i],list(kdt.getMinBounds())[i]) for i in range(len(minbounds))]
+                maxbounds = [max(maxbounds[i],list(kdt.getMaxBounds())[i]) for i in range(len(maxbounds))]
 
 	    else :
-	        minbounds = list(kdt.originCoords)
-	        maxbounds = list(kdt.oppositeCoords)
+	        minbounds = list(kdt.getMinBounds())
+	        maxbounds = list(kdt.getMaxBounds())
             data.append(kdt.getDataToPlot())
-        print minbounds
-        print maxbounds
-        print "houp"
            
       distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
       distancegridintervals = map(lambda e: e-1, distancegriddimensions)
@@ -297,21 +294,15 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
       neworigin = list(np.array(minbounds)+newintervalsizes/2)
       newopposite = list(np.array(maxbounds)-newintervalsizes/2)
 
-#      neworigin = list(np.array(minbounds)+(np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)/2)
-#      newopposite = list(np.array(maxbounds)-(np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)/2)
-      print distancegridintervals
-      print neworigin
-      print newopposite
-      print "hep"
 
       for pyvino in pyvinos:
         if pyvino.getFormatCode() =='bars':
-            print "bargrid"
+#            print "bargrid"
             resizebargrids.append(pyvino.toBarGridKernel(neworigin, newopposite, distancegridintervals))
 #            data.append(resizebargrids[-1].getDataToPlot())
         elif pyvino.getFormatCode() =='kdtree':
-            print "kdtree"
-            resizebargrids.append(pyvino.toBarGridKernelbis(distancegridintervals,neworigin,newopposite))
+#            print "kdtree"
+            resizebargrids.append(pyvino.toBarGridKernel(neworigin,newopposite,distancegridintervals))
 #            data.append(resizebargrids[-1].getDataToPlot())
       bb = True
       for i1 in  range(len(resizebargrids[0].permutation)):
@@ -325,7 +316,6 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
       data.append(resizebargrids[0].getDataToPlot())
       data.append(resizebargrids[1].getDataToPlot())
         
-      print "ohoh" 		
       aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
       bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
       ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
@@ -350,21 +340,14 @@ def ViNOView2D(request,result_id,ppa):
 
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
             resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
-            permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
-            permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
-            permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
-            for i in range(len(resizebargrid.bars)):
-                resizebargrid.bars[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*resizebargrid.bars[i][:-1]/permutIntervalNumberperaxis
-                resizebargrid.bars[i][-1] = permutOriginCoords[-1]+(permutOppositeCoords[-1]-permutOriginCoords[-1])*resizebargrid.bars[i][-1]/permutIntervalNumberperaxis[-1]
-            perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
-            data = [list(bargrid.originCoords) + list(bargrid.oppositeCoords)+list((bargrid.oppositeCoords-bargrid.originCoords)/distancegridintervals)+list(perm)]+list(resizebargrid.bars)
+            data = resizebargrid.getDataToPlot()
             out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
         elif vino.resultformat.name =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
-            data = [list(kdt.originCoords)+list(kdt.oppositeCoords)]+list(kdt.cells)
+            data = kdt.getDataToPlot()
             out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
@@ -376,12 +359,19 @@ def ViNODistanceView2D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        bargrid = hdf5manager.readKernel(vino.datafile.path)
+        if vino.resultformat.name =='bars':
+            hm = HDF5Manager([BarGridKernel])
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+        vinokernel = hm.readKernel(vino.datafile.path)
 
         distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
-
+        newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
+        neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
+        newopposite = list(np.array(vinokernel.getMaxFrameworkBounds())-newintervalsizes/2)
+        resizebargrid = vinokernel.toBarGridKernel(neworigin,newopposite,distancegridintervals)
+ 
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
         lowborders = []    
@@ -398,7 +388,7 @@ def ViNODistanceView2D(request,result_id,ppa):
         for i in range(len(data)):
             data[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*data[i][:-1]/permutIntervalNumberperaxis
         perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
-        data = [list(perm)]+list(data)
+        data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)]+list(data)
 
         out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
@@ -408,23 +398,34 @@ def ViNODistanceView2D(request,result_id,ppa):
 
 
 def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
+    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        bargrid = hdf5manager.readKernel(vino.datafile.path)
+        if vino.resultformat.name =='bars':
+            hm = HDF5Manager([BarGridKernel])
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+        vinokernel = hm.readKernel(vino.datafile.path)
+
         distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-        resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
+        newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
+        neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
+        newopposite = list(np.array(vinokernel.getMaxFrameworkBounds())-newintervalsizes/2)
+        resizebargrid = vinokernel.toBarGridKernel(neworigin,newopposite,distancegridintervals)
+
+
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
         lowborders = []    
         upborders = []    
         for i in range(len(distancegrid.dimensions)):
-            lowborders.append(False)
-            upborders.append(False)
+            lowborders.append(True)
+            upborders.append(True)
 
         distancegrid.distance(norm,lowborders,upborders)
         data = distancegrid.toDataPointDistance()
-	histo = distancegrid.histogram(12,int(hist_maxvalue))
+	histo = distancegrid.histogram(20,int(hist_maxvalue))
 
 #        insidegrid = grid.getInside()
 #        minusgrid = grid.MinusBarGridKernel(insidegrid)        

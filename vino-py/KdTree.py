@@ -11,12 +11,12 @@ class KdTree(Kernel):
     KdTree store for each cell the coordinate of the sample point in the cell,
     and then for each dimension the min and the max of the cell.
     '''
-    def __init__(self, cells=[], metadata={}):
+    def __init__(self, cells=[], metadata={},origin=[],opposite=[]):
         super(KdTree, self).__init__(metadata)
         self.cells = cells
         minBoundsCoordinates = self.getMinBoundsCoordinates()
-        self.originCoords = np.array([min([c[i] for c in self.cells]) for i in minBoundsCoordinates], float)
-        self.oppositeCoords = np.array([max([c[i+1] for c in self.cells]) for i in minBoundsCoordinates], float)
+        self.originCoords = np.array(origin,float)
+        self.oppositeCoords = np.array(opposite,float)
 
     @property
     def cells(self):
@@ -40,15 +40,34 @@ class KdTree(Kernel):
     def getMaxBoundsCoordinates(self):
         dim = self.getStateDimension()
         return [dim + x * 2 + 1 for x in range(dim)]
+
+    def getMinBounds(self):
+        return np.array([min([c[i] for c in self.cells]) for i in self.getMinBoundsCoordinates()], float)
+
+    def getMaxBounds(self):
+        return np.array([min([c[i+1] for c in self.cells]) for i in self.getMinBoundsCoordinates()], float)
+
+    def getMinFrameworkBounds(self):
+        return list(self.originCoords)
+
+    def getMaxFrameworkBounds(self):
+        return list(self.oppositeCoords)
     
     @staticmethod   
     @overrides
     def getFormatCode():
         return "kdtree"
-       
+
+    @overrides
+    def getDataAttributes(self):
+        da = super(KdTree, self).getDataAttributes()
+        da['origin'] = self.originCoords
+        da['opposite'] = self.oppositeCoords
+        return da         
+
     def getDataToPlot(self):
         data = []
-        data = [list(self.originCoords)+list(self.oppositeCoords)]+list(self.cells)
+        data = [self.getMinFrameworkBounds()+self.getMaxFrameworkBounds()]+list(self.cells)
         return data
 
     @classmethod
@@ -57,7 +76,7 @@ class KdTree(Kernel):
         '''
       Create an object of class KdTree from attributes and data loaded from an HDF5 file. This method is intended to be used by the method hdf5common.readKernel
       '''
-        return cls(cells=data.tolist(), metadata=metadata)
+        return cls(cells=data.tolist(), metadata=metadata,origin=attrs['origin'], opposite=attrs['opposite'], )
 
     @overrides
     def getData(self):
@@ -65,22 +84,22 @@ class KdTree(Kernel):
 
 
     @classmethod  
-    def readViabilitreeFile(cls, f, metadata):
+    def readViabilitreeFile(cls, f, metadata,origin,opposite):
         cells = []
         dim = metadata[METADATA.statedimension]
         f.readline()
         for line in f:
             row = line.split()
             cells.append(map(float, row[:3 * dim]))        
-        return cls(cells, metadata)
+        return cls(cells, metadata,origin,opposite)
     
     @classmethod  
-    def readViabilitree(cls, filename, metadata):
+    def readViabilitree(cls, filename, metadata,origin,opposite):
         '''
         Returns a kernel loaded from an output file from the software viabilitree.
         '''
         with open(filename, 'r') as f:
-            return cls.readViabilitreeFile(f, metadata)
+            return cls.readViabilitreeFile(f, metadata,origin,opposite)
 
     @overrides
     def isInSet(self, point):
@@ -102,7 +121,7 @@ class KdTree(Kernel):
                 return True
         return False
   
-    def toBarGridKernel(self, intervalsSizes, newOriginCoords = None, newOppositeCoords = None):
+    def toBarGridKernelbis(self, intervalsSizes, newOriginCoords = None, newOppositeCoords = None):
         '''
         Convert to a BarGridKernel with another underlying grid, with a given size of intervals per axis.
         If no origin or opposite is given, it will be deduced from the lower or upper cell.
@@ -138,7 +157,7 @@ class KdTree(Kernel):
                 bgk.addBar(next_point, start_int[-1], end_int[-1])
         return bgk
 
-    def toBarGridKernelbis(self, intervalNumberperaxis, newOriginCoords = None, newOppositeCoords = None):
+    def toBarGridKernel(self, newOriginCoords, newOppositeCoords, intervalNumberperaxis):
         '''
         Convert to a BarGridKernel with another underlying grid, with a given number of intervals per axis.
         If no origin or opposite is given, it will be deduced from the lower or upper cell.
@@ -156,8 +175,8 @@ class KdTree(Kernel):
             newOppositeCoords = np.array(newOppositeCoords, float)
 #        newIntervalNumberperaxis = (newOppositeCoords - newOriginCoords) / intervalsSizes
         bgk = BarGridKernel(newOriginCoords, newOppositeCoords, intervalNumberperaxis)
-        print list(newOppositeCoords)
-        print list(intervalsSizes)
+#        print list(newOppositeCoords)
+#        print list(intervalsSizes)
 
         for cell in self.cells:
             cell_start = [cell[i] for i in minBoundsCoordinates]

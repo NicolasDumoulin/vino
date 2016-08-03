@@ -18,11 +18,11 @@ class Line(object):
     def firstpass(self,lowborder,upborder):
         lendata = len(self.data)        
         if lowborder:
-            self.data[0] = 1
+            self.data[0] = min(self.data[0],1)
         for i in range(1,lendata):
             self.data[i] = min(self.data[i],self.data[i-1]+1)
         if upborder:
-            self.data[lendata-1] = 1
+            self.data[lendata-1] = min(self.data[lendata-1],1)
         for i in range(1,lendata):
             self.data[lendata-1-i] = min(self.data[lendata-1-i],self.data[lendata-i]+1)
         for i in range(lendata):
