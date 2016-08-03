@@ -104,12 +104,12 @@
         data[3].click(function(){  
 			var container = document.getElementById('viewPanel');
           
-			document.getElementById('oo').innerHTML = '';
-			document.getElementById('oobis').innerHTML = data[3];
+//			document.getElementById('oo').innerHTML = '';
+//			document.getElementById('oobis').innerHTML = data[3];
 
             		if (data[3].hasClass("checked")) {
-				document.getElementById('oo').innerHTML = data[3].value;
-				document.getElementById('oobis').innerHTML = data[3].hasClass("checked");
+//				document.getElementById('oo').innerHTML = data[3].value;
+//				document.getElementById('oobis').innerHTML = data[3].hasClass("checked");
 				
                 		Plotly.deleteTraces(container,data[4]);
 				addshapes = container.layout.shapes.slice(0,data[7]).concat(container.layout.shapes.slice(data[8]+1,container.layout.shapes.length));
@@ -128,8 +128,8 @@
 				data[8] = -1;
 
 		        } else {
-				document.getElementById('oo').innerHTML = 'ajout';
-				document.getElementById('oobis').innerHTML = data[3].hasClass("checked");
+//				document.getElementById('oo').innerHTML = 'ajout';
+//				document.getElementById('oobis').innerHTML = data[3].hasClass("checked");
 
 				addshapes = container.layout.shapes.concat(data[6]);
  				data[7]=container.layout.shapes.length;
