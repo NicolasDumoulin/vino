@@ -19,12 +19,12 @@
 > <a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a><br><br>
 
 
-    {% if result.parameters.viabilityproblem.statedimension == 2%}
-    <p><input type="submit" id="viewPlotlyBW2D" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis (max : 1000)</p>
+    {% if result.parameters.viabilityproblem.statedimension < 4%}
+    <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis (max : 1000)</p>
     
     <div id="viewPanelBW"></div>
 
-    <p><input type="submit" id="viewPlotlyColor2D" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis (max : 200) </p>
+    <p><input type="submit" id="viewPlotlyColor" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis (max : 200) </p>
     <div id="viewPanel"></div>
     {% endif %}
     <p><input type="submit" id="viewHisto" value="View Distance Histogram with plotly.js" /> with <input id="distancehistoppa"> points per axis (max : 200) and with maximum value <input id="maxvalue"></p>
@@ -151,6 +151,90 @@
 	})}
 	}
 
+	function bargridRectangle3D(x,y,z,xstep,ystep,zstep,facecolor){
+        var i = [7, 0, 0, 0, 4, 4, 2, 6, 4, 0, 3, 7];
+        var j = [3, 4, 1, 2, 5, 6, 5, 5, 0, 1, 2, 2];
+        var k = [0, 7, 2, 3, 6, 7, 1, 2, 5, 5, 7, 6];
+        var rectangle3D = {x: [x[0]-xstep, x[0]-xstep, x[1]+xstep, x[1]+xstep, x[0]-xstep, x[0]-xstep, x[1]+xstep, x[1]+xstep],y: [y[0]-ystep, y[1]+ystep, y[1]+ystep, y[0]-ystep, y[0]-ystep, y[1]+ystep, y[1]+ystep, y[0]-ystep],z: [z[0]-zstep, z[0]-zstep, z[0]-zstep, z[0]-zstep, z[1]+zstep, z[1]+zstep, z[1]+zstep, z[1]+zstep],i: i,j: j,k: k,facecolor: facecolor,type: 'mesh3d'};
+	return rectangle3D;
+	}
+
+
+	function bargridPlot3D(url,x,container,colormarker,colorline,fillcolor){
+    	    if (isNaN(x) || x=="%20" || x>1000) {
+        	text = "Input not valid : " + x;
+		container.innerHTML=text;
+    	    } else {
+	    url = url.replace("/0/","/"+x+"/");
+	    loadAndPlot(url,function (data) {
+                var items = {x:[],y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: colormarker }, hoverinfo:'none' };
+                var trace = [];
+                var tracebis = [];
+		var x = [];
+		var y = [];                
+		var z = [];                
+		var map = [];                
+                var mapinit = [x,y,z];
+//		var mapitems = [];                
+		var mapitems = [items.x,items.y,items.z];                
+                var mapinititems = [items.x,items.y,items.z];
+		var xstep,ystep,zstep;
+                var xbounds = [];
+                var ybounds = [];
+                var zbounds = [];
+                
+                $.each(data, function(index,bar) {
+//                    if (index==0){
+                    if (bar.length >4){
+			xstep = bar[6]/2;
+			ystep = bar[7]/2;
+			zstep = bar[8]/2;
+			xbounds.push(bar[0]);
+			xbounds.push(bar[3]);
+			ybounds.push(bar[1]);
+			ybounds.push(bar[4]);
+			zbounds.push(bar[2]);
+			zbounds.push(bar[5]);
+			map.push(mapinit[bar[9]]);
+			map.push(mapinit[bar[10]]);
+			map.push(mapinit[bar[11]]);
+			mapitems[0] = mapinititems[bar[9]];
+			mapitems[1] = mapinititems[bar[10]];
+			mapitems[2] = mapinititems[bar[11]];
+
+                        x.push(0);
+			x.push(1);
+			y.push(0);
+			y.push(1);
+			z.push(0);
+			z.push(1);
+		    }
+		    else {
+			map[0][0]=bar[0];
+			map[0][1]=bar[0];
+			map[1][0]=bar[1];
+			map[1][1]=bar[1];
+			map[2][0]=bar[2];
+			map[2][1]=bar[3];
+
+                        mapitems[0].push(bar[0]);
+                        mapitems[0].push(bar[0]);
+                        mapitems[1].push(bar[1]);
+                        mapitems[1].push(bar[1]);
+                        mapitems[2].push(bar[2]);
+                        mapitems[2].push(bar[3]);
+
+//			tracebis.push(bargridRectangle3D(x,y,z,xstep,ystep,zstep,colorline));
+		    }
+              });
+//             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,shapes : tracebis,xaxis:{range : xbounds},yaxis:{range : ybounds}};
+             var rectangle = bargridRectangle3D([0,1],[0,1],[0,1],0,0,0,colorline);
+             var layout = {showlegend: false,margin:{t:10}};
+	     trace = [items];
+	     Plotly.newPlot(container,trace,layout);
+	})}
+	}
+
 	function kdtreePlot(url,container,colormarker,colorline,fillcolor){
             loadAndPlot(url,function (data) {
                 var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
@@ -178,8 +262,9 @@
 	})
 	}
 
-        $("#viewPlotlyBW2D").click(function(){
-            var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
+        $("#viewPlotlyBW").click(function(){
+          {% if result.parameters.viabilityproblem.statedimension == 2 %}
+	    var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
             {% if resultformat.name == 'bars' %}
 	      document.getElementById('viewPanelBW').innerHTML = "";
               var x = document.getElementById("ppa").value;
@@ -198,11 +283,27 @@
 	      kdtreePlot(url,container,colormarker,colorline,fillcolor);
 
             {% endif %}
+          {% elif result.parameters.viabilityproblem.statedimension == 3 %}
+	    var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
+            {% if resultformat.name == 'bars' %}
+	      document.getElementById('viewPanelBW').innerHTML = "";
+              var x = document.getElementById("ppa").value;
+	      var container = document.getElementById('viewPanelBW');
+	      var colormarker = 'rgb(255,0,0,0.4)';
+	      var colorline = 'rgba(128, 0, 128, 1)';
+	      var fillcolor = 'rgba(128, 0, 128, 0.7)';
+	      bargridPlot3D(url,x,container,colormarker,colorline,fillcolor);
+
+
+            {% endif %}
+	    
+	  {% endif %}
         });
 
 
-        $("#viewPlotlyColor2D").click(function(){
-            var url = "{% url 'sharekernel:ViNODistanceView2D' result.id 0 %}"
+        $("#viewPlotlyColor").click(function(){
+          {% if result.parameters.viabilityproblem.statedimension == 2 %}
+            var url = "{% url 'sharekernel:ViNODistanceView' result.id 0 %}"
 	    document.getElementById('viewPanel').innerHTML = "";
             x = document.getElementById("distanceppa").value;
 //	    x = 5;
@@ -238,6 +339,51 @@
                 var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds}};
                 Plotly.newPlot(container,[items],layout);
             })}
+          {% elif result.parameters.viabilityproblem.statedimension == 3 %}
+            var url = "{% url 'sharekernel:ViNODistanceView' result.id 0 %}"
+	    document.getElementById('viewPanel').innerHTML = "";
+            x = document.getElementById("distanceppa").value;
+//	    x = 5;
+	    // If x is Not a Number 
+    	    if (isNaN(x) || x=="%20" || x>200) {
+        	text = "Input not valid : " + x;
+		var container = document.getElementById('viewPanel');
+		container.innerHTML=text;
+    	    } else {
+	    url = url.replace("0",x);
+	    loadAndPlot(url,function (data) {
+                var container = document.getElementById('viewPanel');
+                var items = {x:[],y:[],z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+                var map = [];  
+                var xbounds = [];
+                var ybounds = [];              
+                var zbounds = [];              
+                var mapinit = [items.x,items.y,items.z];                
+                $.each(data, function(index,bar) {
+                    if (index==0){
+			xbounds.push(bar[0]);
+			xbounds.push(bar[3]);
+			ybounds.push(bar[1]);
+			ybounds.push(bar[4]);
+			zbounds.push(bar[2]);
+			zbounds.push(bar[5]);
+			map.push(mapinit[bar[6]]);
+			map.push(mapinit[bar[7]]);
+			map.push(mapinit[bar[8]]);
+		    }
+		    else {
+                    map[0].push(bar[0]);
+                    map[1].push(bar[1]);
+                    map[2].push(bar[2]);
+                    items.marker.color.push(bar[3]);
+                    }
+              });
+//                var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds}};
+                var layout = {showlegend: false,margin:{t:10}};
+                Plotly.newPlot(container,[items],layout);
+            })}
+
+          {% endif %}
         });
         $("#viewHisto").click(function(){
 	    var url = "{% url 'sharekernel:ViNOHistogramDistance' result.id 'N' 'N' %}";

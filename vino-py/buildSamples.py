@@ -61,11 +61,14 @@ def CompareProcedure():
 
 
 def testRead():
+    dataway = '../samples/3D_langues100ppa.dat'
+    metadataway = '../samples/3D_langues100ppa_metadata.txt'
+    h5way = '3D_langues100ppa.h5'
     hm = HDF5Manager([BarGridKernel])
     
-    grid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D.txt')
+    grid = BarGridKernel.readPatrickSaintPierrebis(dataway)
     myre = re.compile('^#(.*):(.*)$')
-    with open('../samples/2D_metadata.txt') as f:
+    with open(metadataway) as f:
       for line in f:
         if line.startswith('#'):
           k,v = myre.match(line).groups()
@@ -74,8 +77,8 @@ def testRead():
     grid.metadata['results.submissiondate'] = time.strftime('%Y-%m-%d %H:%M',time.localtime()) 
     print grid.permutation
     print grid.originCoords
-    hm.writeKernel(grid, '2Dlake.h5')
-    grid2 = hm.readKernel('2Dlake.h5')
+    hm.writeKernel(grid, h5way)
+    grid2 = hm.readKernel(h5way)
 #    print(grid2.metadata)
 #    print(metadata.category)
     print(grid2.metadata[METADATA.category])

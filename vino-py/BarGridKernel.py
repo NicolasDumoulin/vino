@@ -701,6 +701,10 @@ class BarGridKernel(Kernel):
         return result
 
     def permute(self,permutation):
+        '''
+        Create a BarGrid corresponding to the same data as the initial one but with a different permutation of the variables :  np.dot(np.transpose(permutation),self.permutation)
+        instead of self.permutation
+        ''' 
         griddata = []
         unitbars = []
         dimension = len(self.originCoords)
@@ -813,7 +817,7 @@ class BarGridKernel(Kernel):
 	                        if (newbar[newindex] > maxi):
 	                            break
 	                        elif (newbar[newindex] >= mini):
-		            	    print newbar[newindex]
+#		            	    print newbar[newindex]
 	                            if (newbar[newindex] > newbartoupdateindex):
 	                                for l in range(newbartoupdateindex,newbar[newindex]):
 					    unitbar[newindex] = l                                

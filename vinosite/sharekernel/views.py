@@ -354,8 +354,34 @@ def ViNOView2D(request,result_id,ppa):
 
     return HttpResponse("Nothing to do")
 
+def ViNOView3D(request,result_id,ppa):
+    import numpy as np
+    if request.method == 'POST':
+        vino = Results.objects.get(id=result_id)
+        if vino.resultformat.name =='bars':
+            hm = HDF5Manager([BarGridKernel])
+            bargrid = hm.readKernel(vino.datafile.path)
+            data = bargrid.getDataToPlot()
+            permutation = np.eye(3,dtype = int)
+            permutation[0][0] = 0
+            permutation[0][2] = 1
+            permutation[2][0] = 1
+            permutation[2][2] = 0
+            data1 =bargrid.permute(permutation).getDataToPlot()
+            permutation = np.eye(3,dtype = int)
+            permutation[1][1] = 0
+            permutation[1][2] = 1
+            permutation[2][1] = 1
+            permutation[2][2] = 0
+            data2 =bargrid.permute(permutation).getDataToPlot()
 
-def ViNODistanceView2D(request,result_id,ppa):
+            out_json = json.dumps(list(data+data1+data2), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
+
+    return HttpResponse("Nothing to do")
+
+def ViNODistanceView(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
@@ -365,7 +391,8 @@ def ViNODistanceView2D(request,result_id,ppa):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+#        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statedimension
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
         neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
@@ -407,7 +434,7 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statedimension
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
         neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
