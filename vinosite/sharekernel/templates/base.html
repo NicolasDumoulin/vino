@@ -16,6 +16,78 @@
 </head>
 
 <body>
+     <div class="navbar navbar-inverse" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'sharekernel:home' %}">Vino</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#about" data-toggle="modal" data-target="#aboutBox">About</a></li>
+            <!--li><a href="#contact">Contact</a></li-->
+            <!--li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Problems <span class="badge">1</span><span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Explore problems</a></li>
+                <li><a href="#">Explore solutions</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Simple Grow</a></li>
+              </ul>
+            </li-->
+          </ul>
+          <!--form class="navbar-form navbar-right" role="form">
+            <div class="form-group">
+              <input type="text" placeholder="Email" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </form-->
+        </div><!--/.navbar-collapse -->
+      </div>
+    </div>
+  
         {% block body %}{% endblock %}
+
+ <footer class="footer">
+      <div class="container">
+        <p><a href="https://sourcesup.renater.fr/wiki/vino/index">More information about vino development</a></p>
+      </div>
+    </footer>
+
+  <div class="modal fade" id="aboutBox" tabindex="-1" role="dialog" aria-labelledby="aboutBoxLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="aboutBoxLabel">About Vino</h4>
+        </div>
+        <div class="modal-body">
+            <p>This website is a prototype for sharing computed viability kernels.
+            We think that this project can help to compare viability algorithms.</p>
+            <p>Features planned:
+              <ul>
+                <li>Storage in database with submission form</li>
+                <li>Comparison of two grids computed</li>
+                <li>Conversion between file formats: raw txt, hdf5, …</li>
+                <li>Bibliographic reference stored in BibTeX with doi link</li>
+              </ul>
+            </p>
+            <p><a href="https://sourcesup.renater.fr/wiki/vino/index">More information about vino development</a></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

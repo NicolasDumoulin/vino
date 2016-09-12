@@ -13,4 +13,15 @@ div.spacer, permet de faire deux colonne dans #container
 */
 
 div.spacer{clear:both; height:10px; display:block;}
-#footer{width:auto; display:block; height:24px;}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #333;
+  color: #ddd;
+  margin-top:50px;
+  padding-top:20px;
+  padding-bottom:20px;
+}
