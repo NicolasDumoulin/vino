@@ -11,7 +11,7 @@ A "Dockerfile" is provided for easily building your development environment. It 
  - build the docker image: 
    `docker build -t vinosite`
  - run the docker image just created: 
- `docker run -d -p 8000:8000 --volume=$(pwd):/vino vinosite`
+ `docker run -p 8000:8000 --volume=$(pwd):/vino vinosite`
 
 Then you can test the web application by opening a web browser on `http://localhost:8000/sharekernel`.
 
