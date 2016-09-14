@@ -428,6 +428,7 @@ class BarGridKernel(Kernel):
         return grid                             
 
     
+    @overrides
     def toBarGridKernel(self, newOriginCoords, newOppositeCoords, newIntervalNumberperaxis):
         '''
         Convert a BarGridKernel to another BarGridKernel with another underlying grid.
