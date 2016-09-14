@@ -6,9 +6,9 @@ class TestKdTree(unittest.TestCase):
     def test_toBarGridKernel(self):
         cells = [[0,0,0]+p for p in [[1,2,4,5,8,9],[2,3,4,5,8,9],[2,3,5,6,8,9],[2,3,4,5,7,8],[2,3,5,6,4,5]]]
         kdt = KdTree(cells = cells, metadata={ METADATA.statedimension: 3 })
-        bgk = kdt.toBarGridKernel(intervalsSizes = [1,1,1], newOriginCoords = [1,4,4], newOppositeCoords = [3,6,9])
+        bgk = kdt.toBarGridKernel(newOriginCoords = [1,4,4], newOppositeCoords = [3,6,9], intervalNumberperaxis=[2,2,5])
         self.assertEqual(len(bgk.bars), 12)
-        bgk = kdt.toBarGridKernel([1,1,1])
+        bgk = kdt.toBarGridKernel(newOriginCoords = [1.5,4.5,4.5], newOppositeCoords = [2.5,5.5,8.5], intervalNumberperaxis=[1,1,4])
         self.assertEqual(len(bgk.bars), 4)
         
     def test_isInSet(self):
