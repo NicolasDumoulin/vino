@@ -212,8 +212,7 @@ def kerneluploaded(request):
     else:
         form = DocumentForm() # A empty, unbound form
 
-    context = {}
-    return render(request, 'sharekernel/kerneluploaded.html', context)            
+    return HttpResponse("Your file has been successfully uploaded")          
 
 
 def bargrid2json(request):
@@ -927,8 +926,7 @@ def hdf5record(request):
             a = findandsaveobject(Algorithm, metadata)
             r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
             return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-    context = {}
-    return render(request, 'sharekernel/kerneluploaded.html', context)        
+    return HttpResponse("Your file has been successfully uploaded")         
      
 def verify(request):
     if request.method == 'POST':
@@ -1269,8 +1267,7 @@ def recorded(request):
 # Fermerture du fichier source
         source.close()            
     if -1 not in t:
-        context = {}
-        return render(request, 'sharekernel/record.html', context)            
+        return HttpResponse("Your file has been successfully uploaded")         
     else:
         return HttpResponse("Your kernel was not uploaded.")    
         

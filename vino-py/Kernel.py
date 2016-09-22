@@ -37,6 +37,11 @@ class Kernel(object):
     '''
     pass
   
+  @abc.abstractmethod
+  def toBarGridKernel(self, newOriginCoords, newOppositeCoords, newIntervalNumberperaxis):
+    pass
+  
+  
   @classmethod
   @abc.abstractmethod
   def initFromHDF5(cls, metadata, dataAttributes, hdf5data):

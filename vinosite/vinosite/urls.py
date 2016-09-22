@@ -20,5 +20,5 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^sharekernel/', include('sharekernel.urls', namespace="sharekernel")),
+    url(r'', include('sharekernel.urls', namespace="sharekernel")),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

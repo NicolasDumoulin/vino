@@ -121,42 +121,7 @@ class KdTree(Kernel):
                 return True
         return False
   
-    def toBarGridKernelbis(self, intervalsSizes, newOriginCoords = None, newOppositeCoords = None):
-        '''
-        Convert to a BarGridKernel with another underlying grid, with a given size of intervals per axis.
-        If no origin or opposite is given, it will be deduced from the lower or upper cell.
-        Returns an instance of BarGridKernel.
-        '''
-        minBoundsCoordinates = self.getMinBoundsCoordinates()
-        intervalsSizes = np.array(intervalsSizes, float)
-        if not newOriginCoords:
-            newOriginCoords = np.array([min([c[i] for c in self.cells]) for i in minBoundsCoordinates], float) + intervalsSizes / 2
-        else:
-            newOriginCoords = np.array(newOriginCoords, float)
-        if not newOppositeCoords:
-            newOppositeCoords = np.array([max([c[i+1] for c in self.cells]) for i in minBoundsCoordinates], float) - intervalsSizes / 2
-        else:
-            newOppositeCoords = np.array(newOppositeCoords, float)
-        newIntervalNumberperaxis = (newOppositeCoords - newOriginCoords) / intervalsSizes
-        bgk = BarGridKernel(newOriginCoords, newOppositeCoords, newIntervalNumberperaxis)
-        for cell in self.cells:
-            cell_start = [cell[i] for i in minBoundsCoordinates]
-            cell_end = [cell[i+1] for i in minBoundsCoordinates]
-            start_int = np.floor(newIntervalNumberperaxis * (np.array(cell_start, float) + intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
-            end_int = np.ceil(newIntervalNumberperaxis * (np.array(cell_end, float) - intervalsSizes / 2 - newOriginCoords)/(newOppositeCoords - newOriginCoords))
-            # now adding all the points on the grid of the BGK between start and end of the Kd cell
-            next_point = list(start_int[:-1])
-            bgk.addBar(next_point, start_int[-1], end_int[-1])
-            while any(next_point!=end_int[:-1]):
-                for i,coord in reversed(list(enumerate(next_point))):
-                    if next_point[i] < end_int[i]:
-                        next_point[i] += 1
-                        break
-                    else:
-                        next_point[i] = start_int[i]
-                bgk.addBar(next_point, start_int[-1], end_int[-1])
-        return bgk
-
+    @overrides
     def toBarGridKernel(self, newOriginCoords, newOppositeCoords, intervalNumberperaxis):
         '''
         Convert to a BarGridKernel with another underlying grid, with a given number of intervals per axis.
