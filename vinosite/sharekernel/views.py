@@ -381,8 +381,11 @@ def ViNOView3D(request,result_id,ppa):
 
     return HttpResponse("Nothing to do")
 
-def ViNODistanceView(request,result_id,ppa):
+def ViNODistanceView(request,result_id,ppa,permutnumber):
+    ''' from the coding of permutnumber the state dimension must be strictly smaller than 10
+    '''
     import numpy as np
+    import re
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.name =='bars':
@@ -391,31 +394,57 @@ def ViNODistanceView(request,result_id,ppa):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-#        distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
-        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statedimension
+        dimension = vino.parameters.viabilityproblem.statedimension
+        distancegriddimensions = [int(ppa)]*dimension
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
         neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
         newopposite = list(np.array(vinokernel.getMaxFrameworkBounds())-newintervalsizes/2)
         resizebargrid = vinokernel.toBarGridKernel(neworigin,newopposite,distancegridintervals)
- 
-        distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
-        norm = EucNorm()
-        lowborders = []    
-        upborders = []    
-        for i in range(len(distancegrid.dimensions)):
-            lowborders.append(True)
-            upborders.append(True)
+        if (int(permutnumber) > 0) :
+            permutVector = list(map(int, re.findall('[0-9]', permutnumber)))
+#            print permutVector 
+            permutation = np.zeros(dimension * dimension,int).reshape(dimension,dimension)
+            for i in range(dimension):
+                permutation[i][permutVector[i]-1]=1
+#            print resizebargrid.permutation
+#            print permutation
+            resizebargrid = resizebargrid.permute(np.dot(resizebargrid.permutation,np.transpose(permutation)))
+            distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+            norm = EucNorm()
+            lowborders = []    
+            upborders = []    
+            for i in range(len(distancegrid.dimensions)):
+                lowborders.append(True)
+                upborders.append(True)
 
-        distancegrid.distance(norm,lowborders,upborders)
-        data = distancegrid.toDataPointDistance()
-        permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
-        permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
-        permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
-        for i in range(len(data)):
-            data[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*data[i][:-1]/permutIntervalNumberperaxis
-        perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
-        data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)]+list(data)
+            distancegrid.distance(norm,lowborders,upborders)
+            data = distancegrid.toDataPointSectionDistance()
+            permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
+            permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
+            permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
+            for i in range(len(data)):
+                data[i][1:-1] = permutOriginCoords[1:-1]+(permutOppositeCoords[1:-1]-permutOriginCoords[1:-1])*data[i][1:-1]/permutIntervalNumberperaxis[1:-1]
+            perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
+            data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)+list(permutOriginCoords)+list(permutOppositeCoords)]+list(data)
+        else :
+            distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+            norm = EucNorm()
+            lowborders = []    
+            upborders = []    
+            for i in range(len(distancegrid.dimensions)):
+                lowborders.append(True)
+                upborders.append(True)
+
+            distancegrid.distance(norm,lowborders,upborders)
+            data = distancegrid.toDataPointDistance()
+            permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
+            permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
+            permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
+            for i in range(len(data)):
+                data[i][:-1] = permutOriginCoords+(permutOppositeCoords-permutOriginCoords)*data[i][:-1]/permutIntervalNumberperaxis
+            perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
+            data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)]+list(data)
 
         out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
@@ -614,11 +643,16 @@ def bargrid2json3(request,hist_maxvalue):
     return HttpResponse("Nothing to do")
 
 def visualizeresult(request,result_id):
+    stanaab = []
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     c=vp.category
     rf=r.resultformat
-    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf} 
+    for i in vp.statenameandabbreviation.split("/"):
+        j = i.split(",")
+        stanaab.append(j[1])
+
+    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 def compareresult(request, vinoA_id, vinoB_id):

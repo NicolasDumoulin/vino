@@ -179,6 +179,31 @@ class Matrix(object):
                     point[nbdim-1-i] = 0
         return data
         
+    def toDataPointSectionDistance(self):
+	'''
+	Return the list of [the concatenation of the coordinates of the section, the points coordinates inside the section, their associated non null distance value]
+	'''
+        data = []
+        nbdim = len(self.dimensions)
+        point = [0]*nbdim
+        for position in range(len(self.data)):
+            if self.data[position] > 0:
+#                point[-1] = self.data[position]
+#                data.append(list(point))
+                data.append([",".join(map(str,point[:-2])),point[-2],point[-1],self.data[position]])
+#                data.append(list(point).append(self.data[position]))
+#            print position
+#            print point
+            
+            for i in range(nbdim):
+                if (point[nbdim-1-i] < self.dimensions[nbdim-1-i]-1):
+                    point[nbdim-1-i] = point[nbdim-1-i]+1
+                    break
+                else : 
+                    point[nbdim-1-i] = 0
+        return data
+
+
     def totalpointNumber(self):
 	'''
 	Return the cell number of the Matrix

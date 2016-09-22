@@ -701,13 +701,22 @@ class BarGridKernel(Kernel):
         return result
 
     def permute(self,permutation):
-        '''
-        Create a BarGrid corresponding to the same data as the initial one but with a different permutation of the variables :  np.dot(np.transpose(permutation),self.permutation)
-        instead of self.permutation
-        ''' 
-        griddata = []
-        unitbars = []
-        dimension = len(self.originCoords)
+      '''
+      Create a BarGrid corresponding to the same data as the initial one but with a different permutation of the variables :  np.dot(np.transpose(permutation),self.permutation)
+      instead of self.permutation
+      ''' 
+        
+      griddata = []
+      unitbars = []
+      dimension = len(self.originCoords)
+      matid = np.identity(dimension,dtype = int)
+      b = False
+      for i in range(dimension):
+        for j in range(dimension):
+            if permutation[i][j] != matid[i][j]:
+                b = True
+      permutegrid = self
+      if b: 
         barposition = [0]*(dimension-1)
         permutegrid = BarGridKernel(self.originCoords,self.oppositeCoords,self.intervalNumberperaxis,np.dot(np.transpose(permutation),self.permutation),np.dot(np.transpose(permutation),self.kernelMinPoint),np.dot(np.transpose(permutation),self.kernelMaxPoint),griddata,self.metadata)
         increment = [0]*len(barposition)
@@ -848,7 +857,7 @@ class BarGridKernel(Kernel):
 	                    else :
 	                        barposition[dimension-2-i] = 0
 	            
-        return permutegrid
+      return permutegrid
 
 
     def buildNewBars(self,barposition,permutation,data):
