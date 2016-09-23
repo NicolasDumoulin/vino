@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404,render
+from django.views.decorators.csrf import  ensure_csrf_cookie
 from sharekernel.models import Document, Category, ViabilityProblem, Algorithm, Parameters,Results,ResultFormat 
 from sharekernel.forms import DocumentForm
 from django.http import HttpResponseRedirect
@@ -641,6 +642,7 @@ def bargrid2json3(request,hist_maxvalue):
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
 
+@ensure_csrf_cookie
 def visualizeresult(request,result_id):
     stanaab = []
     r=Results.objects.get(id=result_id)
