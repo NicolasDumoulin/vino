@@ -23,9 +23,12 @@
     <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis (max : 1000)</p>
     
     <div id="viewPanelBW"></div>
-
+<div id='loading' style='display:none'>
+  <img src="{% static 'sharekernel/images/ajax-loader.gif' %}"/>
+</div>
     <p><input type="submit" id="viewPlotlyColor" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis (max : 200) </p>
     <div id="viewPanel"></div>
+
     {% endif %}
 
     {% if result.parameters.viabilityproblem.statedimension > 2 %}
@@ -86,17 +89,27 @@
             }
         });
         function loadAndPlot(url,callback) {
-//            $('#viewPanel').empty();
+            $('#loading').show();
             $.ajax({ url: url,
                     type: "POST",
                     data: new FormData($('#uploadForm')[0]),
                     processData: false,
                     contentType: false,
                     dataType:"json",
-                    success: callback
+                    success: callback,
+                    complete: function(){
+                        $('#loading').hide();
+//			document.getElementById('loading').innerHTML = "";
+		}
             })
             return false;
         }
+
+    $("#loading").ajaxStart(function(){ // Nous ciblons l'élément #loading qui est caché
+
+                             $(this).hide(); // Nous l'affichons quand la requête AJAX démarre
+
+    });
 
 	function BarTrace (x,y) {
         var barTrace = {x:[],y:[], mode:'markers', type: 'scatter', markers: { color: 'rgb(55, 128, 191)', size: 2}, hoverinfo:'none' };
