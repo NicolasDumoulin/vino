@@ -9,6 +9,8 @@ from BarGridKernel import BarGridKernel
 from KdTree import KdTree
 from hdf5common import HDF5Reader, HDF5Manager
 from distance import Matrix, EucNorm
+from FileFormatLoader import Loader
+from KdTree import KdTree
 
 import json
 import tempfile
@@ -19,6 +21,7 @@ from django.http import HttpResponse
 
 
 hdf5manager = HDF5Manager([BarGridKernel])
+loader = Loader()
 
 def home(request):
     context = {
@@ -928,7 +931,53 @@ def hdf5record(request):
             a = findandsaveobject(Algorithm, metadata)
             r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
             return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-    return HttpResponse("Your file has been successfully uploaded")         
+    return HttpResponse("Your file has been successfully uploaded")
+
+def uploadKernelFile(request):
+    '''
+    Try to record a new kernel by guessing its storage format.
+    Returns an response as a dict with possible attributes:
+      * 'error' if an error has occured, with the associated error message
+      * 'filename' the path to the file stored temporarely
+      * 'metadata' metadata that has been retrieved or built
+    '''
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            tmpfile = tempfile.NamedTemporaryFile(delete=False)
+            for chunk in request.FILES['docfile'].chunks():
+                tmpfile.write(chunk)
+            tmpfile.close()
+            kernel = loader.load(tmpfile.name)
+            if not kernel:
+                # try to detect viabilitree format
+                try:
+                    with open(tmpfile.name, 'r') as f:
+                        # first line must contain header, so we deduce the number of columns
+                        l = len(f.readline().split())
+                        # reading first line of data, and checking if it is numbers
+                        cols = map(float,l2.split())
+                        # checking if dimensions are the same
+                        if l = len(cols):
+                            # seems good, now we need to ask some metadata for reading correctly the file
+                            return HttpResponse({
+                                filename: tmpfile.name,
+                                metadata: {
+                                    format:"kdtree"
+                                }
+                            })
+                            # TODO
+                        else:
+                            raise RuntimeError("Numbers of columns doesn't match with 2 first lines")
+                            
+                except:
+                    # unable to detect a valid format so displaying the doc
+                    return HttpResponse({error: "No valid format"})                    
+                pass
+            # kernel loaded, we bring the metadata to the user
+            # TODO
+            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
+    return HttpResponse({error: "a POST request was intended")
      
 def verify(request):
     if request.method == 'POST':
