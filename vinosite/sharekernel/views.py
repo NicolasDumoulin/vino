@@ -379,6 +379,13 @@ def ViNOView3D(request,result_id,ppa):
             out_json = json.dumps(list(data+data1+data2), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+            kdtree = hm.readKernel(vino.datafile.path)
+            data = kdtree.getDataToPlot()
+            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
 
     return HttpResponse("Nothing to do")
 

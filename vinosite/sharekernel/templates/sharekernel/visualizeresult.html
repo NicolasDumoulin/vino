@@ -271,6 +271,46 @@
 	})}
 	}
 
+	function kdtreePlot3D(url,x,container,colormarker,colorline,fillcolor){
+	    loadAndPlot(url,function (data) {
+                var items = {x:[],y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+                var trace = [];
+                var tracebis = [];
+		var x = [];
+		var y = [];                
+		var z = [];                
+		var map = [];                
+                var mapinit = [x,y,z];
+//		var mapitems = [];                
+		var mapitems = [items.x,items.y,items.z];                
+                var mapinititems = [items.x,items.y,items.z];
+		var xstep,ystep,zstep;
+                var xbounds = [];
+                var ybounds = [];
+                var zbounds = [];
+
+                $.each(data, function(index,bar) {
+                    if (index==0){
+			xbounds.push(bar[0]);
+			xbounds.push(bar[3]);
+			ybounds.push(bar[1]);
+			ybounds.push(bar[4]);
+			zbounds.push(bar[2]);
+			zbounds.push(bar[5]);
+		    }
+		    else {
+                        items.x.push(bar[0]);
+                        items.y.push(bar[1]);
+                        items.z.push(bar[2]);
+			items.marker.color.push(items.z[items.z.length-1]);
+		    }
+              });
+             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds},zaxis:{range : zbounds}};
+	     trace = [items];
+	     Plotly.newPlot(container,trace,layout);
+	})
+	}
+
 	function kdtreePlot(url,container,colormarker,colorline,fillcolor){
             loadAndPlot(url,function (data) {
                 var items = {x:[],y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
@@ -641,6 +681,14 @@
 	      var colorline = 'rgba(128, 0, 128, 1)';
 	      var fillcolor = 'rgba(128, 0, 128, 0.7)';
 	      bargridPlot3D(url,x,container,colormarker,colorline,fillcolor);
+            {% elif resultformat.name == 'kdtree' %}
+	      document.getElementById('viewPanelBW').innerHTML = "";
+              var x = document.getElementById("ppa").value;
+	      var container = document.getElementById('viewPanelBW');
+	      var colormarker = 'rgb(255,0,0,0.4)';
+	      var colorline = 'rgba(128, 0, 128, 1)';
+	      var fillcolor = 'rgba(128, 0, 128, 0.7)';
+	      kdtreePlot3D(url,x,container,colormarker,colorline,fillcolor);
 
 
             {% endif %}
