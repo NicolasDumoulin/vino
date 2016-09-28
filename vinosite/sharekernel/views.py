@@ -966,7 +966,7 @@ def uploadKernelFile(request):
                         # reading first line of data, and checking if it is numbers
                         cols = map(float,l2.split())
                         # checking if dimensions are the same
-                        if l = len(cols):
+                        if l == len(cols):
                             # seems good, now we need to ask some metadata for reading correctly the file
                             return HttpResponse({
                                 filename: tmpfile.name,
@@ -985,7 +985,7 @@ def uploadKernelFile(request):
             # kernel loaded, we bring the metadata to the user
             # TODO
             return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-    return HttpResponse({error: "a POST request was intended")
+    return HttpResponse({error: "a POST request was intended"})
      
 def verify(request):
     if request.method == 'POST':
