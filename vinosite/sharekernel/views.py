@@ -382,6 +382,13 @@ def ViNOView3D(request,result_id,ppa):
             out_json = json.dumps(list(data+data1+data2), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
+        elif vino.resultformat.name =='kdtree':
+            hm = HDF5Manager([KdTree])
+            kdtree = hm.readKernel(vino.datafile.path)
+            data = kdtree.getDataToPlot()
+            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
 
     return HttpResponse("Nothing to do")
 
@@ -959,7 +966,7 @@ def uploadKernelFile(request):
                         # reading first line of data, and checking if it is numbers
                         cols = map(float,l2.split())
                         # checking if dimensions are the same
-                        if l = len(cols):
+                        if l == len(cols):
                             # seems good, now we need to ask some metadata for reading correctly the file
                             return HttpResponse({
                                 filename: tmpfile.name,
@@ -978,7 +985,7 @@ def uploadKernelFile(request):
             # kernel loaded, we bring the metadata to the user
             # TODO
             return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-    return HttpResponse({error: "a POST request was intended")
+    return HttpResponse({error: "a POST request was intended"})
      
 def verify(request):
     if request.method == 'POST':

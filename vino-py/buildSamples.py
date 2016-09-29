@@ -91,10 +91,13 @@ def testRead():
     return grid2
 
 def testReadKdTree(): 
+    dataway = '../samples/3D_languesIsa_dil0.txt'
+    metadataway = '../samples/3D_languesIsa_dil0_metadata.txt'
+    h5way = '3D_languesIsa_dil0.h5'
     hm = HDF5Manager([KdTree])
     metadata = {}
     myre = re.compile('^#(.*):(.*)$')
-    with open('../samples/lake/2D_lake_Isa_metadata.txt') as f:
+    with open(metadataway) as f:
         for line in f:
             if line.startswith('#'):
                 k, v = myre.match(line).groups()
@@ -106,16 +109,16 @@ def testReadKdTree():
     explorationdomain = metadata[METADATA.results_softwareparametervalues].split("/")[0].split(",")
     origin = explorationdomain[:len(explorationdomain)/2]
     opposite = explorationdomain[len(explorationdomain)/2:]    
-    k = KdTree.readViabilitree("../samples/lake/lake_Isa_R1_dat.txt", metadata,origin,opposite)
+    k = KdTree.readViabilitree(dataway, metadata,origin,opposite)
     print(k.cells[0])
     print("Kdtree loaded with %d cells" % len(k.cells))
-    hm.writeKernel(k, '2D_lake_Isa.h5')
-    k2 = hm.readKernel('2D_lake_Isa.h5')
+    hm.writeKernel(k, h5way)
+    k2 = hm.readKernel(h5way)
     return k2
     
 
     
 if __name__ == "__main__":
-    g=testRead()
+#    g=testRead()
 #    CompareProcedure()
     k=testReadKdTree()
