@@ -3,9 +3,10 @@
 {% load staticfiles %}
 
 {% block body %}
+    <div class="container">
+    <p>To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a></p>
 
-    To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a>
-
+    <button class="btn btn-primary" type="submit">Upload Kernel file</button>
     <!-- Upload form. Note enctype attribute! -->
     <form action="{% url 'sharekernel:hdf5record' %}" id="uploadForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -16,7 +17,14 @@
             {{ form.docfile.errors }}
             {{ form.docfile }}
         </p>
+
+        {% include "sharekernel/metadataEdit.html" %}
+
         <p><input type="submit" value="Upload" /></p>
     </form>
-        
+    </div>
+
+    <script type="text/javascript">
+    
+    </script>      
 {% endblock %}
