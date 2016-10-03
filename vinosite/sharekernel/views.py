@@ -365,6 +365,9 @@ def ViNOView3D(request,result_id,ppa):
         if vino.resultformat.name =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
+            distancegridintervals = [150]*3
+            bargrid = bargrid.toBarGridKernel(bargrid.originCoords,bargrid.oppositeCoords,distancegridintervals)
+            print len(bargrid.bars)
             data = bargrid.getDataToPlot()
             permutation = np.eye(3,dtype = int)
             permutation[0][0] = 0
@@ -431,13 +434,15 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
 
             distancegrid.distance(norm,lowborders,upborders)
             data = distancegrid.toDataPointSectionDistance()
+
             permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
             permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)
             permutIntervalNumberperaxis = np.dot(resizebargrid.permutation, resizebargrid.intervalNumberperaxis)
             for i in range(len(data)):
-                data[i][1:-1] = permutOriginCoords[1:-1]+(permutOppositeCoords[1:-1]-permutOriginCoords[1:-1])*data[i][1:-1]/permutIntervalNumberperaxis[1:-1]
+                data[i][1:-1] = permutOriginCoords[-2:]+(permutOppositeCoords[-2:]-permutOriginCoords[-2:])*data[i][1:-1]/permutIntervalNumberperaxis[-2:]
             perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
-            data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)+list(permutOriginCoords)+list(permutOppositeCoords)]+list(data)
+            data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)+list(resizebargrid.originCoords)+list(resizebargrid.oppositeCoords)]+list(data)
+
         else :
             distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
             norm = EucNorm()

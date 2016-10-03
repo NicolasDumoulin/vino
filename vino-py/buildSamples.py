@@ -61,9 +61,9 @@ def CompareProcedure():
 
 
 def testRead():
-    dataway = '../samples/3D_langues100ppa.dat'
-    metadataway = '../samples/3D_langues100ppa_metadata.txt'
-    h5way = '3D_langues100ppa.h5'
+    dataway = '../samples/3D_rangeland.txt'
+    metadataway = '../samples/3D_rangeland_metadata.txt'
+    h5way = '3D_rangeland.h5'
     hm = HDF5Manager([BarGridKernel])
     
     grid = BarGridKernel.readPatrickSaintPierrebis(dataway)
@@ -78,17 +78,18 @@ def testRead():
     print grid.permutation
     print grid.originCoords
     hm.writeKernel(grid, h5way)
-    grid2 = hm.readKernel(h5way)
+    grid = []
+#    grid2 = hm.readKernel(h5way)
 #    print(grid2.metadata)
 #    print(metadata.category)
-    print(grid2.metadata[METADATA.category])
-    print(grid2.metadata[METADATA.results_submissiondate])
-    print(grid2.metadata[METADATA.results_formatparametervalues])
-    print grid2.permutation
-    print grid2.originCoords
-    print(grid2.kernelMinPoint)
-    print(grid2.kernelMaxPoint)
-    return grid2
+#    print(grid2.metadata[METADATA.category])
+#    print(grid2.metadata[METADATA.results_submissiondate])
+#    print(grid2.metadata[METADATA.results_formatparametervalues])
+#    print grid2.permutation
+#    print grid2.originCoords
+#    print(grid2.kernelMinPoint)
+#    print(grid2.kernelMaxPoint)
+    return grid
 
 def testReadKdTree(): 
     dataway = '../samples/3D_languesIsa_dil0.txt'
@@ -119,6 +120,6 @@ def testReadKdTree():
 
     
 if __name__ == "__main__":
-#    g=testRead()
+    g=testRead()
 #    CompareProcedure()
-    k=testReadKdTree()
+#    k=testReadKdTree()
