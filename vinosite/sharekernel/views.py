@@ -383,6 +383,7 @@ def ViNOView3D(request,result_id,ppa):
             data2 =bargrid.permute(permutation).getDataToPlot()
 
             out_json = json.dumps(list(data+data1+data2), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+#            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
         elif vino.resultformat.name =='kdtree':

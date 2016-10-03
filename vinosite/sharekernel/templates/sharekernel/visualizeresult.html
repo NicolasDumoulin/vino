@@ -223,6 +223,8 @@
 	    url = url.replace("/0/","/"+x+"/");
 	    loadAndPlot(url,function (data) {
                 var items = {x:[],y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+//                var items = {x:[],y:[], z:[], opacity:0.8, type: 'mesh3d', hoverinfo:'none' };
+
                 var trace = [];
                 var tracebis = [];
 		var x = [];
@@ -288,7 +290,34 @@
 //             var layout = {showlegend: false,margin:{t:10}};
 	     trace = [items];
 	     Plotly.newPlot(container,trace,layout);
-//             container.innerHTML = zbounds[1]
+var aes = [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4];
+var bes = [1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4];
+var ces = [1,2,3,4,2,3,4,3,3,4,3,2,4,3,2,1];
+a=[]; b=[]; c=[];
+for(i=0;i<20;i++)
+  {
+  var a_ = Math.random(); 
+   a.push(a_);
+  
+  var b_ = Math.random(); 
+   b.push(b_);
+  
+  var c_ = Math.random(); 
+   c.push(c_);
+  }
+var dataessai=[
+  {
+//    alphahull:5,
+    opacity:0.8,
+    color:'rgb(200,100,300)',
+    type: 'mesh3d',
+    x: aes,
+    y: bes,
+    z: ces,
+  }
+];
+//Plotly.newPlot(container, dataessai);
+//container.innerHTML = c
 	})}
 	}
 
