@@ -20,13 +20,33 @@
 
 
     {% if result.parameters.viabilityproblem.statedimension < 4%}
-    <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis (max : 1000)</p>
+    <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis 
+    {% if result.parameters.viabilityproblem.statedimension == 3 %}
+       (max : 150)
+
+    {% else %}
+
+       (max : 1000)
+
+    {% endif %}
+
+     </p>
     
     <div id="viewPanelBW"></div>
 <div id='loading' style='display:none'>
   <img src="{% static 'sharekernel/images/ajax-loader.gif' %}"/>
 </div>
-    <p><input type="submit" id="viewPlotlyColor" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis (max : 200) </p>
+    <p><input type="submit" id="viewPlotlyColor" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis 
+
+    {% if result.parameters.viabilityproblem.statedimension == 3 %}
+       (max : 150)
+
+    {% else %}
+
+       (max : 200)
+
+    {% endif %}
+</p>
     <div id="viewPanel"></div>
 
     {% endif %}
@@ -263,11 +283,12 @@
 //			tracebis.push(bargridRectangle3D(x,y,z,xstep,ystep,zstep,colorline));
 		    }
               });
-//             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,shapes : tracebis,xaxis:{range : xbounds},yaxis:{range : ybounds}};
-             var rectangle = bargridRectangle3D([0,1],[0,1],[0,1],0,0,0,colorline);
-             var layout = {showlegend: false,margin:{t:10}};
+             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,scene : {xaxis:{range : xbounds},yaxis:{range : ybounds},zaxis:{range : [0,1]}}};
+//             var rectangle = bargridRectangle3D([0,1],[0,1],[0,1],0,0,0,colorline);
+//             var layout = {showlegend: false,margin:{t:10}};
 	     trace = [items];
 	     Plotly.newPlot(container,trace,layout);
+//             container.innerHTML = zbounds[1]
 	})}
 	}
 
@@ -305,7 +326,7 @@
 			items.marker.color.push(items.z[items.z.length-1]);
 		    }
               });
-             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds},zaxis:{range : zbounds}};
+             var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,scene : {xaxis:{range : xbounds},yaxis:{range : ybounds},zaxis:{range : zbounds}}};
 	     trace = [items];
 	     Plotly.newPlot(container,trace,layout);
 	})
@@ -741,7 +762,7 @@
             x = document.getElementById("distanceppa").value;
 //	    x = 5;
 	    // If x is Not a Number 
-    	    if (isNaN(x) || x=="%20" || x>200) {
+    	    if (isNaN(x) || x=="%20" || x>150) {
         	text = "Input not valid : " + x;
 		var container = document.getElementById('viewPanel');
 		container.innerHTML=text;
@@ -775,7 +796,7 @@
                     }
               });
 //                var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds}};
-                var layout = {showlegend: false,margin:{t:10}};
+                var layout = {showlegend: false,margin:{t:10},scene : {xaxis:{range : xbounds},yaxis:{range : ybounds},zaxis:{range: zbounds}}};
                 Plotly.newPlot(container,[items],layout);
             })}
 
