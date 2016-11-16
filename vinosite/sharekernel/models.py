@@ -1,4 +1,5 @@
 from django.db import models
+from Equation import Expression
 
 # Create your models here.
 
@@ -24,6 +25,34 @@ class ViabilityProblem(models.Model):
     stateconstraintparameters = models.CharField(max_length=500,default =0) 
     targetdescription = models.CharField(max_length=500,default =0)
     targetparameters = models.CharField(max_length=500,default =0) 
+    def dynamics(self):
+      dyns = self.dynamicsdescription.split(",")
+      return dyns
+
+    def stateabbreviation(self):
+      abbrevs = []
+      donnees = self.statenameandabbreviation.split("/")
+      for d in donnees:
+          abbrevs.append((d.split(",")[1]))
+      return abbrevs
+    def statename(self):
+      names = []
+      donnees = self.statenameandabbreviation.split("/")
+      for d in donnees:
+          names.append(d.split(",")[0])
+      return names
+    def controlabbreviation(self):
+      abbrevs = []
+      donnees = self.controlnameandabbreviation.split("/")
+      for d in donnees:
+          abbrevs.append(d.split(",")[1])
+      return abbrevs
+    def controlname(self):
+      names = []
+      donnees = self.controlnameandabbreviation.split("/")
+      for d in donnees:
+          names.append(d.split(",")[0])
+      return names
 
 
 class Algorithm(models.Model):
@@ -40,6 +69,20 @@ class Parameters(models.Model):
     dynamicsparametervalues = models.CharField(max_length=200,default=0)
     stateconstraintparametervalues = models.CharField(max_length=200,default=0)
     targetparametervalues = models.CharField(max_length=200,default=0)
+    def speed (self):
+        eqdyns = []
+        desstateandcontrol = []
+        desdyn = self.viabilityproblem.dynamics()
+        j=0
+        for thing in self.viabilityproblem.dynamicsparameters.split(","):
+             for i in range(len(desdyn)):
+                  desdyn[i] = desdyn[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
+             j = j+1 
+        params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
+        
+        for expr in desdyn :
+            eqdyns.append(Expression(expr,params))
+        return eqdyns
 
 
 class ResultFormat(models.Model):

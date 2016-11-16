@@ -61,9 +61,9 @@ def CompareProcedure():
 
 
 def testRead():
-    dataway = '../samples/3D_rangeland.txt'
-    metadataway = '../samples/3D_rangeland_metadata.txt'
-    h5way = '3D_rangeland.h5'
+    dataway = '../samples/2D.txt'
+    metadataway = '../samples/2D_metadata.txt'
+    h5way = '2D.h5'
     hm = HDF5Manager([BarGridKernel])
     
     grid = BarGridKernel.readPatrickSaintPierrebis(dataway)

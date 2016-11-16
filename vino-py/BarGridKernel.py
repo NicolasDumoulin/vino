@@ -68,6 +68,11 @@ class BarGridKernel(Kernel):
     def getData(self):
         return np.array(list(self.bars), dtype='int64')
 
+
+    def justepourtester(self,a,b):
+        c = [a+a,b+b]
+        return c
+
     def getIntervalSizes(self):
         '''
 	Give the coordinates of the point of the grid with minimal coordinates

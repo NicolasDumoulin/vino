@@ -12,3 +12,6 @@ class DocumentForm(forms.Form):
         label='Select a file',
         help_text='max. 42 megabytes'
     )
+
+class TrajForm(forms.Form):
+    controlInput = forms.CharField(label = '(time,control value)',initial = 'essai')

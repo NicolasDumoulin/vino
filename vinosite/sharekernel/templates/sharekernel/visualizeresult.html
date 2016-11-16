@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
+{% load extratags %}
 {% block head %}
     <script src="{% static 'sharekernel/vinoplot.js' %}"></script>
     <script src="{% static 'sharekernel/vis.js' %}"></script>
@@ -18,6 +19,9 @@
 <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
 > <a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a><br><br>
 
+
+    
+        
 
     {% if result.parameters.viabilityproblem.statedimension < 4%}
     <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis 
@@ -78,6 +82,7 @@
 	</div>
 
     <script type="text/javascript">
+
       var twoDsections = [];
       var twoDsectionCoordinates = [];
       var twoDsectionMins = [];
@@ -124,7 +129,6 @@
             })
             return false;
         }
-
     $("#loading").ajaxStart(function(){ // Nous ciblons l'élément #loading qui est caché
 
                              $(this).hide(); // Nous l'affichons quand la requête AJAX démarre
@@ -290,7 +294,7 @@
 //             var layout = {showlegend: false,margin:{t:10}};
 	     trace = [items];
 	     Plotly.newPlot(container,trace,layout);
-var aes = [1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4];
+var aes = [[1,2,3,4],[1,2,3,4],[1,2,3,4],[1,2,3,5]];
 var bes = [1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4];
 var ces = [1,2,3,4,2,3,4,3,3,4,3,2,4,3,2,1];
 a=[]; b=[]; c=[];
@@ -310,10 +314,10 @@ var dataessai=[
 //    alphahull:5,
     opacity:0.8,
     color:'rgb(200,100,300)',
-    type: 'mesh3d',
-    x: aes,
-    y: bes,
-    z: ces,
+    type: 'surface',
+    z: aes,
+//    y: bes,
+//    z: ces,
   }
 ];
 //Plotly.newPlot(container, dataessai);

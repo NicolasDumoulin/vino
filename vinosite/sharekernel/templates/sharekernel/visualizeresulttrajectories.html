@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% block head %}
+    <script src="{% static 'sharekernel/vinoplot.js' %}"></script>
+    <script src="{% static 'sharekernel/vis.js' %}"></script>
+    <script src="{% static 'sharekernel/plotly-latest.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/vis.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/histogram.css' %}" />
+
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+		<div id="topbar"> 
+		</div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a>  <a href="{% url 'sharekernel:visitresult'  result.id %}">Up</a></div>
+<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
+> <a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a><br><br>
+
+            <form id="controlinputform" method="post" action="{% url 'sharekernel:controltostate' result.id %}">
+            {% csrf_token %}
+             <p id='controlinputtext'>
+                  Starting point : 
+              {% for ab in stateabbrevs%}
+                   {{ab}} (0) : <input type="text" name="startingstate{{forloop.counter}}" id="startingstate{{forloop.counter}}" onKeyUp="return updatestateTrajectories()"/>
+		{% endfor %}
+		<br> Piecewise linear control functions -- <br>              
+	      {% for ab in controlabbrevs%}
+                   {{ab}}min : <input type="text" size = "3%" value = "-1" name="mincontrolinput{{forloop.counter}}" id="mincontrolinput{{forloop.counter}}" onKeyUp="return updateboundscontrolTrajectories({{forloop.counter}})"/>
+                   {{ab}}max : <input type="text" size = "3%" value = "1" name="maxcontrolinput{{forloop.counter}}" id="maxcontrolinput{{forloop.counter}}" onKeyUp="return updateboundscontrolTrajectories({{forloop.counter}})"/>
+                   {{ab}} : <input type="text" size = "70%" value="" name="controlinput{{forloop.counter}}" id="controlinput{{forloop.counter}}"  onKeyUp="return updateTrajectories({{forloop.counter}})"/><br>
+		{% endfor %}
+		Integration method : <SELECT name="method" size="1"><OPTION>Euler</SELECT>
+                Integration time step :  <input type="text" name="dt" id="dt" size = "5%" onKeyUp="return updatestateTrajectories()"/>
+                Time Horizon :  <input type="text" name="horizon" id="horizon" size = "5%" value="10" onKeyUp="return updateTrajectoriesHorizon()"/>
+              </p>
+            </form>
+    <div id="info">Click on graph below to draw piecewise linear control functions : </div>        
+    <div id="infobis">Clik on a graph point to remove it : </div>        
+    
+
+    <div class="row">
+        <div class="col-md-8">     <div id="controltrajectories" onmouseout= "erasepink();" onmousemove = "positioncurseur(event);" onclick = "addcursorpoint();"></div>
+
+        </div>
+        <div class="col-md-4">
+            <div id="viewPanel"><div id="statetrajectories"></div></div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+	      {% for ab in controlabbrevs%}
+document.getElementById("controlinput{{forloop.counter}}").value = "";
+		{% endfor %}
+
+      var graphheight = 300;
+      var gap = 0.05;
+      var margin = 40;
+      var graphwidth=500;
+      var totalcontrolgraphwidth = graphwidth-2*margin;
+      var totalcontrolgraphheight = graphheight*{{viabilityproblem.controldimension}}-2*margin;
+      var plotheigh = (1-({{viabilityproblem.controldimension}}-1)*gap)/{{viabilityproblem.controldimension}};
+      var plotheighplusgap = plotheigh+gap;
+      initControlTrajPlot(10,gap,margin,graphheight,graphwidth,controltrajectories);
+      initStateTrajPlot(10,gap,margin,graphheight,statetrajectories);
+
+      document.getElementById("controltrajectories").on('plotly_click', function(data){
+
+         var str = document.getElementById("infobis").innerHTML;
+         var lx = parseFloat(str.split("(")[1]);
+         var ly = parseFloat(str.split(",")[1]);
+         var n = parseInt(str.split("plot")[1]);
+
+           document.getElementById("infobis").innerHTML = 'Point ('+lx+','+ly+') removed from plot'+n;
+         var control = document.getElementById('controlinput'+n);
+         control.value = control.value.replace('('+lx+','+ly+')',''); 
+
+         updateTrajectories(n);
+
+	});
+
+
+      document.getElementById("controltrajectories").on('plotly_hover', function(data){
+              var lx = data.points[0].x;
+              var ly = data.points[0].y;
+              var number = data.points[0].curveNumber;
+              var n= (number-1)/2+1;
+           document.getElementById("infobis").innerHTML = 'Click to remove point ('+lx+','+ly+') from plot '+n;
+
+	});
+      document.getElementById("controltrajectories").on('plotly_unhover', function(data){
+           document.getElementById("infobis").innerHTML = 'Double-clik on a graph point to remove it :';
+
+	});
+
+      function initControlTrajPlot(maxtime,gap,margin,graphheight,graphwidth,container){
+              var plotheighinpx = graphheight*{{viabilityproblem.controldimension}};
+	      var layout = {paper_bgcolor: "#7f7f7f",plot_bgcolor: "#c7c7c7",autosize:false,showlegend: false,margin:{t:margin,l:margin,r:margin,b:margin,pad:0},width: graphwidth,height: plotheighinpx,xaxis:{title : 't',range:[0,maxtime],domain: [0,1]},hovermode:'closest'};
+              var plotheigh = (1-({{viabilityproblem.controldimension}}-1)*gap)/{{viabilityproblem.controldimension}};
+              var i = 0;
+	      var traces = [];
+             {% for ab in controlabbrevs%}
+                 init = i*(plotheigh+gap);
+                 layout['yaxis'+(i+1)] = {title: '{{ab}}', range:[-1,1],domain:[init,init+plotheigh]}
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'pink' }, hoverinfo: 'none',yaxis: 'y'+(i+1) });
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'red' }, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
+                 i=i+1
+             {% endfor %}
+	     Plotly.newPlot(container,traces,layout);
+//           document.getElementById("info").innerHTML =layout.yaxis1.title;
+	}
+      function initStateTrajPlot(maxtime,gap,margin,graphheight,container){
+              var plotheighinpx = graphheight*{{viabilityproblem.statedimension}};
+	      var layout = {showlegend: false,margin:{t:10,l:margin,r:10,b:margin},width: 500,height: plotheighinpx,xaxis:{title : 't',range:[0,maxtime]},hovermode:'closest'};
+              var plotheigh = (1-({{viabilityproblem.statedimension}}-1)*gap)/{{viabilityproblem.statedimension}};
+              var i = 0;
+	      var traces = [];
+             {% for ab in stateabbrevs%}
+                 init = i*(plotheigh+gap);
+                 layout['yaxis'+(i+1)] = {title: '{{ab}}',domain:[init,init+plotheigh]}
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'blue' }, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
+                 i=i+1
+             {% endfor %}
+	     Plotly.newPlot(container,traces,layout);
+//           document.getElementById("info").innerHTML =layout.yaxis1.title;
+	}
+      function positioncurseuringraph(y){
+        var newy = [-1];
+        var ystar = y/(totalcontrolgraphheight*plotheighplusgap);
+         var r =  ystar % 1;
+         r = r*plotheighplusgap/plotheigh;
+         r = r.toFixed(2);
+//document.getElementById("info").innerHTML = r;
+         if (r<= 1){
+             newy[0] = r;
+             newy.push({{viabilityproblem.controldimension}}-parseInt(ystar));
+          }
+        return newy;
+      }
+      function findPos(el) {
+	var x = y = 0;
+	if(el.offsetParent) {
+		x = el.offsetLeft;
+		y = el.offsetTop;
+		while(el = el.offsetParent) {
+			x += el.offsetLeft;
+			y += el.offsetTop;
+		}
+	}
+	return {'x':x, 'y':y};
+      }
+
+     function addcursorpoint(){
+         var container = document.getElementById("controltrajectories");
+         var str = document.getElementById("info").innerHTML;
+         var lx = parseFloat(str.split("(")[1]);
+         var ly = parseFloat(str.split(",")[1]);
+         var n = parseInt(str.split("plot")[1]);
+         var number = 2*(n-1);
+         var lastt = 0;
+         if (container.data[number+1].x.length>0){ lastt = container.data[number+1].x[container.data[number+1].x.length-1];} 
+         if ((isNaN(lx)== false)&&(isNaN(ly)== false)&&(isNaN(n)== false)&&(lx>=lastt)){
+           xnewpink = [lx];
+           ynewpink = [ly];
+           xnewred = container.data[number+1].x.concat([lx]);
+           ynewred = container.data[number+1].y.concat([ly]);
+
+           document.getElementById("info").innerHTML = 'Point ('+lx+','+ly+') added to plot'+n;
+
+         var control = document.getElementById('controlinput'+n);
+         control.value = control.value+'('+lx+','+ly+')'; 
+         updateTrajectories(n);
+
+       }
+else{
+//           document.getElementById("info").innerHTML = 'Merde';
+
+}
+     }
+
+      function erasepink(){
+         var container = document.getElementById("controltrajectories");
+
+               for(i = 0;i<{{viabilityproblem.controldimension}};i++){
+                 if (container.data[2*i].x.length >1 ){
+
+                  update = {x:[[container.data[2*i].x[0]]],y:[[container.data[2*i].y[0]]]}
+//                var update = {x:[[0,9]],y:[[1,1]]};
+
+		Plotly.restyle(container,update,[2*i]);
+                }
+             }
+     }
+     function positioncurseur(event){
+         var container = document.getElementById("controltrajectories");
+         var pos = findPos(container);
+         var px = event.pageX-pos.x-margin;
+         var py = event.pageY-pos.y-margin;
+         var sition = positioncurseuringraph(py);
+         py = sition[0];
+
+         if ((py>=0)&&(px>=0)&&(px<=totalcontrolgraphwidth)){
+            var ny = sition[1];
+   
+            var number = 2*(ny-1);
+
+             if (ny>1){
+               var str = 'yaxis'+sition[1];
+             }
+             else{
+               var str = 'yaxis';
+             }
+             var range = container.layout[str].range;
+             var ly = range[1]-py*(range[1]-range[0]);
+             range = container.layout['xaxis'].range;
+             var lx = px/totalcontrolgraphwidth;
+             lx = lx.toFixed(2);
+             lx = lx*range[1];
+             lx = lx.toFixed(2);
+             ly = ly.toFixed(2);
+
+//             py = container.data[0].xaxis.p2l(py);
+             document.getElementById("info").innerHTML = 'Add point ('+lx+','+ly+') to plot'+sition[1];
+
+             if (container.data[number].x.length >0 ){
+                var update = {x:[[container.data[number].x[0],lx]],y:[[container.data[number].y[0],ly]]}
+//                var update = {x:[[0,9]],y:[[1,1]]};
+
+		Plotly.restyle(container,update,[number]);
+
+             }
+       }
+       else {
+             erasepink();
+             document.getElementById("info").innerHTML = 'Click on graph below to draw piecewise linear control functions : ';
+
+       } 
+     }
+
+      function arecorrects(){
+        var b = true;      
+        if ((isNaN(parseFloat(document.getElementById('horizon').value))) || (isNaN(parseFloat(document.getElementById('dt').value))) ||(parseFloat(document.getElementById('horizon').value) <=0)||(parseFloat(document.getElementById('dt').value) <=0)){ b = false;}
+        if (b == true){
+        for (var i = 1;i<={{viabilityproblem.statedimension}};i++) {
+           if (isNaN(parseFloat(document.getElementById('startingstate'+i).value))) {b = false;}
+        }
+        }
+//        document.getElementById("info").innerHTML = b;
+        return b;
+      }
+
+      function iscorrect(str){
+        var tab = [];
+        var t = [];
+        var u = [];  
+        var b = true;
+        if (str != ""){
+          if (str[0] != '('){
+ 	      b = false;
+//              document.getElementById("essai").innerHTML = "error1";
+}
+          else if (str[str.length-1] != ')'){
+ 	      b = false;
+//              document.getElementById("essai").innerHTML = "error2"+str[str.length-1];
+}
+          else { 
+               donnees = str.split(")(");
+               donnees[0] = donnees[0].replace("(","");
+               donnees[donnees.length-1] = donnees[donnees.length-1].replace(")","");
+              lasttimevalue = 0;
+              for (var i = 0;i< donnees.length;i++) {
+		dd = donnees[i].split(",");
+		if (dd.length != 2){ b = false; //document.getElementById("essai").innerHTML = donnees[i];
+                }
+                else if (isNaN(parseFloat(dd[0]))){b = false;//document.getElementById("essai").innerHTML = dd[0];
+                }
+                else if (parseFloat(dd[0]) < lasttimevalue){b = false;//document.getElementById("essai").innerHTML = dd[0];
+                }
+                else if (isNaN(parseFloat(dd[1]))){b = false;//document.getElementById("essai").innerHTML = dd[1];
+                 }
+                else{
+                     lasttimevalue = parseFloat(dd[0]);
+		     t.push(dd[0]);
+		     u.push(dd[1]);
+	
+                }
+	   } 
+	 }
+       }
+       tab.push(b);
+       tab.push(t);
+       tab.push(u);
+
+          return tab;
+      }
+
+
+      function updateboundscontrolTrajectories(number){
+        minu = parseFloat(document.getElementById("mincontrolinput"+number).value);
+        maxu = parseFloat(document.getElementById("maxcontrolinput"+number).value);
+
+        if ((isNaN(minu) == false)&&(isNaN(maxu) == false)&&(minu<maxu)){
+        var update = {yaxis:{range : [minu,maxu]}};
+        Plotly.relayout(controltrajectories, update)
+        }
+      }
+
+
+      function updateTrajectoriesHorizon(){
+        var horizon =  parseFloat(document.getElementById("horizon").value);
+        if (isNaN(horizon) == false){
+        var update = {xaxis:{range : [0,horizon]}};
+        Plotly.relayout(controltrajectories, update)
+        Plotly.relayout(statetrajectories, update)
+       }
+      }
+
+      function updatecontrolTrajectories(number){
+          var tab = iscorrect(document.getElementById("controlinput"+number+"").value);
+          if (tab[0] == true) {
+              var containerTraj = document.getElementById('controltrajectories');
+              if (tab[1].length>0) {
+		xnew = [tab[1][tab[1].length-1]];
+                ynew = [tab[2][tab[1].length-1]];
+	      }
+              else{
+		xnew = [];
+                ynew = [];
+
+	      } 	
+             var update = {x: [xnew,tab[1]],y:[ynew,tab[2]]};
+//document.getElementById("info").innerHTML = "popo";
+             Plotly.restyle(containerTraj, update, [(number-1)*2,(number-1)*2+1])
+        }
+      }
+
+      function updateTrajectories(number){
+             updatecontrolTrajectories(number);
+             updatestateTrajectories();
+      }
+
+        function loadAndPlotbis(url,formdata,callback) {
+            $.ajax({ url: url,
+                    type: "POST",
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+                    dataType:"json",
+                    success: callback,
+                    complete: function(){
+		}
+            })
+            return false;
+        }
+
+
+      function updatestateTrajectories(){
+          var b = true;
+          for (var i=1;i<={{viabilityproblem.controldimension}};i++){b = b && iscorrect(document.getElementById("controlinput"+i+"").value)[0];}
+          if (b == true) {
+              if (arecorrects()){
+                var form = document.getElementById('controlinputform');
+                var formdata = new FormData(form);
+                var url = "{% url 'sharekernel:controltostate' result.id%}"
+		var container = document.getElementById('statetrajectories');
+
+                loadAndPlotbis(url,formdata,function(data){
+                      $.each(data, function(index,bar) {
+                        if (index == 0){
+			    times = bar;
+                        }
+                        else{
+			    container.data[index-1].x = times;
+			    container.data[index-1].y = bar;
+                        }
+			})	
+
+			Plotly.redraw(container);
+                });
+              }
+        }
+      }
+
+</script>    
+{% endblock %}

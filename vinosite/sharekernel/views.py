@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404,render
 from django.views.decorators.csrf import  ensure_csrf_cookie
 from sharekernel.models import Document, Category, ViabilityProblem, Algorithm, Parameters,Results,ResultFormat 
-from sharekernel.forms import DocumentForm
-from django.http import HttpResponseRedirect
+from sharekernel.forms import DocumentForm, TrajForm
+from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.core.files import File
 from BarGridKernel import BarGridKernel
@@ -58,15 +58,17 @@ def visitresult(request,result_id):
     tabvalues = []
     tabvaluesbis = []
     tabvaluesbisbis = []
-
+    dyndes = vp.dynamicsdescription.split(",")
+    index = 0
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
         stanaab.append(''.join([j[0]," : ",j[1]]))
+        dyndes[index] = j[1]+"' = "+dyndes[index]
+        index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
         connaab.append(''.join([j[0]," : ",j[1]]))
    
-    dyndes = vp.dynamicsdescription.split(",")
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
@@ -150,15 +152,17 @@ def visitviabilityproblem(request,viabilityproblem_id):
     tabvaluesbisbis = []
 
     r_list = []
-
+    dyndes = vp.dynamicsdescription.split(",")
+    index = 0
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
         stanaab.append(''.join([j[0]," : ",j[1]]))
+        dyndes[index] = j[1]+"' = "+dyndes[index]
+        index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
         connaab.append(''.join([j[0]," : ",j[1]]))
    
-    dyndes = vp.dynamicsdescription.split(",")
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
@@ -661,17 +665,62 @@ def bargrid2json3(request,hist_maxvalue):
 
 @ensure_csrf_cookie
 def visualizeresult(request,result_id):
+    forms = []
+    form = TrajForm()
     stanaab = []
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     c=vp.category
     rf=r.resultformat
+    for i in range(vp.statedimension):
+        forms.append(TrajForm())
+    hm = HDF5Manager([BarGridKernel])
+    bargrid = hm.readKernel(r.datafile.path)
+
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
         stanaab.append(j[1])
 
-    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab} 
+    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
+
+def visualizeresulttrajectories(request,result_id):
+    r=Results.objects.get(id=result_id)
+    vp=r.parameters.viabilityproblem
+    stateabbrevs = vp.stateabbreviation()
+    controlabbrevs = vp.controlabbreviation()
+    c=vp.category
+#    rf=r.resultformat
+#    hm = HDF5Manager([BarGridKernel])
+#    bargrid = hm.readKernel(r.datafile.path)
+
+
+    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'category':c} 
+    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
+
+def visualizeresulttrajectoriesancien(request,result_id):
+    from Equation import Expression
+    forms = []
+    form = TrajForm()
+    stanaab = []
+    r=Results.objects.get(id=result_id)
+    vp=r.parameters.viabilityproblem
+    stateabbrevs = vp.stateabbreviation()
+    controlabbrevs = vp.controlabbreviation()
+    c=vp.category
+    rf=r.resultformat
+    for i in range(vp.statedimension):
+        forms.append(TrajForm())
+    hm = HDF5Manager([BarGridKernel])
+    bargrid = hm.readKernel(r.datafile.path)
+
+    for i in vp.statenameandabbreviation.split("/"):
+        j = i.split(",")
+        stanaab.append(j[1])
+
+    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms} 
+    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
+
 
 def compareresult(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
@@ -927,8 +976,135 @@ def findandsaveobjectbis(cls, metadata, foreignkeys={}, fields={}):
         p=p[0]
     return p
 
+def valcontrol(tabt,tabu,T,i):
+    if (i>=len(tabt)):
+        return "error"
+    else :
+        u =[]
+        if (T==tabt[-1]):
+	    u.append(tabu[-1])	
+        elif (tabt[i]<=T)&(T<tabt[-1]):
+            j = i
+            while (T>=tabt[j+1]):
+                j =j+1
+            u.append(tabu[j]+(tabu[j+1]-tabu[j])*(T-tabt[j])/(tabt[j+1]-tabt[j]))
+	return u
+
+def next(state,control,dt,method,p):
+    import numpy as np
+    nextstate = []
+    speed = []    
+    dynamics = p.speed()
+    vp = p.viabilityproblem
+    stateabbrevs = vp.stateabbreviation()
+    controlabbrevs = vp.controlabbreviation()
+#    print controlabbrevs
+    for dyn in dynamics:
+#        print dyn
+        for var in dyn:
+#            print var
+            if var in stateabbrevs:
+#                print "dedans"
+                dyn[var] = state[stateabbrevs.index(var)]
+            elif var in controlabbrevs:
+#                print "dedans"
+                dyn[var] = control[controlabbrevs.index(var)]
+#        print(dyn())
+        speed.append(dyn())
+#    print speed
+#    print state
+#    print dt   
+    if (method == "Euler"):
+        nextstate = list(dt*np.array(speed)+np.array(state))
+#    print nextstate    
+    return nextstate
+
+def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
+    statetrajectories = []
+    for i in range(vp.statedimension+1):
+	statetrajectories.append([])
+#    print statetrajectories
+    tmin = 0
+    tmax = Tmax
+    for ct in controltrajectories:
+        if (len(ct[0])>=1):
+            tmin = max (tmin,ct[0][0])
+            tmax = min (tmax,ct[0][-1])
+
+        else :
+            tmin = Tmax
+            tmax = 0     
+    if (tmin<=tmax):
+        tcurrent = tmin
+        i = 1
+        for s in startingstate:
+            statetrajectories[i].append(s)
+            i = i+1
+        laststate = startingstate
+        while (tcurrent <= tmax):
+            statetrajectories[0].append(tcurrent)
+            valcontrols = []
+            
+            for ct in controltrajectories:
+                valcontrols = valcontrols+valcontrol(ct[0],ct[1],tcurrent,0)
+             
+            laststate = next(laststate,valcontrols,dt,method,p)
+            i = 1
+            for coord in laststate:
+                statetrajectories[i].append(coord)
+                i = i+1
+            tcurrent = tcurrent + dt 
+#    print statetrajectories
+    return statetrajectories
+
+
+def controltostate(request,result_id):
+    if request.method == 'POST':
+        import cgi
+        form = cgi.FieldStorage()
+        if request.POST.has_key("controlinput1"):
+            r=Results.objects.get(id=result_id)
+            p=r.parameters
+#            print "ohoh"
+            vp=r.parameters.viabilityproblem
+            controltrajectories = [];
+            for i in range(vp.controldimension):
+                t = []
+	        u = []
+		
+                text = request.POST["controlinput"+str(i+1)]
+#                print text
+#                print 'youpi'
+           
+                donnees = text.split(")(")
+                donnees[0] = donnees[0].replace("(","")
+                donnees[-1] = donnees[-1].replace(")","")
+                for d in donnees:
+                    if (d.find(",") >= 0) : 
+		        dd = d.split(",")
+                        t.append(float(dd[0]))
+                        u.append(float(dd[1]))
+	        controltrajectories.append([t,u])
+#            print controltrajectories
+            Tmax = float(request.POST["horizon"])
+            dt = float(request.POST["dt"])
+            method = request.POST["method"]
+            startingstate = []
+            for i in range(vp.statedimension):
+                startingstate.append(float(request.POST["startingstate"+str(i+1)]))
+
+            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
+            out_json = json.dumps(list(statetrajectories), sort_keys = True, ensure_ascii=False)
+#        return JsonResponse([1, 2, 3], safe=False)   
+            return HttpResponse(out_json)
+        return HttpResponse("Pas POST")
+    return HttpResponse("Pas POST")
+
+
+
 def hdf5record(request):
     if request.method == 'POST':
+       
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():            
             tmpfile = tempfile.NamedTemporaryFile(delete=False)
@@ -945,6 +1121,7 @@ def hdf5record(request):
             a = findandsaveobject(Algorithm, metadata)
             r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
             return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
+        
     return HttpResponse("Your file has been successfully uploaded")
 
 def uploadKernelFile(request):
