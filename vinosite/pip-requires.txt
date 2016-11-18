@@ -1,0 +1,4 @@
+django==1.9.7
+django-jfu
+django-bootstrap3
+Equation
