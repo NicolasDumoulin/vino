@@ -11,12 +11,18 @@ class KdTree(Kernel):
     KdTree store for each cell the coordinate of the sample point in the cell,
     and then for each dimension the min and the max of the cell.
     '''
-    def __init__(self, cells=[], metadata={},origin=[],opposite=[]):
+    def __init__(self, cells=[], metadata={},origin=None,opposite=None):
         super(KdTree, self).__init__(metadata)
         self.cells = cells
-        minBoundsCoordinates = self.getMinBoundsCoordinates()
-        self.originCoords = np.array(origin,float)
-        self.oppositeCoords = np.array(opposite,float)
+        if origin:
+            self.originCoords = np.array(origin,float)
+        else:
+            self.originCoords = self.getMinBounds()
+        if opposite:
+            self.oppositeCoords = np.array(opposite,float)
+        else:
+            self.oppositeCoords = self.getMaxBounds()
+
 
     @property
     def cells(self):
@@ -34,10 +40,16 @@ class KdTree(Kernel):
         self.__cells = SortedListWithKey(cells, key=lambda cell: [cell[i] for i in maxCoordinatesIndex])
     
     def getMinBoundsCoordinates(self):
+        '''
+        Returns the indexes for retrieving the min bounds in the array of data of a tree node.
+        '''
         dim = self.getStateDimension()
         return [dim + x * 2 for x in range(dim)]
     
     def getMaxBoundsCoordinates(self):
+        '''
+        Returns the indexes for retrieving the max bounds in the array of data of a tree node.
+        '''
         dim = self.getStateDimension()
         return [dim + x * 2 + 1 for x in range(dim)]
 
@@ -45,7 +57,7 @@ class KdTree(Kernel):
         return np.array([min([c[i] for c in self.cells]) for i in self.getMinBoundsCoordinates()], float)
 
     def getMaxBounds(self):
-        return np.array([min([c[i+1] for c in self.cells]) for i in self.getMinBoundsCoordinates()], float)
+        return np.array([max([c[i] for c in self.cells]) for i in self.getMaxBoundsCoordinates()], float)
 
     def getMinFrameworkBounds(self):
         return list(self.originCoords)
@@ -84,7 +96,7 @@ class KdTree(Kernel):
 
 
     @classmethod  
-    def readViabilitreeFile(cls, f, metadata,origin,opposite):
+    def readViabilitreeFile(cls, f, metadata,origin=None,opposite=None):
         cells = []
         dim = metadata[METADATA.statedimension]
         f.readline()
@@ -94,7 +106,7 @@ class KdTree(Kernel):
         return cls(cells, metadata,origin,opposite)
     
     @classmethod  
-    def readViabilitree(cls, filename, metadata,origin,opposite):
+    def readViabilitree(cls, filename, metadata,origin=None,opposite=None):
         '''
         Returns a kernel loaded from an output file from the software viabilitree.
         '''

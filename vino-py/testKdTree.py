@@ -19,6 +19,15 @@ class TestKdTree(unittest.TestCase):
         for outSetPoint in [[3.1, 4, 8], [1, 4, 9.2], [2.5,4.5,7.5], [2.5,4.5,3]]:
             self.assertFalse(kdt.isInSet(outSetPoint), outSetPoint)
         
+    def test_getMinBounds(self):
+        cells = [[0,0,0]+p for p in [[1,2,4,5,8,9],[2,3,4,5,8,9],[2,3,5,6,8,9],[2,3,4,5,6,7]]]
+        kdt = KdTree(cells = cells, metadata={ METADATA.statedimension: 3})
+        self.assertTrue(all(kdt.getMinBounds()==[1.,4.,6.]))
+  
+    def test_getMaxBounds(self):
+        cells = [[0,0,0]+p for p in [[1,2,4,5,8,9],[2,3,4,5,8,9],[2,3,5,6,8,9],[2,3,4,5,6,7]]]
+        kdt = KdTree(cells = cells, metadata={ METADATA.statedimension: 3})
+        self.assertTrue(all(kdt.getMaxBounds()==[3.,6.,9.]))
   
 if __name__ == '__main__':
     import xmlrunner
