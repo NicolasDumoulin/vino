@@ -90,6 +90,13 @@ class ResultFormat(models.Model):
     description = models.TextField(max_length=2000,default = 0)
     parameterlist = models.CharField(max_length=500,default = 0)
     
+    def toDict(self):
+        '''
+        Return a representation of the format as a dictionnary.
+        '''
+        return {"pk":self.pk, "format":self.name, "description":self.description, "parameters":self.parameterlist.split()}
+            
+    
 class Results(models.Model):
     parameters = models.ForeignKey(Parameters)
     algorithm = models.ForeignKey(Algorithm)
