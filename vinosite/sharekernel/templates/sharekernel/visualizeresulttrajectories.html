@@ -371,11 +371,16 @@ else{
                 loadAndPlotbis(url,formdata,function(data){
                       $.each(data, function(index,bar) {
                         if (index == 0){
-			    times = bar;
+			    color = bar;
                         }
+                        else if(index == 1){
+			    times = bar;
+                        } 
                         else{
-			    container.data[index-1].x = times;
-			    container.data[index-1].y = bar;
+			    container.data[index-2].x = times;
+			    container.data[index-2].y = bar;
+			    container.data[index-2].marker.color = color;
+
                         }
 			})	
 

@@ -1053,7 +1053,7 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
             for coord in laststate:
                 statetrajectories[i].append(coord)
                 i = i+1
-            tcurrent = tcurrent + dt 
+            tcurrent = tcurrent + dt
 #    print statetrajectories
     return statetrajectories
 
@@ -1067,6 +1067,10 @@ def controltostate(request,result_id):
             p=r.parameters
 #            print "ohoh"
             vp=r.parameters.viabilityproblem
+            import numpy as np
+            stateabbrevs = vp.stateabbreviation()
+            controlabbrevs = vp.controlabbreviation()
+
             controltrajectories = [];
             for i in range(vp.controldimension):
                 t = []
@@ -1094,6 +1098,24 @@ def controltostate(request,result_id):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
 
             statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
+            
+            colors = np.array([1]*len(statetrajectories[1]))
+            constraints = p.constraints()
+            for con in constraints:
+#                print con
+#                print statetrajectories[0]
+                for var in con:
+#                    print var
+                    if var in stateabbrevs:
+#                        print "dedans"
+                        con[var] = np.array(statetrajectories[stateabbrevs.index(var)+1])
+#                print(con())
+        
+                colors = colors*np.array(con(),dtype=int)
+            statetrajectories.insert(0,list(colors))      
+
+#            print statetrajectories[0]    
+            
             out_json = json.dumps(list(statetrajectories), sort_keys = True, ensure_ascii=False)
 #        return JsonResponse([1, 2, 3], safe=False)   
             return HttpResponse(out_json)
