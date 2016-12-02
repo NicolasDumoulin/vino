@@ -122,7 +122,7 @@ document.getElementById("controlinput{{forloop.counter}}").value = "";
              {% for ab in stateabbrevs%}
                  init = i*(plotheigh+gap);
                  layout['yaxis'+(i+1)] = {title: '{{ab}}',domain:[init,init+plotheigh]}
-                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'blue' }, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'blue' ,cmin : 0, cmax : 2}, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
                  i=i+1
              {% endfor %}
 	     Plotly.newPlot(container,traces,layout);

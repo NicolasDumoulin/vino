@@ -1064,6 +1064,13 @@ def controltostate(request,result_id):
         form = cgi.FieldStorage()
         if request.POST.has_key("controlinput1"):
             r=Results.objects.get(id=result_id)
+            if r.resultformat.name =='bars':
+                hm = HDF5Manager([BarGridKernel])
+                vino = hm.readKernel(r.datafile.path)
+            elif r.resultformat.name =='kdtree':
+                hm = HDF5Manager([BarGridKernel])
+                vino = hm.readKernel(r.datafile.path)
+
             p=r.parameters
 #            print "ohoh"
             vp=r.parameters.viabilityproblem
@@ -1112,6 +1119,15 @@ def controltostate(request,result_id):
 #                print(con())
         
                 colors = colors*np.array(con(),dtype=int)
+            dimension = vp.statedimension
+            for i in range(len(colors)):
+                if (colors[i] == 1):
+                    point = []
+                    for j in range(dimension):
+                        point.append(statetrajectories[j+1][i])
+#                    print point
+                    if vino.isInSet(point):
+                        colors[i] = 2
             statetrajectories.insert(0,list(colors))      
 
 #            print statetrajectories[0]    
