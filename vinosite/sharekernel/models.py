@@ -57,6 +57,9 @@ class ViabilityProblem(models.Model):
       for d in donnees:
           names.append(d.split(",")[0])
       return names
+      
+    def __str__(self):
+        return str(self.pk) + " " + self.title
 
 
 class Algorithm(models.Model):
@@ -67,6 +70,8 @@ class Algorithm(models.Model):
     softwarewebsite = models.GenericIPAddressField(default=0)
     softwarecontact = models.EmailField(default=0)
     softwareparameters = models.CharField(max_length=500,default = 0)
+    def __str__(self):
+        return str(self.pk) + " " + self.name + " " + self.version
     
 class Parameters(models.Model):
     viabilityproblem = models.ForeignKey(ViabilityProblem)
@@ -87,6 +92,8 @@ class Parameters(models.Model):
         for expr in desdyn :
             eqdyns.append(Expression(expr,params))
         return eqdyns
+    def __str__(self):
+        return str(self.pk) + " " + self.dynamicsparametervalues
 
     def constraints(self):
         eqcons = []
@@ -116,8 +123,8 @@ class ResultFormat(models.Model):
             
     
 class Results(models.Model):
-    parameters = models.ForeignKey(Parameters)
-    algorithm = models.ForeignKey(Algorithm)
+    parameters = models.ForeignKey(Parameters, null = True)
+    algorithm = models.ForeignKey(Algorithm, null = True)
     resultformat = models.ForeignKey(ResultFormat,default = 0)
     title = models.CharField(max_length=200,default = 0)
     author = models.CharField(max_length=200,default = 0)
@@ -126,3 +133,6 @@ class Results(models.Model):
     softwareparametervalues = models.CharField(max_length=500,default = 0)
     formatparametervalues = models.CharField(max_length=500,default = 0)
     datafile = models.FileField(upload_to='results/%Y/%m/%d',default = 0)
+    def __str__(self):
+        return str(self.pk) + " " + str(self.submissiondate.strftime("%Y%m%d-%H%M"))+ " " + self.title
+
