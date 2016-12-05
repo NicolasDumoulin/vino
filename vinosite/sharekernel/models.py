@@ -29,6 +29,10 @@ class ViabilityProblem(models.Model):
       dyns = self.dynamicsdescription.split(",")
       return dyns
 
+    def constraints(self):
+      dyns = self.stateconstraintdescription.split(",")
+      return dyns
+
     def stateabbreviation(self):
       abbrevs = []
       donnees = self.statenameandabbreviation.split("/")
@@ -69,7 +73,7 @@ class Parameters(models.Model):
     dynamicsparametervalues = models.CharField(max_length=200,default=0)
     stateconstraintparametervalues = models.CharField(max_length=200,default=0)
     targetparametervalues = models.CharField(max_length=200,default=0)
-    def speed (self):
+    def speed(self):
         eqdyns = []
         desstateandcontrol = []
         desdyn = self.viabilityproblem.dynamics()
@@ -84,6 +88,20 @@ class Parameters(models.Model):
             eqdyns.append(Expression(expr,params))
         return eqdyns
 
+    def constraints(self):
+        eqcons = []
+        desstateandcontrol = []
+        descon = self.viabilityproblem.constraints()
+        j=0
+        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+             for i in range(len(descon)):
+                  descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
+             j = j+1 
+        params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
+        
+        for expr in descon :
+            eqcons.append(Expression(expr,params))
+        return eqcons
 
 class ResultFormat(models.Model):
     name = models.CharField(max_length=200,default = 0)
