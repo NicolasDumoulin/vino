@@ -3,28 +3,64 @@
 {% load staticfiles %}
 
 {% block body %}
-    <div class="container">
-    <p>To get help to write the metadata and the data in your file, please go to the <a href="{% url 'sharekernel:metadatafilespecification' 'N' 'N' 'N' 'N' 'N' %}">specification page.</a></p>
 
-    <button class="btn btn-primary" type="submit">Upload Kernel file</button>
-    <!-- Upload form. Note enctype attribute! -->
-    <form action="{% url 'sharekernel:hdf5record' %}" id="uploadForm" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
 
-        <p>{{ form.non_field_errors }}</p>
-        <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
-        <p>
-            {{ form.docfile.errors }}
-            {{ form.docfile }}
-        </p>
-
-        {% include "sharekernel/metadataEdit.html" %}
-
-        <p><input type="submit" value="Upload" /></p>
-    </form>
+<div class="container">
+    {% load jfutags %}
+    {% jfu 'sharekernel/kerneluploadfile.html' 'sharekernel:kerneluploadfile' %}
+    <div class="col-lg-7">
+        <div id="metadata-format" class="collapse">
+        </div>
     </div>
+    <div class="col-lg-7">
+        <p id="success-panel" class="bg-success"></p>
+    </div>
+</div>
 
     <script type="text/javascript">
-    
+    function fileSubmitted() {
+        // This method can be call through 2 ways
+        //  1. through the call below, if the file submitted is loaded
+        //  2. after the metadata form completion (callback) if some metadata lacks for loading the file
+        $('#fileupload').hide();
+        $('#metadata-format').hide();
+        $('#success-panel').text('Your file has been successfully submitted. You can access here to its details. TODO');
+    }
+    $(document).ready(function() {
+        $('#fileupload').fileupload({
+            formData: [
+                { name: "csrfmiddlewaretoken", value: "{{ csrf_token }}"},
+                { name:"callback", value:"fileSubmitted" }
+            ],
+            done: function (e, data) {
+                console.log('done');
+                dd1 = data;
+                if ('error' in data.result.files[0]) {
+                    data.fail(e, data);
+                } else if ('pk' in data.result.files[0]) {
+                    fileSubmitted();
+                } else if ('metadata' in data.result.files[0]) {
+                    // the upload process asks for some metadata for completing the upload
+                    $('#fileupload table').hide();
+                    $('#metadata-format').append(data.result.files[0].metadataForm);
+                    $('#metadata-format').toggle();
+                }
+            },
+            fail: function(e, data) {
+                console.log('fail');
+                dd2=data;
+                $('#fileupload table').hide();
+                if (data.jqXHR.status=500) {
+                    $('#fileupload').append('<div class="alert alert-danger" role="alert">Error while trying to upload your file<br/>Server error:<pre>'
+                        +data.jqXHR.responseText+'</pre>')
+                } else {
+                    $('#fileupload').append('<div class="alert alert-danger" role="alert">Error while trying to upload your file "'
+                        + data.files[0].name + '": ' + data.result.files[0].error)
+                }
+                // TODO reset the upload form for a new submission
+            }
+         });
+
+    });
     </script>      
 {% endblock %}

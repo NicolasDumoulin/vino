@@ -12,6 +12,11 @@ from hdf5common import HDF5Reader, HDF5Manager
 from distance import Matrix, EucNorm
 from FileFormatLoader import Loader
 from KdTree import KdTree
+from django.views.decorators.http import require_POST
+import os
+import METADATA
+from datetime import datetime
+from forms import ViabilityProblemForm, MetadataFromListForm
 
 import json
 import tempfile
@@ -759,11 +764,10 @@ def compareresultbis(request, vinoA_id, vinoB_id):
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
-def kernelupload(request):
+def kerneluploadpage(request):
     form = DocumentForm()
     context = { 'form': form} 
-    return render(request, 'sharekernel/kernelupload.html', context)            
-        
+    return render(request, 'sharekernel/kernelupload.html', context)
 
 def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
     if category_id == 'N':
@@ -1057,7 +1061,6 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
 #    print statetrajectories
     return statetrajectories
 
-
 def controltostate(request,result_id):
     if request.method == 'POST':
         import cgi
@@ -1139,42 +1142,34 @@ def controltostate(request,result_id):
     return HttpResponse("Pas POST")
 
 
+from jfu.http import upload_receive, UploadResponse
 
-def hdf5record(request):
-    if request.method == 'POST':
-       
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():            
-            tmpfile = tempfile.NamedTemporaryFile(delete=False)
-            for chunk in request.FILES['docfile'].chunks():
-                tmpfile.write(chunk)
-            tmpfile.close()
-            with HDF5Reader(tmpfile.name) as f:
-                metadata = f.readMetadata()
-            #metadata = HDF5Reader('test.h5').readMetadata()
-            c = findandsaveobject(Category, metadata)
-            vp = findandsaveobject(ViabilityProblem, metadata, foreignkeys={"category": c})
-            p = findandsaveobject(Parameters, metadata, foreignkeys={"viabilityproblem": vp})
-            rf = findandsaveobject(ResultFormat, metadata)
-            a = findandsaveobject(Algorithm, metadata)
-            r = findandsaveobject(Results, metadata, foreignkeys={"parameters": p, "algorithm": a, "resultformat": rf}, fields={"datafile": request.FILES['docfile']})
-            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-        
-    return HttpResponse("Your file has been successfully uploaded")
-
-def uploadKernelFile(request):
+@require_POST
+def kerneluploadfile(request):
     '''
     Try to record a new kernel by guessing its storage format.
     Returns an response as a dict with possible attributes:
       * 'error' if an error has occured, with the associated error message
-      * 'filename' the path to the file stored temporarely
+      * 'path' the path to the file stored temporarily
       * 'metadata' metadata that has been retrieved or built
     '''
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
+    # The assumption here is that jQuery File Upload
+    # has been configured to send files one at a time.
+    # If multiple files can be uploaded simulatenously,
+    # 'file' may be a list of files.
+    file = upload_receive(request)
+    if "metadata" in request.POST:
+        # in this case, the file has already been uploaded, and now we get missing metadata
+        metadata = {METADATA.statedimension: int(request.POST['statedimension'])}
+        kernel=KdTree.readViabilitree(request.POST['path'], metadata)
+        tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
+        hdf5manager.writeKernel(kernel, tmpfilename)
+    elif file:
+        # in this case, we receive a file that we try to read
+        try:
             tmpfile = tempfile.NamedTemporaryFile(delete=False)
-            for chunk in request.FILES['docfile'].chunks():
+            tmpfilename = tmpfile.name
+            for chunk in file.chunks():
                 tmpfile.write(chunk)
             tmpfile.close()
             kernel = loader.load(tmpfile.name)
@@ -1182,31 +1177,60 @@ def uploadKernelFile(request):
                 # try to detect viabilitree format
                 try:
                     with open(tmpfile.name, 'r') as f:
+                        head = []
                         # first line must contain header, so we deduce the number of columns
-                        l = len(f.readline().split())
-                        # reading first line of data, and checking if it is numbers
-                        cols = map(float,l2.split())
+                        line = f.readline().split()
+                        l = len(line)
+                        head.append(line)
+                        # reading first line of data, and checking if it is 
+                        line = f.readline().split()
+                        cols = map(float,line)
+                        head.append(line)
                         # checking if dimensions are the same
                         if l == len(cols):
                             # seems good, now we need to ask some metadata for reading correctly the file
-                            return HttpResponse({
-                                filename: tmpfile.name,
-                                metadata: {
-                                    format:"kdtree"
-                                }
-                            })
-                            # TODO
-                        else:
-                            raise RuntimeError("Numbers of columns doesn't match with 2 first lines")
-                            
-                except:
-                    # unable to detect a valid format so displaying the doc
-                    return HttpResponse({error: "No valid format"})                    
-                pass
+                            resultFormat = ResultFormat.objects.get(name="kdtree")
+                            return UploadResponse( request, {
+                                    'name' : os.path.basename(tmpfile.name),
+                                    "path": tmpfile.name,
+                                    "metadata": resultFormat.toDict(),
+                                    'head': head,
+                                    'metadataForm': render(request,'sharekernel/formatDetected.html',context = {
+                                            'userFilename' : file.name,
+                                            "path": tmpfile.name,
+                                            "metadata": resultFormat.toDict(),
+                                            'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split()),
+                                            'head': head,
+                                            'format': resultFormat,
+                                            'callback': request.POST['callback']
+                                        }).content
+                                })
+                        #else:
+                        #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})                       
+                except Exception as e:
+                    # unable to detect a valid format so displaying the doc TODO
+                    return UploadResponse( request, {"error": "No valid format."})                    
+                return UploadResponse( request, {"error": "No valid format"})
+        except Exception as e:
+            return UploadResponse( request, {'error':str(e)})
+    if kernel:                
+            if not file:
+                file = open(tmpfilename,'r')
             # kernel loaded, we bring the metadata to the user
-            # TODO
-            return HttpResponse("Good"+str(type(request.FILES['docfile']))+str(metadata))
-    return HttpResponse({error: "a POST request was intended"})
+            # we take care to not ask metadata about the results before to be sure to be able to read the file
+            # for preventing bad experience if the user take time to complete useless forms
+            
+            # Version 3 Creating Result with empty foreign key and bringing editing view for this result
+            result = findandsaveobject(Results, metadata, fields={
+                "datafile": File(file),
+                "submissiondate": datetime.today()
+                })
+            return UploadResponse( request, {
+                'name' : os.path.basename(tmpfilename),
+                'status': 'success',
+                'pk': result.pk
+            })            
+    return UploadResponse( request, {'error':'No file provided'})
      
 def verify(request):
     if request.method == 'POST':
