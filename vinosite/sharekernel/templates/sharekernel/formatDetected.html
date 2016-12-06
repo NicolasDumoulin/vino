@@ -1,0 +1,36 @@
+{% load bootstrap3 %}
+
+<p>Your file seems to be in the format <a href="#" data-toggle="tooltip" data-placement="bottom" title="{{ metadata.description }}">{{ metadata.format }}</a>. We need some additional information for importing your file.</p>
+<p>For information, here are the first lines of your file:</p>
+<pre id='file-head'>{{ head }}</pre>
+
+<form id="metadata-form">
+{% csrf_token %}
+{% bootstrap_form metadataForm %}
+<input type="hidden" name="userFilename" value="{{ userFilename}}">
+<input type="hidden" name="path" value="{{ path}}">
+<input type="hidden" name="metadata" value="{{ metadata }}">
+
+{% buttons submit='OK' reset="Cancel" %}{% endbuttons %}
+</form>
+<script type="text/javascript">
+ $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();  // initialize tooltip 
+});
+$('#metadata-form').on('submit',function(e){
+    e.preventDefault();
+    $.ajax({
+        type     : "POST",
+        cache    : false,
+        url      : {{ request.path }}, {# return to the same URL with additional arguments #}
+        data     : $(this).serialize(),
+        success  : function(data) {
+            $(".printArea").empty().append(data).css('visibility','visible');
+            console.log('formatDetected success');
+            console.log(data);
+            {{ callback }}();
+        }
+    });
+
+});
+</script> 

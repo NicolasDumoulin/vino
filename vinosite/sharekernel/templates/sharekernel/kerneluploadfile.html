@@ -1,0 +1,54 @@
+{% extends 'jfu/upload_form.html' %}
+
+{% block UPLOAD_FORM_BUTTON_BAR %}
+<div class="row fileupload-buttonbar">
+<div class="col-lg-7"><span class="btn btn-primary fileinput-button">
+                <i class="glyphicon glyphicon-upload"></i>
+                <span>Upload Kernel</span>
+                <input type="file" name="files[]">
+            </span>
+</div>
+</div>
+{% endblock %}
+
+{% block JS_aSCRIPTS %}
+{% comment %}
+ The jQuery UI widget factory, can be omitted if jQuery UI is already included 
+{% endcomment %}
+<script src="{{ STATIC_URL }}js/vendor/jquery.ui.widget.js"></script>
+{% comment %}
+ The Templates plugin is included to render the upload/download listings 
+{% endcomment %}
+<script src="{{ STATIC_URL }}demo/tmpl.min.js"></script>
+<script src="{{ STATIC_URL }}demo/jquery.blueimp-gallery.min.js"></script>
+{% comment %}
+ The Iframe Transport is required for browsers without support for XHR file uploads 
+{% endcomment %}
+<script src="{{ STATIC_URL }}js/jquery.iframe-transport.js"></script>
+{% comment %}
+ The basic File Upload plugin 
+{% endcomment %}
+<script src="{{ STATIC_URL }}js/jquery.fileupload.js"></script>
+{% comment %}
+ The File Upload file processing plugin 
+{% endcomment %}
+<script src="{{ STATIC_URL }}js/jquery.fileupload-process.js"></script>
+{%comment%}
+ The File Upload validation plugin
+{%endcomment%}
+<script src="{{ STATIC_URL }}js/jquery.fileupload-validate.js"></script>
+{% comment %}
+ The File Upload user interface plugin 
+{% endcomment %}
+<script src="{{ STATIC_URL }}js/jquery.fileupload-ui.js"></script>
+{% endblock %}
+
+{% block JS_OPTS %}
+autoUpload: true,
+maxNumberOfFiles: 1,
+sequentialUploads: false,
+done: function (e, data) {
+    console.log('kerneluploadfile:OK');
+    data.context.text('Upload finished.');
+}
+{% endblock %}
