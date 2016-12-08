@@ -11,7 +11,7 @@ class Category(models.Model):
     color = models.IntegerField(default=0)
 
 class ViabilityProblem(models.Model):
-    category = models.ForeignKey(Category)
+    category = models.ForeignKey(Category, null = True)
     title = models.CharField(max_length=200)
     issue = models.TextField(max_length=2000,default =0)
     statedimension = models.IntegerField(default=0)
