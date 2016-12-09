@@ -117,6 +117,9 @@ class ResultFormat(models.Model):
     description = models.TextField(max_length=2000,default = 0)
     parameterlist = models.CharField(max_length=500,default = 0)
     
+    def __str__(self):
+        return str(self.pk) + " " + self.name
+    
     def toDict(self):
         '''
         Return a representation of the format as a dictionnary.

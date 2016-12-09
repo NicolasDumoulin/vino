@@ -1277,21 +1277,28 @@ def kerneluploadfile(request):
                 "datafile": File(file),
                 "submissiondate": datetime.today()
                 }
-            messages=[]
+            warnings=[]
             if "parameters_id" in request.POST:
                 try:
                     fields["parameters"] = Parameters.objects.get(id=request.POST["parameters_id"])
                 except SomeModel.DoesNotExist:
-                    messages.append('Parameters set with id='+parameters_id+' has disappeared!')
+                    warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
             if "algorithm_id" in request.POST:
                 try:
                     fields["algorithm"] = Algorithm.objects.get(id=request.POST["algorithm_id"])
                 except SomeModel.DoesNotExist:
-                    messages.append('Algorithm with id='+parameters_id+' has disappeared!')
+                    warnings.append('Algorithm with id='+algorithm_id+' has disappeared!')
+            try:
+                fields["resultformat"] = ResultFormat.objects.get(name=metadata["resultformat.name"])
+            except SomeModel.DoesNotExist:
+                # TODO log this error that should be fixed by administrators!
+                warnings.append('The format "'+metadata["resultformat.name"]+'" is unknown!')
             result = findandsaveobject(Results, metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
                 'status': 'success',
+                # TODO displays warnings
+                'warnings': warnings,
                 'pk': result.pk
             })            
     return UploadResponse( request, {'error':'No file provided'})
