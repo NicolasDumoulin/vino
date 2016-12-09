@@ -9,6 +9,8 @@ class Document(models.Model):
 class Category(models.Model):
     text = models.CharField(max_length=200)
     color = models.IntegerField(default=0)
+    def __str__(self):
+        return str(self.pk) + " " + self.text
 
 class ViabilityProblem(models.Model):
     category = models.ForeignKey(Category, null = True)

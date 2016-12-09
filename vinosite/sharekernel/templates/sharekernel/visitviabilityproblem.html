@@ -4,72 +4,65 @@
 	<div id="container">
 		<div id="topbar"> 
 		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}"> HOME </a> <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"> Up </a> </div>
+		<div id="navbar"> <a href="{% url 'sharekernel:home' %}"> HOME </a>
+                    {% if category %}
+                        <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">Up</a>
+                    {% endif %}
+                </div>
 		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
 		<div id="main">
-			 <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"><h5>{{category.text}}</h5> </a>
-				<h1>{{viabilityproblem.title}}</h1>
-				<h3>Issues : </h3>
-				{{viabilityproblem.issue}}
-				<h3> Model :</h3>
-				Dimension of the state space : {{viabilityproblem.statedimension}}
+                    {% if category %}
+                        <a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}"><h5>{{category.text}}</h5> </a>
+                    {% endif %}
+                    <h1>{{viabilityproblem.title}}</h1>
+                    <h3>Issues : </h3>
+                    {{viabilityproblem.issue}}
+                    <h3> Model :</h3>
+                    Dimension of the state space : {{viabilityproblem.statedimension}}
 
-				<ul>
-				{% for i in stanaab%}
-				<li>  {{i}}</li>
-				{% endfor %}
-				</ul>
+                    <ul>
+                    {% for i in stanaab%}
+                    <li>  {{i}}</li>
+                    {% endfor %}
+                    </ul>
 
-				Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
+                    Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
 
-				<ul>
-				{% for i in connaab%}
-				<li>  {{i}}</li>
-				{% endfor %}
-				</ul>
+                    <ul>
+                    {% for i in connaab%}
+                    <li>  {{i}}</li>
+                    {% endfor %}
+                    </ul>
 
-
-			<div class="little_block"><h3> Dynamics :</h3>
-
-{% for i in dyndes%}
-{{ i }}<br>
-{% endfor %}
-<br>
-{% for i in adcondes%}
-{{ i }}<br>
-{% endfor %}
-<br><br>
-Parameters : {{viabilityproblem.dynamicsparameters}}<br>
-
-
-
-
- 
- 				</div>
+                    <div class="little_block"><h3> Dynamics :</h3>
+                        {% for i in dyndes%}
+                        {{ i }}<br>
+                        {% endfor %}
+                        <br>
+                        {% for i in adcondes%}
+                        {{ i }}<br>
+                        {% endfor %}
+                        <br><br>
+                        Parameters : {{viabilityproblem.dynamicsparameters}}<br>
+                    </div>
+                    <div class="little_block">  
+                        <h3> Constraints :</h3>
+                        {% for i in stacondes%}
+                        {{ i }}<br>
+                        {% endfor %}
+                        <br><br>
+                        Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
+                    </div>
+                    {% if tardes%}
 			<div class="little_block">  
-<h3> Constraints :</h3>
-
-{% for i in stacondes%}
-{{ i }}<br>
-{% endfor %}
-<br><br>
-Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
-
-
-
-			 </div>
-{% if tardes%}
-			<div class="little_block">  
-<h3> Target :</h3>
-
-{% for i in tardes%}
-{{ i }}<br>
-{% endfor %}
-<br><br>
-Parameters :  {{viabilityproblem.targetparameters}} <br>
-
-			 </div>
-{% endif %}
+                            <h3> Target :</h3>
+                            {% for i in tardes%}
+                                {{ i }}<br>
+                            {% endfor %}
+                            <br><br>
+                            Parameters :  {{viabilityproblem.targetparameters}} <br>
+                        </div>
+                    {% endif %}
 			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
 			<div class="spacer"></div>
 <h2>Archived viability kernel approximations</h2>

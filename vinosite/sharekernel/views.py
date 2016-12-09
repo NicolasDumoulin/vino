@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404,render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import  ensure_csrf_cookie
 from sharekernel.models import Document, Category, ViabilityProblem, Algorithm, Parameters,Results,ResultFormat 
 from sharekernel.forms import DocumentForm, TrajForm
@@ -16,7 +15,7 @@ from django.views.decorators.http import require_POST
 import os
 import METADATA
 from datetime import datetime
-from forms import ViabilityProblemForm, MetadataFromListForm
+from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm
 
 import json
 import tempfile
@@ -52,7 +51,10 @@ def visitviabilityproblemlist(request,category_id):
 def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
     p = r.parameters
-    vp = p.viabilityproblem    
+    if not p or not r.algorithm:
+        r=Results.objects.get(id=result_id)    
+        return render(request, 'sharekernel/metadata.html', {'result':r})                    
+    vp = p.viabilityproblem
     stanaab = []
     connaab = []
     dynparval = []
@@ -161,12 +163,14 @@ def visitviabilityproblem(request,viabilityproblem_id):
     index = 0
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
-        stanaab.append(''.join([j[0]," : ",j[1]]))
-        dyndes[index] = j[1]+"' = "+dyndes[index]
-        index = index+1
+        if len(j)>1:
+            stanaab.append(''.join([j[0]," : ",j[1]]))
+            dyndes[index] = j[1]+"' = "+dyndes[index]
+            index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
-        connaab.append(''.join([j[0]," : ",j[1]]))
+        if len(j)>1:
+            connaab.append(''.join([j[0]," : ",j[1]]))
    
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
@@ -764,9 +768,13 @@ def compareresultbis(request, vinoA_id, vinoB_id):
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
-def kerneluploadpage(request):
+def kerneluploadpage(request, parameters_id=None, algorithm_id=None):
     form = DocumentForm()
-    context = { 'form': form} 
+    context = { 'form': form,
+        'parameters' : get_object_or_404(Parameters, id=parameters_id) if parameters_id else None,
+        'algorithm' : get_object_or_404(Algorithm, id=algorithm_id) if algorithm_id else None,
+        }
+    # TODO handle parameters_id and algorithm_id in the following
     return render(request, 'sharekernel/kernelupload.html', context)
 
 def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
@@ -1140,8 +1148,52 @@ def controltostate(request,result_id):
             return HttpResponse(out_json)
         return HttpResponse("Pas POST")
     return HttpResponse("Pas POST")
+    
+def results_tree(request):
+    return render(request, 'sharekernel/results_tree.html', {
+        'problems':ViabilityProblem.objects.all(),
+        'parameters':Parameters.objects.all(),
+        'algorithms':Algorithm.objects.all(),
+        'results':Results.objects.all(),
+        'problemform': ViabilityProblemForm()
+        })            
 
+def newproblem(request):
+    if request.method == 'POST':
+        form = ViabilityProblemForm(request.POST)
+        if form.is_valid():
+            problem = form.save()
+            return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[problem.pk]))
+    else:
+        form = ViabilityProblemForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new viability problem','form': form})            
+    
+def newparameters(request, viabilityproblem_id):
+    # TODO set value for viabilityproblem_id
+    vp = ViabilityProblem.objects.get(id=viabilityproblem_id)
+    page_title = 'Add new parameters for the viability problem "'+vp.title+'"'
+    if request.method == 'POST':
+        form = ParametersForm(request.POST)
+        if form.is_valid():
+            parameters = form.save()
+            return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[parameters.viabilityproblem.pk]))
+    else:
+        form = ParametersForm(initial={'viabilityproblem':vp})
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
 
+def result(request, result_id):
+    if request.method == 'GET':
+        result = Results.objects.get(id=result_id)
+        # TODO ModelChoiceField for selecting foreign keys
+        form = ResultForm(instance=result)
+    elif request.method == 'POST':
+        form = ResultForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # TODO save
+            return HttpResponse("OK")
+    return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})            
+    
 from jfu.http import upload_receive, UploadResponse
 
 @require_POST

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block body %}
+
+{% load bootstrap3 %}
+<div class="container" id="problem-picker">
+    <div class="col-md-6">
+            <label for="tab">Group by: </label>
+            <div id="tab" class="btn-group" data-toggle="buttons">
+				<a href="#tree-problem-view" class="btn btn-default active" data-toggle="tab">
+					<input type="radio">Viability problems</a>
+				<a href="#tree-algorithm-view" class="btn btn-default" data-toggle="tab">
+					<input type="radio">Algorithms</a>
+			</div>
+        <div class="tab-content">
+        <div class="tab-pane active" id="tree-problem-view">
+                {% for problem in problems %}
+                    <li><span class="label label-default" title="Viability problem">VP</span> {{ problem.pk }} - {{ problem.title }} :
+                    <ul>
+                    {% for param in problem.parameters_set.all %}
+                        <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                           {{ param.pk }} -  {{ param.dynamicsparametervalues }}
+                        </li>
+                        {% regroup param.results_set.all by algorithm as resultsbyalgorithm %}
+                        <ul>
+                        {% for resultbyalgorithm in resultsbyalgorithm %}
+                            <li><span class="label label-default" title="Algorithm">A</span> {{ resultbyalgorithm.grouper.name }} v.{{ resultbyalgorithm.grouper.version }}</li>
+                                <ul>
+                                {% for result in resultbyalgorithm.list %}
+                                    <li><span class="label label-default" title="Viability results">R</span> {{ result.title }} ({{ result.resultformat.name }})</li>
+                                {% endfor %}
+                                <li><span class="label label-default" title="Viability results">R</span>
+                                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbyalgorithm.grouper.id %}" role="button">
+                                        <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
+                                    </a>
+                                </li>                    
+                                </ul>
+                        {% endfor %}
+                        </ul>
+                    {% endfor %}
+                    <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                        <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' problem.pk %}" role="button">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
+                        </a>
+                    </li>                    
+                    </ul>
+                    </li>
+                {% endfor %}
+                <li><span class="label label-default" title="Viability problem">VP</span>
+                    <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new problem
+                    </a>
+                </li>
+        </div>            
+        <div class="tab-pane" id="tree-algorithm-view">
+                {% for algo in algorithms %}
+                    <li><span class="label label-default" title="Algorithm">A</span> {{ algo.name }} - v.{{ algo.version }} :
+                    {% regroup algo.results_set.all by parameters as resultsbyparam %}
+                    {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}
+                    <ul>
+                    <ul>{% for resultbyvp in resultsbyvp %}
+                        <li><span class="label label-default" title="Viability problem">VP</span>
+                            {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}
+                        </li>
+                        <ul>
+                            {% for resultbyparam in resultsbyparam %}
+                                <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                                    {{ resultbyparam.grouper.pk }} - {{ resultbyparam.grouper.dynamicsparametervalues }}
+                                </li>
+                                <ul>
+                                    {% for result in resultbyparam.list %}
+                                        <li><span class="label label-default" title="Viability results">R</span> {{ result.title }} ({{ result.resultformat.name }})</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endfor %}
+                            <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                                <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' resultbyvp.grouper.pk %}" role="button">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
+                                </a>
+                            </li>                    
+                        </ul>
+                    {% endfor %}
+                    <li><span class="label label-default" title="Viability problem">VP</span>
+                        <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new problem
+                        </a>
+                    </li>
+                    </ul>
+                    </ul>
+                    </li>
+                {% endfor %}
+        </div>            
+    </div>
+</div>
+
+<script>
+
+  $('#groupByButton input').on('click', function () {
+    console.log($(this));
+    console.log($(this).attr('data-target'));
+  });
+</script>
+{% endblock %}
