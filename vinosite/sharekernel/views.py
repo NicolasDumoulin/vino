@@ -771,10 +771,9 @@ def compareresultbis(request, vinoA_id, vinoB_id):
 def kerneluploadpage(request, parameters_id=None, algorithm_id=None):
     form = DocumentForm()
     context = { 'form': form,
-        'parameters' : get_object_or_404(Parameters, id=parameters_id) if parameters_id else None,
-        'algorithm' : get_object_or_404(Algorithm, id=algorithm_id) if algorithm_id else None,
+        'parameters_id' : parameters_id,
+        'algorithm_id' : algorithm_id,
         }
-    # TODO handle parameters_id and algorithm_id in the following
     return render(request, 'sharekernel/kernelupload.html', context)
 
 def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
@@ -1274,10 +1273,22 @@ def kerneluploadfile(request):
             # we take care to not ask metadata about the results before to be sure to be able to read the file
             # for preventing bad experience if the user take time to complete useless forms
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
-            result = findandsaveobject(Results, metadata, fields={
+            fields = {
                 "datafile": File(file),
                 "submissiondate": datetime.today()
-                })
+                }
+            messages=[]
+            if "parameters_id" in request.POST:
+                try:
+                    fields["parameters"] = Parameters.objects.get(id=request.POST["parameters_id"])
+                except SomeModel.DoesNotExist:
+                    messages.append('Parameters set with id='+parameters_id+' has disappeared!')
+            if "algorithm_id" in request.POST:
+                try:
+                    fields["algorithm"] = Algorithm.objects.get(id=request.POST["algorithm_id"])
+                except SomeModel.DoesNotExist:
+                    messages.append('Algorithm with id='+parameters_id+' has disappeared!')
+            result = findandsaveobject(Results, metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
                 'status': 'success',

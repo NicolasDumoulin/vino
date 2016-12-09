@@ -4,7 +4,6 @@
 
 {% block body %}
 
-
 <div class="container">
     {% load jfutags %}
     {% jfu 'sharekernel/kerneluploadfile.html' 'sharekernel:kerneluploadfile' %}
@@ -31,7 +30,9 @@
         $('#fileupload').fileupload({
             formData: [
                 { name: "csrfmiddlewaretoken", value: "{{ csrf_token }}"},
-                { name:"callback", value:"fileSubmitted" }
+                { name:"callback", value:"fileSubmitted" },
+                { name:"parameters_id", value:"{{ parameters_id }}"},
+                { name:"algorithm_id", value:"{{ algorithm_id }}"}
             ],
             done: function (e, data) {
                 console.log('done');
