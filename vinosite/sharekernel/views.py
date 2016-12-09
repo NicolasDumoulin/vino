@@ -1225,7 +1225,9 @@ def kerneluploadfile(request):
                 tmpfile.write(chunk)
             tmpfile.close()
             kernel = loader.load(tmpfile.name)
-            if not kernel:
+            if kernel:
+                metadata = kernel.getMetadata()
+            else:
                 # try to detect viabilitree format
                 try:
                     with open(tmpfile.name, 'r') as f:
@@ -1271,7 +1273,6 @@ def kerneluploadfile(request):
             # kernel loaded, we bring the metadata to the user
             # we take care to not ask metadata about the results before to be sure to be able to read the file
             # for preventing bad experience if the user take time to complete useless forms
-            
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
             result = findandsaveobject(Results, metadata, fields={
                 "datafile": File(file),
