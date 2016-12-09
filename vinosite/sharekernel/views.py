@@ -1209,9 +1209,15 @@ def kerneluploadfile(request):
     # If multiple files can be uploaded simulatenously,
     # 'file' may be a list of files.
     file = upload_receive(request)
+    resultFormat = None
+    parameters_id=request.POST['parameters_id'] # may be None
+    algorithm_id=request.POST['algorithm_id'] # may be None
     if "metadata" in request.POST:
         # in this case, the file has already been uploaded, and now we get missing metadata
-        metadata = {METADATA.statedimension: int(request.POST['statedimension'])}
+        metadata = {
+            METADATA.statedimension: int(request.POST['statedimension']),
+            METADATA.resultformat_name: request.POST['format'],
+        }
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
         hdf5manager.writeKernel(kernel, tmpfilename)
@@ -1252,9 +1258,11 @@ def kerneluploadfile(request):
                                             'userFilename' : file.name,
                                             "path": tmpfile.name,
                                             "metadata": resultFormat.toDict(),
+                                            "parameters_id": parameters_id,
+                                            "algorithm_id": algorithm_id,
                                             'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split()),
                                             'head': head,
-                                            'format': resultFormat,
+                                            'format': resultFormat.name,
                                             'callback': request.POST['callback']
                                         }).content
                                 })
@@ -1262,7 +1270,7 @@ def kerneluploadfile(request):
                         #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})                       
                 except Exception as e:
                     # unable to detect a valid format so displaying the doc TODO
-                    return UploadResponse( request, {"error": "No valid format."})                    
+                    return UploadResponse( request, {"error": "No valid format.", "exception":e})                    
                 return UploadResponse( request, {"error": "No valid format"})
         except Exception as e:
             return UploadResponse( request, {'error':str(e)})
@@ -1278,21 +1286,23 @@ def kerneluploadfile(request):
                 "submissiondate": datetime.today()
                 }
             warnings=[]
-            if "parameters_id" in request.POST:
+            if parameters_id:
                 try:
-                    fields["parameters"] = Parameters.objects.get(id=request.POST["parameters_id"])
-                except SomeModel.DoesNotExist:
+                    fields["parameters"] = Parameters.objects.get(id=parameters_id)
+                except Parameters.DoesNotExist:
                     warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
-            if "algorithm_id" in request.POST:
+            if algorithm_id:
                 try:
-                    fields["algorithm"] = Algorithm.objects.get(id=request.POST["algorithm_id"])
-                except SomeModel.DoesNotExist:
+                    fields["algorithm"] = Algorithm.objects.get(id=algorithm_id)
+                except Algorithm.DoesNotExist:
                     warnings.append('Algorithm with id='+algorithm_id+' has disappeared!')
-            try:
-                fields["resultformat"] = ResultFormat.objects.get(name=metadata["resultformat.name"])
-            except SomeModel.DoesNotExist:
-                # TODO log this error that should be fixed by administrators!
-                warnings.append('The format "'+metadata["resultformat.name"]+'" is unknown!')
+            if not resultFormat:
+                try:
+                    resultFormat = ResultFormat.objects.get(name=metadata[METADATA.resultformat_name])
+                except ResultFormat.DoesNotExist:
+                    # TODO log this error that should be fixed by administrators!
+                    warnings.append('The format "'+metadata["resultformat.name"]+'" is unknown!')
+            fields["resultformat"] = resultFormat
             result = findandsaveobject(Results, metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
