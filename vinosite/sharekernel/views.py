@@ -1168,7 +1168,6 @@ def newproblem(request):
     return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new viability problem','form': form})            
     
 def newparameters(request, viabilityproblem_id):
-    # TODO set value for viabilityproblem_id
     vp = ViabilityProblem.objects.get(id=viabilityproblem_id)
     page_title = 'Add new parameters for the viability problem "'+vp.title+'"'
     if request.method == 'POST':
@@ -1189,7 +1188,7 @@ def result(request, result_id):
         form = ResultForm(request.POST)
         if form.is_valid():
             form.save()
-            # TODO save
+            # TODO save and redirect
             return HttpResponse("OK")
     return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})            
     
