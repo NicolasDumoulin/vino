@@ -17,7 +17,8 @@
         <div class="tab-content">
         <div class="tab-pane active" id="tree-problem-view">
                 {% for problem in problems %}
-                    <li><span class="label label-default" title="Viability problem">VP</span> {{ problem.pk }} - {{ problem.title }} :
+                    <li><span class="label label-default" title="Viability problem">VP</span>
+                        <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }}</a> :
                     <ul>
                     {% for param in problem.parameters_set.all %}
                         <li><span class="label label-default" title="Problem parameters (settings)">S</span>
@@ -29,7 +30,9 @@
                             <li><span class="label label-default" title="Algorithm">A</span> {{ resultbyalgorithm.grouper.name }} v.{{ resultbyalgorithm.grouper.version }}</li>
                                 <ul>
                                 {% for result in resultbyalgorithm.list %}
-                                    <li><span class="label label-default" title="Viability results">R</span> {{ result.title }} ({{ result.resultformat.name }})</li>
+                                    <li><span class="label label-default" title="Viability results">R</span>
+                                        <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.name }})</a>
+                                    </li>
                                 {% endfor %}
                                 <li><span class="label label-default" title="Viability results">R</span>
                                     <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbyalgorithm.grouper.id %}" role="button">

@@ -26,6 +26,7 @@
 <li>{{format}}</li>
 {% endfor %}
 </ul></p>
+<p><a href="{% url 'sharekernel:editresult' result.id %}">Edit metadata</a></p>
 <p><a href="{% url 'sharekernel:visualizeresulttrajectories' result.id %}" id="visualizetrajectoriesbutton">Visualize trajectories</a></p>
 <p><a href="{% url 'sharekernel:visualizeresult' result.id %}" id="visualizebutton">Visualize</a></p>
 <p><a href="#" id="comparebutton">Compare with …</a></p>

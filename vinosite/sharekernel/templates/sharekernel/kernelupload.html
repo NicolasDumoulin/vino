@@ -24,7 +24,7 @@
         $('#fileupload').hide();
         $('#metadata-format').hide();
         // TODO link to the result
-        $('#success-panel').text('Your file has been successfully submitted. You can access here to its details. TODO');
+        $('#success-panel').text('Your file has been successfully submitted. You can now <a href="{% url 'sharekernel:visitresult' TODO %}">explore the provided features</a>.');
     }
     $(document).ready(function() {
         $('#fileupload').fileupload({

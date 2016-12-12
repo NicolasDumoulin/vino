@@ -1157,16 +1157,21 @@ def results_tree(request):
         'problemform': ViabilityProblemForm()
         })            
 
-def newproblem(request):
+def newproblem(request, viabilityproblem_id=None):
+    page_title = 'Create a new viability problem'
     if request.method == 'POST':
         form = ViabilityProblemForm(request.POST)
         if form.is_valid():
             problem = form.save()
             return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[problem.pk]))
     else:
-        form = ViabilityProblemForm()
-    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new viability problem','form': form})            
-    
+        if viabilityproblem_id:
+            page_title = 'Edit a viability problem'
+            form = ViabilityProblemForm(instance=ViabilityProblem.objects.get(id=viabilityproblem_id))
+        else:
+            form = ViabilityProblemForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
+     
 def newalgorithm(request):
     if request.method == 'POST':
         form = AlgorithmForm(request.POST)
@@ -1190,7 +1195,7 @@ def newparameters(request, viabilityproblem_id):
         form = ParametersForm(initial={'viabilityproblem':vp})
     return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
 
-def result(request, result_id):
+def editresult(request, result_id):
     if request.method == 'GET':
         result = Results.objects.get(id=result_id)
         # TODO ModelChoiceField for selecting foreign keys
