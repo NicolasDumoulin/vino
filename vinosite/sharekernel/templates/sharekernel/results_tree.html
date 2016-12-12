@@ -38,6 +38,11 @@
                                 </li>                    
                                 </ul>
                         {% endfor %}
+                            <li><span class="label label-default" title="Viability results">A</span>
+                                <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
+                                </a>
+                            </li>
                         </ul>
                     {% endfor %}
                     <li><span class="label label-default" title="Problem parameters (settings)">S</span>
@@ -55,11 +60,11 @@
                 </li>
         </div>            
         <div class="tab-pane" id="tree-algorithm-view">
+                <ul>
                 {% for algo in algorithms %}
                     <li><span class="label label-default" title="Algorithm">A</span> {{ algo.name }} - v.{{ algo.version }} :
                     {% regroup algo.results_set.all by parameters as resultsbyparam %}
                     {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}
-                    <ul>
                     <ul>{% for resultbyvp in resultsbyvp %}
                         <li><span class="label label-default" title="Viability problem">VP</span>
                             {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}
@@ -88,9 +93,14 @@
                         </a>
                     </li>
                     </ul>
-                    </ul>
                     </li>
                 {% endfor %}
+                <li><span class="label label-default" title="Viability results">A</span>
+                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
+                    </a>
+                </li>
+            </ul>
         </div>            
     </div>
 </div>
