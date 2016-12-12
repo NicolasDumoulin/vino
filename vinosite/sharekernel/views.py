@@ -53,7 +53,7 @@ def visitresult(request,result_id):
     p = r.parameters
     if not p or not r.algorithm:
         r=Results.objects.get(id=result_id)    
-        return render(request, 'sharekernel/metadata.html', {'result':r})                    
+        return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
     vp = p.viabilityproblem
     stanaab = []
     connaab = []
@@ -1301,12 +1301,12 @@ def kerneluploadfile(request):
                 "submissiondate": datetime.today()
                 }
             warnings=[]
-            if parameters_id:
+            if parameters_id and parameters_id!="None":
                 try:
                     fields["parameters"] = Parameters.objects.get(id=parameters_id)
                 except Parameters.DoesNotExist:
                     warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
-            if algorithm_id:
+            if algorithm_id and algorithm_id!="None":
                 try:
                     fields["algorithm"] = Algorithm.objects.get(id=algorithm_id)
                 except Algorithm.DoesNotExist:

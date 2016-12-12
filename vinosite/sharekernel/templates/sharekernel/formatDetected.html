@@ -28,10 +28,10 @@ $('#metadata-form').on('submit',function(e){
         url      : {{ request.path }}, {# return to the same URL with additional arguments #}
         data     : $(this).serialize(),
         success  : function(data) {
-            $(".printArea").empty().append(data).css('visibility','visible');
             console.log('formatDetected success');
             console.log(data);
-            {{ callback }}();
+            plop=data
+            {{ callback }}(JSON.parse(data).files[0].pk);
         }
     });
 

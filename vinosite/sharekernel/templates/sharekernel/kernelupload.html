@@ -17,14 +17,18 @@
 </div>
 
     <script type="text/javascript">
-    function fileSubmitted() {
+    function fileSubmitted(result_id) {
         // This method can be call through 2 ways
         //  1. through the call below, if the file submitted is loaded
         //  2. after the metadata form completion (callback) if some metadata lacks for loading the file
         $('#fileupload').hide();
         $('#metadata-format').hide();
         // TODO link to the result
-        $('#success-panel').text('Your file has been successfully submitted. You can now <a href="{% url 'sharekernel:visitresult' TODO %}">explore the provided features</a>.');
+        var url="{% url 'sharekernel:visitresult' 42 %}".replace('42',result_id);
+        $('#success-panel').html('Your file has been successfully submitted. You can now <a id="result_view" href="'+
+                url+'">explore the provided features</a> (redirection in <span id="remaining_seconds">10</span> seconds).');
+        {% load javascript_redirect %}
+        {% countdown_redirect 'result_view' 'remaining_seconds' False %}
     }
     $(document).ready(function() {
         $('#fileupload').fileupload({
@@ -40,7 +44,7 @@
                 if ('error' in data.result.files[0]) {
                     data.fail(e, data);
                 } else if ('pk' in data.result.files[0]) {
-                    fileSubmitted();
+                    fileSubmitted(data.result.files[0].pk);
                 } else if ('metadata' in data.result.files[0]) {
                     // the upload process asks for some metadata for completing the upload
                     $('#fileupload table').hide();
