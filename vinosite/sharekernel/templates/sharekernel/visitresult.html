@@ -2,14 +2,15 @@
 
 {% block body %}
 
-
-	<div id="container">
-		<div id="topbar"> 
-		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}"> Up </a><br>
-<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
-</div>
-		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
+<div id="container">
+		<div id="row"><div class="col-sm-12">
+<ol class="breadcrumb">
+                    <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+                    {% if category %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
+                </ol>
 		<div id="main">
 <h4>{{viabilityproblem.category.category_text}}</h4>
 
@@ -115,13 +116,9 @@ Parameters :
 
 			 </div>
 {% endif %}
-			<!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
-			<div class="spacer"></div>
-
-
-		<!-- close #main content -->
 		</div>
-	<!-- close #container -->
+	</div>
+		</div>
 	</div>
 
 <script type="text/javascript">

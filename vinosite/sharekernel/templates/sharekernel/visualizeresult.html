@@ -10,17 +10,15 @@
 {% endblock %}
 {% block body %}
 <div id="container">
-		<div id="topbar"> 
-		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a>  <a href="{% url 'sharekernel:visitresult'  result.id %}">Up</a></div>
-		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
-		<div id="main">
-<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
-> <a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a><br><br>
-
-
-    
-        
+		<div id="row"><div class="col-sm-12">
+<ol class="breadcrumb">
+                    <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+                    {% if category %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
+                    <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
+                </ol>
 
     {% if result.parameters.viabilityproblem.statedimension < 4%}
     <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis 
@@ -78,7 +76,7 @@
 		<!-- close #main content -->
 		</div>
 	<!-- close #container -->
-	</div>
+	</div></div>
 
     <script type="text/javascript">
 

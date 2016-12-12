@@ -1,10 +1,8 @@
-#container{width:780px; margin:0 auto;}
-#containerbis{width:1450px; margin:0 auto;}
+.row { margin-left: 0;margin-right: 0;}
 
 #topbar{width:auto; display:block; height:80px;}
 #navbar{width:auto; display:block; height:24px;}
 
-#main{width:auto; display:block;}
 #column_left{width:410px; margin-right:20px; float:left;}
 #column_right{width:350px; float:left;}
 
