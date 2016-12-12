@@ -69,7 +69,7 @@ class Algorithm(models.Model):
     author = models.CharField(max_length=200,default =0)
     version = models.CharField(max_length=20,default=0)
     publication = models.TextField(max_length=1000,default =0)
-    softwarewebsite = models.GenericIPAddressField(default=0)
+    softwarewebsite = models.URLField(default=0)
     softwarecontact = models.EmailField(default=0)
     softwareparameters = models.CharField(max_length=500,default = 0)
     def __str__(self):

@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 import os
 import METADATA
 from datetime import datetime
-from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm
+from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, AlgorithmForm
 
 import json
 import tempfile
@@ -1166,6 +1166,17 @@ def newproblem(request):
     else:
         form = ViabilityProblemForm()
     return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new viability problem','form': form})            
+    
+def newalgorithm(request):
+    if request.method == 'POST':
+        form = AlgorithmForm(request.POST)
+        if form.is_valid():
+            algorithm = form.save()
+            # TODO redirect to a view of the submitted algorithm
+            return HttpResponseRedirect(reverse('sharekernel:home'))
+    else:
+        form = AlgorithmForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new algorithm','form': form})            
     
 def newparameters(request, viabilityproblem_id):
     vp = ViabilityProblem.objects.get(id=viabilityproblem_id)

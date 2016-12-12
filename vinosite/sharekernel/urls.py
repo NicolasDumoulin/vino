@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^problem/(?P<viabilityproblem_id>([0-9]|N)+)/parameters/new/$', views.newparameters, name='newparameters'),
     url(r'^results/$', views.results_tree, name='results_tree'),
     url(r'^result/(?P<result_id>([0-9]|N)+)/$', views.result, name='result'),
+    url(r'^algorithm/new/$', views.newalgorithm, name='newalgorithm'),
     url(r'^upload/p=(?P<parameters_id>([0-9]|N)+)/a=(?P<algorithm_id>([0-9]|N)+)/$', views.kerneluploadpage, name='kerneluploadpage'),
     url(r'^upload/$', views.kerneluploadpage, name='kerneluploadpage'),
     url(r'kerneluploadfile/', views.kerneluploadfile, name = 'kerneluploadfile' ),
