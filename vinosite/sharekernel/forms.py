@@ -27,6 +27,7 @@ class ResultForm(forms.ModelForm):
     class Meta:
         model=Results
         fields=('title','softwareparametervalues','formatparametervalues', 'parameters')
+        # FIXME parameters doesn't have the initial value
         widgets = { 'parameters':ParametersSelect()}
 
 class TrajForm(forms.Form):
