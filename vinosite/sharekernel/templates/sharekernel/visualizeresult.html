@@ -64,7 +64,11 @@
             <div class="form-inline">
                 <div class="form-group">
                     <label for="distancehistoppa">points per axis (max : 200)</label>
-                    <input type="text" class="form-control" id="distancehistoppa" value="50">
+                    <input type="text" class="form-control" id="distancehistoppa" value="200">
+                </div>
+                <div class="form-group">
+                    <label for="maxvalue">max value</label>
+                    <input type="text" class="form-control" id="maxvalue" value="5000">
                 </div>
                 <button type="submit" id="viewHisto" class="btn btn-primary">View distance histogram</button>
             </div>
@@ -99,806 +103,655 @@ $.ajax({ url: url,
         return false;
 }
 $("#loading").ajaxStart(function(){ // Nous ciblons l'élément #loading qui est caché
-
-$(this).hide(); // Nous l'affichons quand la requête AJAX démarre
-
+    $(this).hide(); // Nous l'affichons quand la requête AJAX démarre
+}).ajaxComplete(function() {
+    $(this).hide();
 });
+
 function BarTrace (x, y) {
-var barTrace = {x:[], y:[], mode:'markers', type: 'scatter', markers: { color: 'rgb(55, 128, 191)', size: 2}, hoverinfo:'none' };
-barTrace.x.push(x[0]);
-barTrace.x.push(x[1]);
-barTrace.y.push(y[0]);
-barTrace.y.push(y[1]);
-return barTrace;
+    var barTrace = {x:[], y:[], mode:'markers', type: 'scatter', markers: { color: 'rgb(55, 128, 191)', size: 2}, hoverinfo:'none' };
+    barTrace.x.push(x[0]);
+    barTrace.x.push(x[1]);
+    barTrace.y.push(y[0]);
+    barTrace.y.push(y[1]);
+    return barTrace;
 }
 
 function bargridRectangle(x, y, xstep, ystep, colorline, fillcolor){
-var rectangle = {'type': 'rect', 'x0': x[0] - xstep, 'y0': y[0] - ystep, 'x1': x[1] + xstep, 'y1': y[1] + ystep, 'line': {'color': colorline, 'width': 1}, 'fillcolor': fillcolor};
-return rectangle;
+    var rectangle = {'type': 'rect', 'x0': x[0] - xstep, 'y0': y[0] - ystep, 'x1': x[1] + xstep, 'y1': y[1] + ystep, 'line': {'color': colorline, 'width': 1}, 'fillcolor': fillcolor};
+    return rectangle;
 }
 
 function kdtreeRectangle(xmin, xmax, ymin, ymax, colorline, fillcolor){
-var rectangle = {'type': 'rect', 'x0': xmin, 'y0': ymin, 'x1': xmax, 'y1': ymax, 'line': {'color': colorline, 'width': 1}, 'fillcolor': fillcolor};
-return rectangle;
+    var rectangle = {'type': 'rect', 'x0': xmin, 'y0': ymin, 'x1': xmax, 'y1': ymax, 'line': {'color': colorline, 'width': 1}, 'fillcolor': fillcolor};
+    return rectangle;
 }
 
 function bargridPlot(url, x, container, colormarker, colorline, fillcolor){
-if (isNaN(x) || x == "%20" || x > 1000) {
-text = "Input not valid : " + x;
-container.innerHTML = text;
-} else {
-url = url.replace("0", x);
-loadAndPlot(url, function (data) {
-var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: colormarker }, hoverinfo:'none' };
-var trace = [];
-var tracebis = [];
-var x = [];
-var y = [];
-var map = [];
-var mapinit = [x, y];
-var mapitems = [];
-var mapinititems = [items.x, items.y];
-var xstep, ystep;
-var xbounds = [];
-var ybounds = [];
-$.each(data, function(index, bar) {
-if (index == 0){
-xstep = bar[4] / 2;
-ystep = bar[5] / 2;
-xbounds.push(bar[0]);
-xbounds.push(bar[2]);
-ybounds.push(bar[1]);
-ybounds.push(bar[3]);
-map.push(mapinit[bar[6]]);
-map.push(mapinit[bar[7]]);
-mapitems.push(mapinititems[bar[6]]);
-mapitems.push(mapinititems[bar[7]]);
-x.push(0);
-x.push(1);
-y.push(0);
-y.push(1);
-}
-else {
-map[0][0] = bar[0];
-map[0][1] = bar[0];
-map[1][0] = bar[1];
-map[1][1] = bar[2];
-mapitems[0].push(bar[0]);
-mapitems[0].push(bar[0]);
-mapitems[1].push(bar[1]);
-mapitems[1].push(bar[2]);
-tracebis.push(bargridRectangle(x, y, xstep, ystep, colorline, fillcolor));
-}
-});
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
-trace = [items];
-Plotly.newPlot(container, trace, layout);
-})}
+    if (isNaN(x) || x == "%20" || x > 1000) {
+        text = "Input not valid : " + x;
+        container.innerHTML = text;
+    } else {
+        url = url.replace("0", x);
+        loadAndPlot(url, function (data) {
+            var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: colormarker }, hoverinfo:'none' };
+            var trace = [];
+            var tracebis = [];
+            var x = [];
+            var y = [];
+            var map = [];
+            var mapinit = [x, y];
+            var mapitems = [];
+            var mapinititems = [items.x, items.y];
+            var xstep, ystep;
+            var xbounds = [];
+            var ybounds = [];
+            $.each(data, function(index, bar) {
+                if (index == 0){
+                    xstep = bar[4] / 2;
+                    ystep = bar[5] / 2;
+                    xbounds.push(bar[0]);
+                    xbounds.push(bar[2]);
+                    ybounds.push(bar[1]);
+                    ybounds.push(bar[3]);
+                    map.push(mapinit[bar[6]]);
+                    map.push(mapinit[bar[7]]);
+                    mapitems.push(mapinititems[bar[6]]);
+                    mapitems.push(mapinititems[bar[7]]);
+                    x.push(0);
+                    x.push(1);
+                    y.push(0);
+                    y.push(1);
+                } else {
+                    map[0][0] = bar[0];
+                    map[0][1] = bar[0];
+                    map[1][0] = bar[1];
+                    map[1][1] = bar[2];
+                    mapitems[0].push(bar[0]);
+                    mapitems[0].push(bar[0]);
+                    mapitems[1].push(bar[1]);
+                    mapitems[1].push(bar[2]);
+                    tracebis.push(bargridRectangle(x, y, xstep, ystep, colorline, fillcolor));
+                }
+            });
+            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+            trace = [items];
+            Plotly.newPlot(container, trace, layout);
+        })
+    }
 }
 
 function bargridRectangle3D(x, y, z, xstep, ystep, zstep, facecolor){
-var i = [7, 0, 0, 0, 4, 4, 2, 6, 4, 0, 3, 7];
-var j = [3, 4, 1, 2, 5, 6, 5, 5, 0, 1, 2, 2];
-var k = [0, 7, 2, 3, 6, 7, 1, 2, 5, 5, 7, 6];
-var rectangle3D = {x: [x[0] - xstep, x[0] - xstep, x[1] + xstep, x[1] + xstep, x[0] - xstep, x[0] - xstep, x[1] + xstep, x[1] + xstep], y: [y[0] - ystep, y[1] + ystep, y[1] + ystep, y[0] - ystep, y[0] - ystep, y[1] + ystep, y[1] + ystep, y[0] - ystep], z: [z[0] - zstep, z[0] - zstep, z[0] - zstep, z[0] - zstep, z[1] + zstep, z[1] + zstep, z[1] + zstep, z[1] + zstep], i: i, j: j, k: k, facecolor: facecolor, type: 'mesh3d'};
-return rectangle3D;
+    var i = [7, 0, 0, 0, 4, 4, 2, 6, 4, 0, 3, 7];
+    var j = [3, 4, 1, 2, 5, 6, 5, 5, 0, 1, 2, 2];
+    var k = [0, 7, 2, 3, 6, 7, 1, 2, 5, 5, 7, 6];
+    var rectangle3D = {x: [x[0] - xstep, x[0] - xstep, x[1] + xstep, x[1] + xstep, x[0] - xstep, x[0] - xstep, x[1] + xstep, x[1] + xstep], y: [y[0] - ystep, y[1] + ystep, y[1] + ystep, y[0] - ystep, y[0] - ystep, y[1] + ystep, y[1] + ystep, y[0] - ystep], z: [z[0] - zstep, z[0] - zstep, z[0] - zstep, z[0] - zstep, z[1] + zstep, z[1] + zstep, z[1] + zstep, z[1] + zstep], i: i, j: j, k: k, facecolor: facecolor, type: 'mesh3d'};
+    return rectangle3D;
 }
 
 
 function bargridPlot3D(url, x, container, colormarker, colorline, fillcolor){
-if (isNaN(x) || x == "%20" || x > 1000) {
-text = "Input not valid : " + x;
-container.innerHTML = text;
-} else {
-url = url.replace("/0/", "/" + x + "/");
-loadAndPlot(url, function (data) {
-var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
-//                var items = {x:[],y:[], z:[], opacity:0.8, type: 'mesh3d', hoverinfo:'none' };
-
-var trace = [];
-var tracebis = [];
-var x = [];
-var y = [];
-var z = [];
-var map = [];
-var mapinit = [x, y, z];
-//		var mapitems = [];                
-var mapitems = [items.x, items.y, items.z];
-var mapinititems = [items.x, items.y, items.z];
-var xstep, ystep, zstep;
-var xbounds = [];
-var ybounds = [];
-var zbounds = [];
-$.each(data, function(index, bar) {
-//                    if (index==0){
-if (bar.length > 4){
-xstep = bar[6] / 2;
-ystep = bar[7] / 2;
-zstep = bar[8] / 2;
-xbounds.push(bar[0]);
-xbounds.push(bar[3]);
-ybounds.push(bar[1]);
-ybounds.push(bar[4]);
-zbounds.push(bar[2]);
-zbounds.push(bar[5]);
-map.push(mapinit[bar[9]]);
-map.push(mapinit[bar[10]]);
-map.push(mapinit[bar[11]]);
-mapitems[0] = mapinititems[bar[9]];
-mapitems[1] = mapinititems[bar[10]];
-mapitems[2] = mapinititems[bar[11]];
-x.push(0);
-x.push(1);
-y.push(0);
-y.push(1);
-z.push(0);
-z.push(1);
-}
-else {
-map[0][0] = bar[0];
-map[0][1] = bar[0];
-map[1][0] = bar[1];
-map[1][1] = bar[1];
-map[2][0] = bar[2];
-map[2][1] = bar[3];
-mapitems[0].push(bar[0]);
-mapitems[0].push(bar[0]);
-mapitems[1].push(bar[1]);
-mapitems[1].push(bar[1]);
-mapitems[2].push(bar[2]);
-mapitems[2].push(bar[3]);
-items.marker.color.push(items.z[items.z.length - 2]);
-items.marker.color.push(items.z[items.z.length - 1]);
-//			tracebis.push(bargridRectangle3D(x,y,z,xstep,ystep,zstep,colorline));
-}
-});
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range : [0, 1]}}};
-//             var rectangle = bargridRectangle3D([0,1],[0,1],[0,1],0,0,0,colorline);
-//             var layout = {showlegend: false,margin:{t:10}};
-trace = [items];
-Plotly.newPlot(container, trace, layout);
-var aes = [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 5]];
-var bes = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4];
-var ces = [1, 2, 3, 4, 2, 3, 4, 3, 3, 4, 3, 2, 4, 3, 2, 1];
-a = []; b = []; c = [];
-for (i = 0; i < 20; i++)
-        {
-        var a_ = Math.random();
-        a.push(a_);
-        var b_ = Math.random();
-        b.push(b_);
-        var c_ = Math.random();
-        c.push(c_);
-        }
-var dataessai = [
-        {
-//    alphahull:5,
-        opacity:0.8,
+    if (isNaN(x) || x == "%20" || x > 1000) {
+        text = "Input not valid : " + x;
+        container.innerHTML = text;
+    } else {
+        url = url.replace("/0/", "/" + x + "/");
+        loadAndPlot(url, function (data) {
+            var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+            var trace = [];
+            var tracebis = [];
+            var x = [];
+            var y = [];
+            var z = [];
+            var map = [];
+            var mapinit = [x, y, z];
+            var mapitems = [items.x, items.y, items.z];
+            var mapinititems = [items.x, items.y, items.z];
+            var xstep, ystep, zstep;
+            var xbounds = [];
+            var ybounds = [];
+            var zbounds = [];
+            $.each(data, function(index, bar) {
+                if (bar.length > 4){
+                    xstep = bar[6] / 2;
+                    ystep = bar[7] / 2;
+                    zstep = bar[8] / 2;
+                    xbounds.push(bar[0]);
+                    xbounds.push(bar[3]);
+                    ybounds.push(bar[1]);
+                    ybounds.push(bar[4]);
+                    zbounds.push(bar[2]);
+                    zbounds.push(bar[5]);
+                    map.push(mapinit[bar[9]]);
+                    map.push(mapinit[bar[10]]);
+                    map.push(mapinit[bar[11]]);
+                    mapitems[0] = mapinititems[bar[9]];
+                    mapitems[1] = mapinititems[bar[10]];
+                    mapitems[2] = mapinititems[bar[11]];
+                    x.push(0);
+                    x.push(1);
+                    y.push(0);
+                    y.push(1);
+                    z.push(0);
+                    z.push(1);
+                } else {
+                    map[0][0] = bar[0];
+                    map[0][1] = bar[0];
+                    map[1][0] = bar[1];
+                    map[1][1] = bar[1];
+                    map[2][0] = bar[2];
+                    map[2][1] = bar[3];
+                    mapitems[0].push(bar[0]);
+                    mapitems[0].push(bar[0]);
+                    mapitems[1].push(bar[1]);
+                    mapitems[1].push(bar[1]);
+                    mapitems[2].push(bar[2]);
+                    mapitems[2].push(bar[3]);
+                    items.marker.color.push(items.z[items.z.length - 2]);
+                    items.marker.color.push(items.z[items.z.length - 1]);
+                }
+            });
+            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range : [0, 1]}}};
+            trace = [items];
+            Plotly.newPlot(container, trace, layout);
+            var aes = [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 5]];
+            var bes = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4];
+            var ces = [1, 2, 3, 4, 2, 3, 4, 3, 3, 4, 3, 2, 4, 3, 2, 1];
+            a = []; b = []; c = [];
+            for (i = 0; i < 20; i++) {
+                var a_ = Math.random();
+                a.push(a_);
+                var b_ = Math.random();
+                b.push(b_);
+                var c_ = Math.random();
+                c.push(c_);
+            }
+            var dataessai = [{
+                opacity:0.8,
                 color:'rgb(200,100,300)',
                 type: 'surface',
                 z: aes,
-//    y: bes,
-//    z: ces,
-                }
-];
-//Plotly.newPlot(container, dataessai);
-//container.innerHTML = c
-})}
+            }];
+        })
+    }
 }
 
 function kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor){
-loadAndPlot(url, function (data) {
-var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
-var trace = [];
-var tracebis = [];
-var x = [];
-var y = [];
-var z = [];
-var map = [];
-var mapinit = [x, y, z];
-//		var mapitems = [];                
-var mapitems = [items.x, items.y, items.z];
-var mapinititems = [items.x, items.y, items.z];
-var xstep, ystep, zstep;
-var xbounds = [];
-var ybounds = [];
-var zbounds = [];
-$.each(data, function(index, bar) {
-if (index == 0){
-xbounds.push(bar[0]);
-xbounds.push(bar[3]);
-ybounds.push(bar[1]);
-ybounds.push(bar[4]);
-zbounds.push(bar[2]);
-zbounds.push(bar[5]);
-}
-else {
-items.x.push(bar[0]);
-items.y.push(bar[1]);
-items.z.push(bar[2]);
-items.marker.color.push(items.z[items.z.length - 1]);
-}
-});
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range : zbounds}}};
-trace = [items];
-Plotly.newPlot(container, trace, layout);
-})
+    loadAndPlot(url, function (data) {
+        var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+        var trace = [];
+        var tracebis = [];
+        var x = [];
+        var y = [];
+        var z = [];
+        var map = [];
+        var mapinit = [x, y, z];
+        var mapitems = [items.x, items.y, items.z];
+        var mapinititems = [items.x, items.y, items.z];
+        var xstep, ystep, zstep;
+        var xbounds = [];
+        var ybounds = [];
+        var zbounds = [];
+        $.each(data, function(index, bar) {
+            if (index == 0){
+                xbounds.push(bar[0]);
+                xbounds.push(bar[3]);
+                ybounds.push(bar[1]);
+                ybounds.push(bar[4]);
+                zbounds.push(bar[2]);
+                zbounds.push(bar[5]);
+            } else {
+                items.x.push(bar[0]);
+                items.y.push(bar[1]);
+                items.z.push(bar[2]);
+                items.marker.color.push(items.z[items.z.length - 1]);
+            }
+        });
+        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range : zbounds}}};
+        trace = [items];
+        Plotly.newPlot(container, trace, layout);
+    })
 }
 
 function kdtreePlot(url, container, colormarker, colorline, fillcolor){
-loadAndPlot(url, function (data) {
-var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
-var trace = [];
-var tracebis = [];
-var xbounds = [];
-var ybounds = [];
-$.each(data, function(index, bar) {
-if (index > 0){
-items.x.push(bar[0]);
-items.y.push(bar[1]);
-tracebis.push(kdtreeRectangle(bar[2], bar[3], bar[4], bar[5], colorline, fillcolor));
-}
-else{
-xbounds.push(bar[0]);
-xbounds.push(bar[2]);
-ybounds.push(bar[1]);
-ybounds.push(bar[3]);
-}
-});
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
-trace = [items];
-Plotly.newPlot(container, trace, layout);
-})
+    loadAndPlot(url, function (data) {
+        var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
+        var trace = [];
+        var tracebis = [];
+        var xbounds = [];
+        var ybounds = [];
+        $.each(data, function(index, bar) {
+            if (index > 0){
+                items.x.push(bar[0]);
+                items.y.push(bar[1]);
+                tracebis.push(kdtreeRectangle(bar[2], bar[3], bar[4], bar[5], colorline, fillcolor));
+            } else{
+                xbounds.push(bar[0]);
+                xbounds.push(bar[2]);
+                ybounds.push(bar[1]);
+                ybounds.push(bar[3]);
+            }
+        });
+        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+        trace = [items];
+        Plotly.newPlot(container, trace, layout);
+    })
 }
 
 function ShowAccurateSection(){
-ShowSliderValues()
-        var i;
-var tab = document.getElementsByName('dimension');
-var tab2 = document.getElementsByName('sliders');
-var item;
-var tabtab = [];
-var ch = "";
-var index;
-var container = document.getElementById('viewSectionPanel');
-for (i = 0; i < tab2.length; i++){
-tabtab.push(tab2[i].value);
-//                   item = item[parseInt(tab2[i].value)];
+    ShowSliderValues()
+    var i;
+    var tab = document.getElementsByName('dimension');
+    var tab2 = document.getElementsByName('sliders');
+    var item;
+    var tabtab = [];
+    var ch = "";
+    var index;
+    var container = document.getElementById('viewSectionPanel');
+    for (i = 0; i < tab2.length; i++){
+        tabtab.push(tab2[i].value);
+    }
+    ch = tabtab.join([separator = ',']);
+    index = twoDsectionCoordinates.indexOf(ch);
+    if (container.data.length - 1 >= 1){Plotly.deleteTraces(container, [container.data.length - 1]); }
+    if (index == - 1){
+        item = []; 
+    } else{
+        item = twoDsections[index];
+        item.marker.cmax = twoDsectionCmax;
+        Plotly.addTraces(container, [item]);
+    }
 }
-ch = tabtab.join([separator = ',']);
-index = twoDsectionCoordinates.indexOf(ch);
-if (container.data.length - 1 >= 1){Plotly.deleteTraces(container, [container.data.length - 1]); }
-if (index == - 1){
-item = [];
-}
-else{
-item = twoDsections[index];
-item.marker.cmax = twoDsectionCmax;
-Plotly.addTraces(container, [item]);
-}
-
-//                Plotly.addTraces(container, [twoDsections[parseInt($("#slide").val())]]);
-
-//                document.getElementById('sliderValues').innerHTML = container.data.length-1; 
-
-}
-
 
 function newSection(){
-var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [], cmin : 0, cmax : 30}, hoverinfo:'none' };
-return items;
+    var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [], cmin : 0, cmax : 30}, hoverinfo:'none' };
+    return items;
 }
 
 function ShowAxes(){
-document.getElementById('sectionSliders').innerHTML = "";
-document.getElementById('sliderValues').innerHTML = "";
-document.getElementById('viewSectionPanel').innerHTML = "";
-var tab = document.getElementsByName('dimension');
-var tab2 = [];
-var j = tab.length;
-for (i = 0; i < tab.length; i++){
-if (tab[i].checked){
-j = j - 1;
-}
-else tab2.push(tab[i].value);
-}
-if (j < 2) {
-document.getElementById('sectionAxes').innerHTML = 'Too many selected directions';
-}
-else if (j == 2){
-document.getElementById('sectionAxes').innerHTML = '<input type="radio" name="dimensionsection" value="xsection" id="xsection" onchange="ShowSection(1)"/> <label for="xsection" name="labeldimensionsection">[' + tab2[0] + ',' + tab2[1] + ']</label><input type="radio" name="dimensionsection" value="ysection" id="ysection" onchange="ShowSection(-1)"/> <label for="ysection" name="labeldimensionsection" >[' + tab2[1] + ',' + tab2[0] + ']</label><br>';
-}
-else {
-document.getElementById('sectionAxes').innerHTML = 'Not enough selected directions';
+    document.getElementById('sectionSliders').innerHTML = "";
+    document.getElementById('sliderValues').innerHTML = "";
+    document.getElementById('viewSectionPanel').innerHTML = "";
+    var tab = document.getElementsByName('dimension');
+    var tab2 = [];
+    var j = tab.length;
+    for (i = 0; i < tab.length; i++){
+        if (tab[i].checked){
+            j = j - 1;
+        } else tab2.push(tab[i].value);
+    }
+    if (j < 2) {
+        document.getElementById('sectionAxes').innerHTML = 'Too many selected directions';
+    } else if (j == 2){
+        document.getElementById('sectionAxes').innerHTML = '<input type="radio" name="dimensionsection" value="xsection" id="xsection" onchange="ShowSection(1)"/> <label for="xsection" name="labeldimensionsection">[' + tab2[0] + ',' + tab2[1] + ']</label><input type="radio" name="dimensionsection" value="ysection" id="ysection" onchange="ShowSection(-1)"/> <label for="ysection" name="labeldimensionsection" >[' + tab2[1] + ',' + tab2[0] + ']</label><br>';
+    } else {
+        document.getElementById('sectionAxes').innerHTML = 'Not enough selected directions';
+    }
 }
 
-}
 $("#viewPlotlyColorSection").click(function(){
-//        var essaitab = ['[2,3,6]','[1,6,4]','[8,3,9]'];
-//        var number = essaitab.indexOf('[8,3,10]');
-
-var x = document.getElementById('sectiondistanceppa').value;
-if (isNaN(x) || x == "%20" || x > 1000) {
-text = "Input not valid : " + x;
-document.getElementById('sectionDirections').innerHTML = text;
-} else {
-var chbis = "";
-var ch = "<form><fieldset><legend>2D-Sections according to  :</legend>(";
-var i = "";
-var ii = {{result.parameters.viabilityproblem.statedimension}} - 2;
-ch = ch + ii + " checkbox(es) must be checked)";
-{% for statevariable in stanaab %}
-chbis = chbis + "<input type='checkbox' name='dimension' value='{{statevariable}}' id='{{statevariable}}' onchange='ShowAxes()'/>{{statevariable}}";
-{% endfor %}
-document.getElementById('sectionAxes').innerHTML = "";
-ch = ch + chbis + "<fieldset></form>";
-document.getElementById('sectionAxes').innerHTML = "";
-document.getElementById('sectionSliders').innerHTML = "";
-document.getElementById('sliderValues').innerHTML = "";
-document.getElementById('viewSectionPanel').innerHTML = "";
-document.getElementById('sectionDirections').innerHTML = ch;
-}
+    var x = document.getElementById('sectiondistanceppa').value;
+    if (isNaN(x) || x == "%20" || x > 1000) {
+        text = "Input not valid : " + x;
+        document.getElementById('sectionDirections').innerHTML = text;
+    } else {
+        var chbis = "";
+        var ch = "<form><fieldset><legend>2D-Sections according to  :</legend>(";
+        var i = "";
+        var ii = {{result.parameters.viabilityproblem.statedimension}} - 2;
+        ch = ch + ii + " checkbox(es) must be checked)";
+        {% for statevariable in stanaab %}
+            chbis = chbis + "<input type='checkbox' name='dimension' value='{{statevariable}}' id='{{statevariable}}' onchange='ShowAxes()'/>{{statevariable}}";
+        {% endfor %}
+        document.getElementById('sectionAxes').innerHTML = "";
+        ch = ch + chbis + "<fieldset></form>";
+        document.getElementById('sectionAxes').innerHTML = "";
+        document.getElementById('sectionSliders').innerHTML = "";
+        document.getElementById('sliderValues').innerHTML = "";
+        document.getElementById('viewSectionPanel').innerHTML = "";
+        document.getElementById('sectionDirections').innerHTML = ch;
+    }
 })
 
-        function ShowSliderValues(){
-        var x = document.getElementById('sectiondistanceppa').value - 1;
-        var i;
-        var ii = 0;
-        var tab2 = document.getElementsByName('sliders');
-        var tab = document.getElementsByName('dimension');
-        var ch = "";
-        var j = tab.length;
-        for (i = 0; i < tab.length; i++){
+function ShowSliderValues(){
+    var x = document.getElementById('sectiondistanceppa').value - 1;
+    var i;
+    var ii = 0;
+    var tab2 = document.getElementsByName('sliders');
+    var tab = document.getElementsByName('dimension');
+    var ch = "";
+    var j = tab.length;
+    for (i = 0; i < tab.length; i++){
         if (tab[i].checked){
-        ch = ch + tab[i].value + '= ' + (twoDsectionMins[i] + (twoDsectionMaxs[i] - twoDsectionMins[i]) * parseInt(tab2[ii].value) / x) + '  ';
-        ii = ii + 1;
+            ch = ch + tab[i].value + '= ' + (twoDsectionMins[i] + (twoDsectionMaxs[i] - twoDsectionMins[i]) * parseInt(tab2[ii].value) / x) + '  ';
+            ii = ii + 1;
         }
-
-        }
-        document.getElementById('sliderValues').innerHTML = ch;
-        }
+    }
+    document.getElementById('sliderValues').innerHTML = ch;
+}
 
 function ShowSection(transpose){
-var x = document.getElementById('sectiondistanceppa').value - 1;
-var tab = document.getElementsByName('dimension');
-var ch = "";
-var chbis = "";
-var permutstring = "";
-var permutstringbis = "";
-var indicesections = [];
-var j = tab.length;
-var i;
-for (i = 0; i < tab.length; i++){
-if (tab[i].checked){
-//                ch = ch + tab[i].value + '= 0  ';
-//                chbis = chbis + '<div id="slidemin'+tab[i].value+'"></div> <input type="range" min="0" max="'+x+'" step="1" value="0"style="width:80%" name="sliders" id="slide'+tab[i].value+'" onchange="ShowAccurateSection()"/> <div id="slidemax'+tab[i].value+'"></div>';
-permutstring = permutstring + (i + 1);
-}
-else {
-if (transpose == 1){permutstringbis = permutstringbis + (i + 1); indicesections.push(i); }
-else {permutstringbis = (i + 1) + permutstringbis; indicesections.unshift(i); }
-
-}
-
-}
-permutstring = permutstring + permutstringbis;
-var xx = document.getElementById('sectiondistanceppa').value;
-var permutnumber = parseInt(permutstring);
-var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 'NNN' %}"
-        url = url.replace("NNN", permutnumber);
-url = url.replace("NN", parseInt(xx));
-twoDsections = [];
-var currentIndex = '-1';
-var xbounds = [];
-var ybounds = [];
-var container = document.getElementById('viewSectionPanel');
-loadAndPlot(url, function (data) {
-var items;
-items = newSection();
-var map = [];
-var mapinit = [items.x, items.y];
-$.each(data, function(index, bar) {
-if (index == 0){
-xbounds.push(bar[indicesections[0]]);
-xbounds.push(bar[tab.length + indicesections[0]]);
-ybounds.push(bar[indicesections[1]]);
-ybounds.push(bar[tab.length + indicesections[1]]);
-map.push(mapinit[bar[4]]);
-map.push(mapinit[bar[5]]);
-for (i = 0; i < tab.length; i++){
-twoDsectionMins.push(bar[tab.length * 3 + i]);
-twoDsectionMaxs.push(bar[tab.length * 4 + i]);
-}
-}
-else {
-
-if (bar[0] != currentIndex) {
-if (currentIndex != '-1') {
-twoDsections.push(items);
-}
-twoDsectionCoordinates.push(bar[0]);
-items = newSection();
-currentIndex = bar[0];
-}
-items.x.push(bar[1]);
-items.y.push(bar[2]);
-items.marker.color.push(bar[3]);
-if (twoDsectionCmax < bar[3]){twoDsectionCmax = bar[3]; }
-}
-});
-twoDsections.push(items);
-//		$("#slide").value = "0";
-
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
-Plotly.newPlot(container, [], layout);
-//            twoDsections[0].marker.cmax = twoDsectionCmax;
-Plotly.addTraces(container, [{x:xbounds, y:ybounds, mode:'markers', type: 'scatter', marker: { size : 4, color: 'blue'}, hoverinfo:'none' }]);
-for (i = 0; i < tab.length; i++){
-if (tab[i].checked){
-ch = ch + tab[i].value + ' = ' + twoDsectionMins[i] + '  ';
-chbis = chbis + '<div id="slidemin' + tab[i].value + '">' + twoDsectionMins[i] + '</div> <input type="range" min="0" max="' + x + '" step="1" value="0"style="width:80%" name="sliders" id="slide' + tab[i].value + '" onchange="ShowAccurateSection()"/> <div id="slidemax' + tab[i].value + '">' + twoDsectionMaxs[i] + '</div>';
-}
-}
-document.getElementById('sectionSliders').innerHTML = chbis;
-document.getElementById('sliderValues').innerHTML = ch;
-});
+    var x = document.getElementById('sectiondistanceppa').value - 1;
+    var tab = document.getElementsByName('dimension');
+    var ch = "";
+    var chbis = "";
+    var permutstring = "";
+    var permutstringbis = "";
+    var indicesections = [];
+    var j = tab.length;
+    var i;
+    for (i = 0; i < tab.length; i++){
+        if (tab[i].checked){
+            permutstring = permutstring + (i + 1);
+        } else {
+            if (transpose == 1){permutstringbis = permutstringbis + (i + 1); indicesections.push(i); }
+            else {permutstringbis = (i + 1) + permutstringbis; indicesections.unshift(i); }
+        }
+    }
+    permutstring = permutstring + permutstringbis;
+    var xx = document.getElementById('sectiondistanceppa').value;
+    var permutnumber = parseInt(permutstring);
+    var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 'NNN' %}"
+    url = url.replace("NNN", permutnumber);
+    url = url.replace("NN", parseInt(xx));
+    twoDsections = [];
+    var currentIndex = '-1';
+    var xbounds = [];
+    var ybounds = [];
+    var container = document.getElementById('viewSectionPanel');
+    loadAndPlot(url, function (data) {
+        var items;
+        items = newSection();
+        var map = [];
+        var mapinit = [items.x, items.y];
+        $.each(data, function(index, bar) {
+            if (index == 0){
+                xbounds.push(bar[indicesections[0]]);
+                xbounds.push(bar[tab.length + indicesections[0]]);
+                ybounds.push(bar[indicesections[1]]);
+                ybounds.push(bar[tab.length + indicesections[1]]);
+                map.push(mapinit[bar[4]]);
+                map.push(mapinit[bar[5]]);
+                for (i = 0; i < tab.length; i++){
+                    twoDsectionMins.push(bar[tab.length * 3 + i]);
+                    twoDsectionMaxs.push(bar[tab.length * 4 + i]);
+                }
+            } else {
+                if (bar[0] != currentIndex) {
+                    if (currentIndex != '-1') {
+                        twoDsections.push(items);
+                    }
+                    twoDsectionCoordinates.push(bar[0]);
+                    items = newSection();
+                    currentIndex = bar[0];
+                }
+                items.x.push(bar[1]);
+                items.y.push(bar[2]);
+                items.marker.color.push(bar[3]);
+                if (twoDsectionCmax < bar[3]){twoDsectionCmax = bar[3]; }
+            }
+        });
+        twoDsections.push(items);
+        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+        Plotly.newPlot(container, [], layout);
+        Plotly.addTraces(container, [{x:xbounds, y:ybounds, mode:'markers', type: 'scatter', marker: { size : 4, color: 'blue'}, hoverinfo:'none' }]);
+        for (i = 0; i < tab.length; i++){
+            if (tab[i].checked){
+                ch = ch + tab[i].value + ' = ' + twoDsectionMins[i] + '  ';
+                chbis = chbis + '<div id="slidemin' + tab[i].value + '">' + twoDsectionMins[i] + '</div> <input type="range" min="0" max="' + x + '" step="1" value="0"style="width:80%" name="sliders" id="slide' + tab[i].value + '" onchange="ShowAccurateSection()"/> <div id="slidemax' + tab[i].value + '">' + twoDsectionMaxs[i] + '</div>';
+            }
+        }
+        document.getElementById('sectionSliders').innerHTML = chbis;
+        document.getElementById('sliderValues').innerHTML = ch;
+    });
 }
 
-function ShowSectionbis(){
-
-myslider = document.getElementById("slide");
-myslider.value = "0";
-myslider.max = document.getElementById("sectiondistanceppa").value - 1
-        document.getElementById('slidemin').innerHTML = myslider.min
-        document.getElementById('slidemax').innerHTML = myslider.max
-        ShowSlideValue();
-//            var url = "{% url 'sharekernel:ViNODistanceView' result.id 0  0%}"
-//	    document.getElementById('viewPanel').innerHTML = "";
-x = document.getElementById("sectiondistanceppa").value;
-//	    x = 5;
-// If x is Not a Number 
-if (isNaN(x) || x == "%20" || x > 200) {
-text = "Input not valid : " + x;
-var container = document.getElementById('viewSectionPanel');
-container.innerHTML = text;
-} else {
-twoDsections = [];
-url = url.replace("0", x);
-var currentIndex = - 1;
-loadAndPlot(url, function (data) {
-var container = document.getElementById('viewSectionPanel');
-var items;
-items = newSection();
-var map = [];
-var xbounds = [];
-var ybounds = [];
-var mapinit = [items.x, items.y];
-$.each(data, function(index, bar) {
-if (index == 0){
-xbounds.push(bar[1]);
-xbounds.push(bar[4]);
-ybounds.push(bar[2]);
-ybounds.push(bar[5]);
-map.push(mapinit[bar[4]]);
-map.push(mapinit[bar[5]]);
-}
-else {
-
-if (bar[0] != currentIndex) {
-if (currentIndex != - 1) {
-twoDsections.push(items);
-}
-
-items = newSection();
-currentIndex = bar[0];
-}
-items.x.push(bar[1]);
-items.y.push(bar[2]);
-items.marker.color.push(bar[3]); }
-});
-twoDsections.push(items);
-//		$("#slide").value = "0";
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
-Plotly.newPlot(container, [], layout);
-Plotly.addTraces(container, [twoDsections[0]]);
-})}
-
-
-}
-
-function ShowSlideValue(){
-var i;
-var tab = document.getElementsByName('dimension');
-for (i = 0; i < tab.length; i++){
-if (tab[i].checked){
-var s = tab[i].value;
-document.getElementById('slidevalue').innerHTML = s + " = " + $("#slide").val();
-break;
-}
-}
-}
 
 function ShowSectionCoordinates(tabvalues){
-//             var tabvalues = ['(x,z)','(z,x)'];
-var tab = document.getElementsByName('dimensionsection');
-for (i = 0; i < tab.length; i++){
-tab[i].style.display = 'block';
-tab[i].checked = false;
-}
-tab = document.getElementsByName('labeldimensionsection');
-for (i = 0; i < tab.length; i++){
-tab[i].style.display = 'block';
-tab[i].innerHTML = tabvalues[i];
-}
+    var tab = document.getElementsByName('dimensionsection');
+    for (i = 0; i < tab.length; i++){
+        tab[i].style.display = 'block';
+        tab[i].checked = false;
+    }
+    tab = document.getElementsByName('labeldimensionsection');
+    for (i = 0; i < tab.length; i++){
+        tab[i].style.display = 'block';
+        tab[i].innerHTML = tabvalues[i];
+    }
 }
 
 
 $("#x").change(function(){
-var tabvalues = ['(y,z)', '(z,y)'];
-ShowSectionCoordinates(tabvalues);
+    var tabvalues = ['(y,z)', '(z,y)'];
+    ShowSectionCoordinates(tabvalues);
+})
+$("#y").change(function(){
+    var tabvalues = ['(x,z)', '(z,x)'];
+    ShowSectionCoordinates(tabvalues);
+})
+$("#z").change(function(){
+    var tabvalues = ['(x,y)', '(y,x)'];
+    ShowSectionCoordinates(tabvalues);
 })
 
-        $("#y").change(function(){
-var tabvalues = ['(x,z)', '(z,x)'];
-ShowSectionCoordinates(tabvalues);
-})
-
-        $("#z").change(function(){
-var tabvalues = ['(x,y)', '(y,x)'];
-ShowSectionCoordinates(tabvalues);
-})
-$("#plopbtn").click(function(){
-    console.log('plop');
+$("#viewPlotlyBW").click(function(){
+    {% if result.parameters.viabilityproblem.statedimension == 2 %}
+        var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
+        {% if resultformat.name == 'bars' %}
+            document.getElementById('viewPanelBW').innerHTML = "";
+            var x = document.getElementById("ppa").value;
+            var container = document.getElementById('viewPanelBW');
+            var colormarker = 'rgb(255,0,0,0.4)';
+            var colorline = 'rgba(128, 0, 128, 1)';
+            var fillcolor = 'rgba(128, 0, 128, 0.7)';
+            bargridPlot(url, x, container, colormarker, colorline, fillcolor);
+        {% elif resultformat.name == 'kdtree' %}
+            document.getElementById('viewPanelBW').innerHTML = "";
+            var container = document.getElementById('viewPanelBW');
+            var colormarker = 'rgb(255,0,0,0.4)';
+            var colorline = 'rgba(128, 0, 128, 1)';
+            var fillcolor = 'rgba(128, 0, 128, 0.7)';
+            kdtreePlot(url, container, colormarker, colorline, fillcolor);
+        {% endif %}
+    {% elif result.parameters.viabilityproblem.statedimension == 3 %}
+            var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
+        {% if resultformat.name == 'bars' %}
+            document.getElementById('viewPanelBW').innerHTML = "";
+            var x = document.getElementById("ppa").value;
+            var container = document.getElementById('viewPanelBW');
+            var colormarker = 'rgb(255,0,0,0.4)';
+            var colorline = 'rgba(128, 0, 128, 1)';
+            var fillcolor = 'rgba(128, 0, 128, 0.7)';
+            bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
+        {% elif resultformat.name == 'kdtree' %}
+            document.getElementById('viewPanelBW').innerHTML = "";
+            var x = document.getElementById("ppa").value;
+            var container = document.getElementById('viewPanelBW');
+            var colormarker = 'rgb(255,0,0,0.4)';
+            var colorline = 'rgba(128, 0, 128, 1)';
+            var fillcolor = 'rgba(128, 0, 128, 0.7)';
+            kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor);
+        {% endif %}
+    {% endif %}
 });
-        $("#viewPlotlyBW").click(function(){
-{% if result.parameters.viabilityproblem.statedimension == 2 %}
-var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
-{% if resultformat.name == 'bars' %}
-document.getElementById('viewPanelBW').innerHTML = "";
-var x = document.getElementById("ppa").value;
-var container = document.getElementById('viewPanelBW');
-var colormarker = 'rgb(255,0,0,0.4)';
-var colorline = 'rgba(128, 0, 128, 1)';
-var fillcolor = 'rgba(128, 0, 128, 0.7)';
-bargridPlot(url, x, container, colormarker, colorline, fillcolor);
-{% elif resultformat.name == 'kdtree' %}
-document.getElementById('viewPanelBW').innerHTML = "";
-var container = document.getElementById('viewPanelBW');
-var colormarker = 'rgb(255,0,0,0.4)';
-var colorline = 'rgba(128, 0, 128, 1)';
-var fillcolor = 'rgba(128, 0, 128, 0.7)';
-kdtreePlot(url, container, colormarker, colorline, fillcolor);
-{% endif %}
-{% elif result.parameters.viabilityproblem.statedimension == 3 %}
-var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
-{% if resultformat.name == 'bars' %}
-document.getElementById('viewPanelBW').innerHTML = "";
-var x = document.getElementById("ppa").value;
-var container = document.getElementById('viewPanelBW');
-var colormarker = 'rgb(255,0,0,0.4)';
-var colorline = 'rgba(128, 0, 128, 1)';
-var fillcolor = 'rgba(128, 0, 128, 0.7)';
-bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
-{% elif resultformat.name == 'kdtree' %}
-document.getElementById('viewPanelBW').innerHTML = "";
-var x = document.getElementById("ppa").value;
-var container = document.getElementById('viewPanelBW');
-var colormarker = 'rgb(255,0,0,0.4)';
-var colorline = 'rgba(128, 0, 128, 1)';
-var fillcolor = 'rgba(128, 0, 128, 0.7)';
-kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor);
-{% endif %}
 
-{% endif %}
-});
 $("#viewPlotlyColor").click(function(){
-{% if result.parameters.viabilityproblem.statedimension == 2 %}
-var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
-        document.getElementById('viewPanel').innerHTML = "";
-x = document.getElementById("distanceppa").value;
-//	    x = 5;
-// If x is Not a Number 
-if (isNaN(x) || x == "%20" || x > 200) {
-text = "Input not valid : " + x;
-var container = document.getElementById('viewPanel');
-container.innerHTML = text;
-} else {
-url = url.replace("NN", x);
-loadAndPlot(url, function (data) {
-var container = document.getElementById('viewPanel');
-var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [] }, hoverinfo:'none' };
-var map = [];
-var xbounds = [];
-var ybounds = [];
-var mapinit = [items.x, items.y];
-$.each(data, function(index, bar) {
-if (index == 0){
-xbounds.push(bar[0]);
-xbounds.push(bar[2]);
-ybounds.push(bar[1]);
-ybounds.push(bar[3]);
-map.push(mapinit[bar[4]]);
-map.push(mapinit[bar[5]]);
-}
-else {
-map[0].push(bar[0]);
-map[1].push(bar[1]);
-items.marker.color.push(bar[2]);
-}
+    var maxX = 200;
+    {% if result.parameters.viabilityproblem.statedimension == 3 %}
+        maxX = 150;
+    {% endif %}
+    var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
+    document.getElementById('viewPanel').innerHTML = "";
+    x = document.getElementById("distanceppa").value;
+    // If x is Not a Number 
+    if (isNaN(x) || x == "%20" || x > 200) {
+        text = "Input not valid : " + x;
+        var container = document.getElementById('viewPanel');
+        container.innerHTML = text;
+    } else {
+        url = url.replace("NN", x);
+        loadAndPlot(url, function (data) {
+            var container = document.getElementById('viewPanel');
+            var map = [];
+            var xbounds = [];
+            var ybounds = [];
+            {% if result.parameters.viabilityproblem.statedimension == 2 %}
+                var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 4, color: [] }, hoverinfo:'none' };
+                var mapinit = [items.x, items.y];
+                $.each(data, function(index, bar) {
+                    if (index == 0){
+                        xbounds.push(bar[0]);
+                        xbounds.push(bar[2]);
+                        ybounds.push(bar[1]);
+                        ybounds.push(bar[3]);
+                        map.push(mapinit[bar[4]]);
+                        map.push(mapinit[bar[5]]);
+                    }
+                    else {
+                        map[0].push(bar[0]);
+                        map[1].push(bar[1]);
+                        items.marker.color.push(bar[2]);
+                    }
+                });
+                var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+            {% elif result.parameters.viabilityproblem.statedimension == 3 %}
+                var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
+                var zbounds = [];
+                var mapinit = [items.x, items.y, items.z];
+                $.each(data, function(index, bar) {
+                    if (index == 0){
+                        xbounds.push(bar[0]);
+                        xbounds.push(bar[3]);
+                        ybounds.push(bar[1]);
+                        ybounds.push(bar[4]);
+                        zbounds.push(bar[2]);
+                        zbounds.push(bar[5]);
+                        map.push(mapinit[bar[6]]);
+                        map.push(mapinit[bar[7]]);
+                        map.push(mapinit[bar[8]]);
+                    } else {
+                        map[0].push(bar[0]);
+                        map[1].push(bar[1]);
+                        map[2].push(bar[2]);
+                        items.marker.color.push(bar[3]);
+                    }
+                });
+                //                var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds}};
+                var layout = {showlegend: false, margin:{t:10}, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range: zbounds}}};
+            {% endif %}
+            Plotly.newPlot(container, [items], layout);
+        })
+    }
 });
-var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
-Plotly.newPlot(container, [items], layout);
-})}
-{% elif result.parameters.viabilityproblem.statedimension == 3 %}
-var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
-        document.getElementById('viewPanel').innerHTML = "";
-x = document.getElementById("distanceppa").value;
-//	    x = 5;
-// If x is Not a Number 
-if (isNaN(x) || x == "%20" || x > 150) {
-text = "Input not valid : " + x;
-var container = document.getElementById('viewPanel');
-container.innerHTML = text;
-} else {
-url = url.replace('NN', x);
-loadAndPlot(url, function (data) {
-var container = document.getElementById('viewPanel');
-var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
-var map = [];
-var xbounds = [];
-var ybounds = [];
-var zbounds = [];
-var mapinit = [items.x, items.y, items.z];
-$.each(data, function(index, bar) {
-if (index == 0){
-xbounds.push(bar[0]);
-xbounds.push(bar[3]);
-ybounds.push(bar[1]);
-ybounds.push(bar[4]);
-zbounds.push(bar[2]);
-zbounds.push(bar[5]);
-map.push(mapinit[bar[6]]);
-map.push(mapinit[bar[7]]);
-map.push(mapinit[bar[8]]);
-}
-else {
-map[0].push(bar[0]);
-map[1].push(bar[1]);
-map[2].push(bar[2]);
-items.marker.color.push(bar[3]);
-}
-});
-//                var layout = {showlegend: false,margin:{t:10},width: 600,height: 500,xaxis:{range : xbounds},yaxis:{range : ybounds}};
-var layout = {showlegend: false, margin:{t:10}, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range: zbounds}}};
-Plotly.newPlot(container, [items], layout);
-})}
 
-{% endif %}
-});
 $("#viewHisto").click(function(){
-var url = "{% url 'sharekernel:ViNOHistogramDistance' result.id 'N' 'N' %}";
-var x, y, text;
-document.getElementById('histo').innerHTML = "";
-// Get the value of the input field with id="numb"
-x = document.getElementById("maxvalue").value;
-y = document.getElementById("distancehistoppa").value;
-//	    x = 5;
-// If x is Not a Number 
-if (isNaN(x) || x == "%20" || isNaN(y) || y == "%20") {
-text = "Input not valid : " + y + " " + x;
-var container = document.getElementById('histo');
-container.innerHTML = text;
-} else {
-url = url.replace("N/N", y + "/" + x);
-//		var histogram = {x: ['giraffes', 'orangutans', 'monkeys'],y: [20, 14, 23],type: 'bar'};
-var histogram = {x: [], y: [], type: 'bar', marker: {
-color: 'rgb(158,202,225)',
-        opacity: 0.6,
-        line: {
-        color: 'rbg(8,48,107)',
+    var url = "{% url 'sharekernel:ViNOHistogramDistance' result.id 'N' 'N' %}";
+    var x, y, text;
+    document.getElementById('histo').innerHTML = "";
+    // Get the value of the input field with id="numb"
+    x = document.getElementById("maxvalue").value;
+    y = document.getElementById("distancehistoppa").value;
+    // If x is Not a Number 
+    if (isNaN(x) || x == "%20" || isNaN(y) || y == "%20") {
+        text = "Input not valid : " + y + " " + x;
+        var container = document.getElementById('histo');
+        container.innerHTML = text;
+    } else {
+        url = url.replace("N/N", y + "/" + x);
+        var histogram = {x: [], y: [], type: 'bar', marker: {
+        color: 'rgb(158,202,225)',
+            opacity: 0.6,
+            line: {
+                color: 'rbg(8,48,107)',
                 width: 1.5
+            }
+        }};
+        var maxi = 0;
+        var maxitrop = 0;
+        var derniere;
+        var ch = "1-";
+        loadAndPlot(url, function (data) {
+            $.each(data, function(index, bar) {
+                if (index > 0){
+                    if (index > 1){
+                        ch += bar[0];
+                        histogram.x.push(ch);
+                        ch = "";
+                        ch += bar[0] + '-';
+                    }
+                    histogram.y.push(bar[1]);
+                    if (bar[1] > maxitrop){
+                        maxi = maxitrop;
+                        maxitrop = bar[1];
+                    }
+                    derniere = bar[1];
                 }
-}};
-var maxi = 0;
-var maxitrop = 0;
-var derniere;
-var ch = "1-";
-loadAndPlot(url, function (data) {
-//                	var container = document.getElementById('viewPanel');
-//			var items = {x:[],y:[]};
-//	        	container.innerHTML="Youpi";
-$.each(data, function(index, bar) {
-if (index > 0){
-if (index > 1){
-ch += bar[0];
-histogram.x.push(ch);
-ch = "";
-ch += bar[0] + '-';
-}
-histogram.y.push(bar[1]);
-if (bar[1] > maxitrop){
-maxi = maxitrop;
-maxitrop = bar[1];
-}
-derniere = bar[1];
-}});
-ch = ch.replace("-", "");
-ch = '> ' + ch;
-histogram.x.push(ch);
-//	        	histodata(items.x,items.y);
-//	        	makeGraph();
-//			makeGraph();
-if (maxitrop == derniere){
-maxi = maxi + (maxitrop - maxi) / 10;
-}
-else maxi = maxitrop;
-var layout = {width: 600, height: 300, yaxis:{range : [0, maxi]}};
-Plotly.newPlot('histo', [histogram], layout);
-})
-}
+            });
+            ch = ch.replace("-", "");
+            ch = '> ' + ch;
+            histogram.x.push(ch);
+            if (maxitrop == derniere){
+                maxi = maxi + (maxitrop - maxi) / 10;
+            } else maxi = maxitrop;
+            var layout = {width: 600, height: 300, yaxis:{range : [0, maxi]}};
+            Plotly.newPlot('histo', [histogram], layout);
+        })
+    }
 });
-function histodata(x, y)
-{
-/**** ch est une chaine qui va recevoir toutes les commandes HTML permettant mettre les valeurs de l'hitogrammme dans un tableau html************/
-var container = document.getElementById('histo');
-var max = x.length;
-var ch = "";
-ch += '<ul>';
-for (var i = 1; i < max; i++)
-{ //dessin des barres
-ch += '<li>' + y[i] + ':' + x[i] + '</li>';
-}
-ch += '</ul>';
-container.innerHTML = ch;
+function histodata(x, y) {
+    /**** ch est une chaine qui va recevoir toutes les commandes HTML permettant mettre les valeurs de l'hitogrammme dans un tableau html************/
+    var container = document.getElementById('histo');
+    var max = x.length;
+    var ch = "";
+    ch += '<ul>';
+    for (var i = 1; i < max; i++) { //dessin des barres
+        ch += '<li>' + y[i] + ':' + x[i] + '</li>';
+    }
+    ch += '</ul>';
+    container.innerHTML = ch;
 }
 
 
-function makeGraph()
-        {
-        var container = document.getElementById("histo");
-        var labels = document.getElementById("labels");
-        var dnl = container.getElementsByTagName("li");
-        var maxvalue = 0;
-        for (var i = 0; i < (dnl.length - 1); i++)
-                {
-                if (parseInt(dnl.item(i).innerHTML.split(":")[0]) > maxvalue){
-                maxvalue = parseInt(dnl.item(i).innerHTML.split(":")[0]);
-                }
-                }
-        labels.innerHTML = "<span style='margin:16px'></span>";
-        if (maxvalue == 0) maxvalue = 200;
-        for (i = 0; i < dnl.length; i++)
-                {
-                var item = dnl.item(i);
-                var value = item.innerHTML;
-                var content = value.split(":");
-                value = content[0];
-                item.innerHTML = value;
-                if (parseInt(value) > maxvalue){
-                value = maxvalue + 10;
-                item.style.borderTop = "1px dotted white";
-                }
-                item.style.top = (199 - value * 200 / maxvalue) + "px";
-                item.style.left = (i * 61 + 20) + "px";
-                item.style.height = value * 200 / maxvalue + "px";
-                item.style.width = 60 + "px";
-                item.style.visibility = "visible";
-                left = (i * 60 + 120) + "px";
-//	labels.innerHTML = labels.innerHTML + content[1];
-                var ecart = "";
-                if (parseInt(content[1]) < 10) ecart = "25";
-                else if (parseInt(content[1]) < 100) ecart = "21";
-                else if (parseInt(content[1]) < 1000) ecart = "16";
-                else ecart = "10";
-                labels.innerHTML = labels.innerHTML +
-                        "<span style='margin:" + ecart + "px'>" +
-                        content[1] + "</span>";
-                }
+function makeGraph() {
+    var container = document.getElementById("histo");
+    var labels = document.getElementById("labels");
+    var dnl = container.getElementsByTagName("li");
+    var maxvalue = 0;
+    for (var i = 0; i < (dnl.length - 1); i++) {
+        if (parseInt(dnl.item(i).innerHTML.split(":")[0]) > maxvalue){
+            maxvalue = parseInt(dnl.item(i).innerHTML.split(":")[0]);
         }
-
-
+    }
+    labels.innerHTML = "<span style='margin:16px'></span>";
+    if (maxvalue == 0) maxvalue = 200;
+    for (i = 0; i < dnl.length; i++) {
+        var item = dnl.item(i);
+        var value = item.innerHTML;
+        var content = value.split(":");
+        value = content[0];
+        item.innerHTML = value;
+        if (parseInt(value) > maxvalue){
+        value = maxvalue + 10;
+        item.style.borderTop = "1px dotted white";
+        }
+        item.style.top = (199 - value * 200 / maxvalue) + "px";
+        item.style.left = (i * 61 + 20) + "px";
+        item.style.height = value * 200 / maxvalue + "px";
+        item.style.width = 60 + "px";
+        item.style.visibility = "visible";
+        left = (i * 60 + 120) + "px";
+//	labels.innerHTML = labels.innerHTML + content[1];
+        var ecart = "";
+        if (parseInt(content[1]) < 10) ecart = "25";
+        else if (parseInt(content[1]) < 100) ecart = "21";
+        else if (parseInt(content[1]) < 1000) ecart = "16";
+        else ecart = "10";
+        labels.innerHTML = labels.innerHTML +
+                "<span style='margin:" + ecart + "px'>" +
+                content[1] + "</span>";
+    }
+}
 
 </script>
-
 
 {% endblock %}
