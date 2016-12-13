@@ -20,7 +20,7 @@
                 <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
             </ol>
 
-            {% if result.parameters.viabilityproblem.statedimension < 4%}
+            {% if result.parameters.viabilityproblem.statedimension < 4 %}
             <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis 
                 {% if result.parameters.viabilityproblem.statedimension == 3 %}
                 (max : 150)
@@ -430,10 +430,9 @@ var ch = "<form><fieldset><legend>2D-Sections according to  :</legend>(";
 var i = "";
 var ii = {{result.parameters.viabilityproblem.statedimension}} - 2;
 ch = ch + ii + " checkbox(es) must be checked)";
-{ % for statevariable in stanaab % }
-
+{% for statevariable in stanaab %}
 chbis = chbis + "<input type='checkbox' name='dimension' value='{{statevariable}}' id='{{statevariable}}' onchange='ShowAxes()'/>{{statevariable}}";
-{ % endfor % }
+{% endfor %}
 document.getElementById('sectionAxes').innerHTML = "";
 ch = ch + chbis + "<fieldset></form>";
 document.getElementById('sectionAxes').innerHTML = "";
@@ -653,9 +652,9 @@ ShowSectionCoordinates(tabvalues);
 })
 
         $("#viewPlotlyBW").click(function(){
-{ % if result.parameters.viabilityproblem.statedimension == 2 % }
+{% if result.parameters.viabilityproblem.statedimension == 2 %}
 var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
-{ % if resultformat.name == 'bars' % }
+{% if resultformat.name == 'bars' %}
 document.getElementById('viewPanelBW').innerHTML = "";
 var x = document.getElementById("ppa").value;
 var container = document.getElementById('viewPanelBW');
@@ -663,17 +662,17 @@ var colormarker = 'rgb(255,0,0,0.4)';
 var colorline = 'rgba(128, 0, 128, 1)';
 var fillcolor = 'rgba(128, 0, 128, 0.7)';
 bargridPlot(url, x, container, colormarker, colorline, fillcolor);
-{ % elif resultformat.name == 'kdtree' % }
+{% elif resultformat.name == 'kdtree' %}
 document.getElementById('viewPanelBW').innerHTML = "";
 var container = document.getElementById('viewPanelBW');
 var colormarker = 'rgb(255,0,0,0.4)';
 var colorline = 'rgba(128, 0, 128, 1)';
 var fillcolor = 'rgba(128, 0, 128, 0.7)';
 kdtreePlot(url, container, colormarker, colorline, fillcolor);
-{ % endif % }
-{ % elif result.parameters.viabilityproblem.statedimension == 3 % }
+{% endif %}
+{% elif result.parameters.viabilityproblem.statedimension == 3 %}
 var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
-{ % if resultformat.name == 'bars' % }
+{% if resultformat.name == 'bars' %}
 document.getElementById('viewPanelBW').innerHTML = "";
 var x = document.getElementById("ppa").value;
 var container = document.getElementById('viewPanelBW');
@@ -681,7 +680,7 @@ var colormarker = 'rgb(255,0,0,0.4)';
 var colorline = 'rgba(128, 0, 128, 1)';
 var fillcolor = 'rgba(128, 0, 128, 0.7)';
 bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
-{ % elif resultformat.name == 'kdtree' % }
+{% elif resultformat.name == 'kdtree' %}
 document.getElementById('viewPanelBW').innerHTML = "";
 var x = document.getElementById("ppa").value;
 var container = document.getElementById('viewPanelBW');
@@ -689,12 +688,12 @@ var colormarker = 'rgb(255,0,0,0.4)';
 var colorline = 'rgba(128, 0, 128, 1)';
 var fillcolor = 'rgba(128, 0, 128, 0.7)';
 kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor);
-{ % endif % }
+{% endif %}
 
-{ % endif % }
+{% endif %}
 });
 $("#viewPlotlyColor").click(function(){
-{ % if result.parameters.viabilityproblem.statedimension == 2 % }
+{% if result.parameters.viabilityproblem.statedimension == 2 %}
 var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
         document.getElementById('viewPanel').innerHTML = "";
 x = document.getElementById("distanceppa").value;
@@ -731,7 +730,7 @@ items.marker.color.push(bar[2]);
 var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
 Plotly.newPlot(container, [items], layout);
 })}
-{ % elif result.parameters.viabilityproblem.statedimension == 3 % }
+{% elif result.parameters.viabilityproblem.statedimension == 3 %}
 var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
         document.getElementById('viewPanel').innerHTML = "";
 x = document.getElementById("distanceppa").value;
@@ -775,7 +774,7 @@ var layout = {showlegend: false, margin:{t:10}, scene : {xaxis:{range : xbounds}
 Plotly.newPlot(container, [items], layout);
 })}
 
-{ % endif % }
+{% endif %}
 });
 $("#viewHisto").click(function(){
 var url = "{% url 'sharekernel:ViNOHistogramDistance' result.id 'N' 'N' %}";
