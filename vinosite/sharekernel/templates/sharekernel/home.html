@@ -1,54 +1,47 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block body %}
 
-	<div id="container">
-		<div id="row"><div class="col-sm-12">
-
-			<p>Share Your Kernel is a platform on numerical methods to solve viability problems.<p>
-			<p>The interest of this platform is to show the results obtained on different problems, from simple to complex, and 
-			 to encourage the comparison of results of the different methods and softwares.</p>
-			<p>The aim is to stimulate trade and allow better selection of methods according to the characteristics of the viability problems under consideration,
- 			which will facilitate the application to concrete problems. </p>
-                    </div></div>
-            <div id="row"><div class="col-sm-6">
-			<a href="{% url 'sharekernel:kerneluploadpage' %}">Upload your kernel</a> and benefit from the platform services : 
-
-				<ul>
-				<li>	visualisation including the computation of the distance to the boundary (in progress)</li>
-				<li>	comparison with kernels obtained by other algorithms (in progress) </li>
-				<li>	viable evolution design (to do) </li>
-				<li>	automated test of your results (to do)</li> 
-				<li>	persistent URL (to do)</li>
- 				</div>
-			<div class="col-sm-6">
-                            <p>
-                                <a href="{% url 'sharekernel:visitcategorylist' %}">
-                                    Visit the database</a> gathering viability kernels from many fields ...
-                            </p>
-                            <p>
-                                <a href="{% url 'sharekernel:results_tree' %}">View the database as a tree</a>
-                            </p>
-			 </div>
+<div class="container">
+    <div class="jumbotron">
+        <img class="img-responsive pull-left"  src="{% static 'sharekernel/images/noyau.png' %}" /><h1>Share your kernel!</h1>
+        <p>Share Your Kernel is a platform on numerical methods to solve viability problems.<p>
+        <p>The interest of this platform is to show the results obtained on different problems, from simple to complex, and 
+            to encourage the comparison of results of the different methods and softwares.</p>
+        <p>The aim is to stimulate trade and allow better selection of methods according to the characteristics of the viability problems under consideration,
+            which will facilitate the application to concrete problems. </p>
+    </div>
+    <div id="row"><div class="col-sm-8 col-sm-offset-2">
+            <a href="{% url 'sharekernel:kerneluploadpage' %}">Upload your kernel</a> and benefit from the platform services : 
+            <ul>
+                <li>	visualisation including the computation of the distance to the boundary</li>
+                <li>	comparison with kernels obtained by other algorithms (in progress) </li>
+                <li>	viable evolution design (to do) </li>
+                <li>	automated test of your results (to do)</li> 
+                <li>	persistent URL (to do)</li>
+            </ul>
+            {% if lastkernels %}
+            <div class="panel panel-default">
+                <div class="panel-heading">Last uploaded kernels</div>
+                <div class="panel-body">
+                    <ul class="kernelslist">
+                        {% for kernel in lastkernels %}
+                        <li><a href="{% url 'sharekernel:visitresult' kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
+                        {% endfor %}
+                    </ul>
                 </div>
-
-                        {% if lastkernels %}
-            <div id="row"><div class="col-sm-6">
-                               <div class="panel panel-default">
-            <div class="panel-heading">Last kernels</div>
-            <div class="panel-body">
-                                                    <ul class="kernelslist">
-                            {% for kernel in lastkernels %}
-                            <li><a href="{% url 'sharekernel:visitresult' kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
-                            {% endfor %}
-                            </ul>
-                                             </div>
-                </div></div>
-                        {% endif %}                        
-
-		<!-- close #main content -->
-		</div>
-	<!-- close #container -->
-	</div>
+            </div>
+            {% endif %}                        
+            <p>
+                <a href="{% url 'sharekernel:visitcategorylist' %}">
+                    Visit the database</a> gathering viability kernels from many fields ...
+            </p>
+            <p>
+                <a href="{% url 'sharekernel:results_tree' %}">View the database as a tree</a>
+            </p>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
