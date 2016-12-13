@@ -105,35 +105,6 @@ def visitresult(request,result_id):
     if f.parameterlist.split(",")[0]!="none":
         for i in range(len(f.parameterlist.split(","))):
             formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
-
-    '''
-    r_list = Results.objects.filter(parameters = p)
-    if r_list:
-        tabvaluesbisbis = []
-        tabvaluesbis = []
-        for i in range(len(vp.dynamicsparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
-        for i in range(len(vp.stateconstraintparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
-        for i in range(len(vp.targetparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-
-
-        tabvaluesbis.append(tabvaluesbisbis)
-        tabvaluesbisbis = []
-#!!!!! c est pas Results a la ligne suivante
-        rr_list = Results.objects.filter(parameters = p,algorithm = a)
-        tabvaluesbisbis = []
-        if rr_list:
-            for r in rr_list:
-                tabvaluesbisbis.append(r)
-        else:
-            tabvaluesbisbis.append("None")
-            tabvaluesbis.append(tabvaluesbisbis)
-            tabvaluesbisbis = []
-        tabvalues.append(tabvaluesbis)
-        tabvaluesbis = []
-    '''    
     version = []
     if a.version!="none":
         version.append(a.version)

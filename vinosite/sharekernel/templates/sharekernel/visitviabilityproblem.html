@@ -22,66 +22,7 @@
                 </div>
             </div>
         </div></div>
-    <div class="row">
-        <div class="col-sm-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">Model</div>
-                <div class="panel-body">
-                    Dimension of the state space : {{viabilityproblem.statedimension}}
-                    <ul>
-                        {% for i in stanaab%}
-                        <li>  {{i}}</li>
-                        {% endfor %}
-                    </ul>
-
-                    Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
-
-                    <ul>
-                        {% for i in connaab%}
-                        <li>  {{i}}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">Dynamics</div>
-                <div class="panel-body">
-                    {% for i in dyndes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br>
-                    {% for i in adcondes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br><br>
-                    Parameters : {{viabilityproblem.dynamicsparameters}}<br>
-                </div></div>
-        </div>
-        <div class="col-sm-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">Constraints</div>
-                <div class="panel-body">
-                    {% for i in stacondes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br><br>
-                    Parameters : {{viabilityproblem.stateconstraintparameters}}<br>
-                </div></div></div>
-        {% if tardes%}
-        <div class="col-sm-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">Target</div>
-                <div class="panel-body">
-                    {% for i in tardes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br><br>
-                    Parameters :  {{viabilityproblem.targetparameters}} <br>
-                </div></div></div>
-        {% endif %}
-    </div>
+        {% include 'sharekernel/viabilityproblem_mathinfo.html' %}
     <!-- this layer solve some issue about the css design, forced the #main layer height equal to height of two column layer (#columnt_left and #column_right) inside itself -->
     <div class="spacer"></div>
 

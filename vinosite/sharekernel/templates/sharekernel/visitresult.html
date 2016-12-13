@@ -3,120 +3,54 @@
 {% block body %}
 
 <div id="container">
-    <div id="row"><div class="col-sm-12">
-            <ol class="breadcrumb">
-                <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
-                {% if category %}
-                <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
-                {% endif %}
-                <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
-            </ol>
-            <div id="main">
-                <h4>{{viabilityproblem.category.category_text}}</h4>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+        {% if category %}
+        <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
+        {% endif %}
+        <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
+    </ol>
+    <div id="main">
+        <h1>{{result.title}}
+            <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:editresult' result.id %}" role="button">
+                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+            </a>
+        </h1>
+        <div id="row">
+            <div class="col-sm-12">
+                <div id="row">
+                    <div class="col-sm-6">
+                        <p class="btn-group" role="group" aria-label="Actions">
+                            <a class="btn btn-default btn-sm" href="{% url 'sharekernel:visualizeresult' result.id %}" role="button">Visualize</a>
+                            <a class="btn btn-default btn-sm" href="{% url 'sharekernel:visualizeresulttrajectories' result.id %}" role="button">Trajectories</a>
+                            <a class="btn btn-default btn-sm" href="#" id="comparebutton" role="button">Compare with …</a>
+                        </p>
+                        <p>This result was posted by <a href="mailto:{{result.contactemail}}" title="Contact by e-mail">{{result.author}}</a> on {{result.submissiondate}}.</p>
+                        <p> It was computed thanks to {{algorithm.name}} {% if version %} version {{algorithm.version}} {% endif %} implemented by {{algorithm.author}} {% if publication %} described in 
+                            <i>{{algorithm.publication}}</i>{% endif%}. {% if website %}More information is available at {{algorithm.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{algorithm.softwarecontact}}.{% endif %}</p>
+                        <p>{% if softparval %} The software parameter values were the following : {% for i in softparval%} {{i}} {% endfor %}.{% else %} The software parameter values are not specified.{% endif %}</p>
 
-                <h2>{{result.title}}</h2>
-                <p>This result was posted by {{result.author}} on {{result.submissiondate}} whose contact email is {{result.contactemail}}.</p>
-                <p> It was computed thanks to {{algorithm.name}} {% if version %} version {{algorithm.version}} {% endif %} implemented by {{algorithm.author}} {% if publication %} described in 
-                    <i>{{algorithm.publication}}</i>{% endif%}. {% if website %}More information is available at {{algorithm.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{algorithm.softwarecontact}}.{% endif %}</p>
-                <p>{% if softparval %} The software parameter values were the following : {% for i in softparval%} {{i}} {% endfor %}.{% else %} The software parameter values are not specified.{% endif %}</p>
-
-                <p>The format of the result file uploaded on this platform is the following : <br>{{resultformat.description}}</p>
-                <p>The file format parameter values are the following : 
-                <ul>
-                    {% for format in formatparval %}
-                    <li>{{format}}</li>
-                    {% endfor %}
-                </ul></p>
-                <p><a href="{% url 'sharekernel:editresult' result.id %}">Edit metadata</a></p>
-                <p><a href="{% url 'sharekernel:visualizeresulttrajectories' result.id %}" id="visualizetrajectoriesbutton">Visualize trajectories</a></p>
-                <p><a href="{% url 'sharekernel:visualizeresult' result.id %}" id="visualizebutton">Visualize</a></p>
-                <p><a href="#" id="comparebutton">Compare with …</a></p>
-                <div id="comparison-selection-box">
-                    <p class="validateTips">Please select a ViNO to start a comparison:</p>
-                    <ul>
-                        {% for kernel in allkernels %}
-                        <li><a href="{% url 'sharekernel:compareresult' result.id kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
-                        {% endfor %}
-
-                    </ul>
+                        <p>The format of the result file uploaded on this platform is the following : <br>{{resultformat.description}}</p>
+                        <p>The file format parameter values are the following : 
+                        <ul>
+                            {% for format in formatparval %}
+                            <li>{{format}}</li>
+                            {% endfor %}
+                        </ul></p>
+                    </div>
+                    <div class="col-sm-6">
+                    </div>
                 </div>
-
-                <h4> Model :</h4>
-                Dimension of the state space : {{viabilityproblem.statedimension}}
-
-                <ul>
-                    {% for i in stanaab%}
-                    <li>  {{i}}</li>
-                    {% endfor %}
-                </ul>
-
-                Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
-
-                <ul>
-                    {% for i in connaab%}
-                    <li>  {{i}}</li>
-                    {% endfor %}
-                </ul>
-
-
-                <div class="little_block"><h4> Dynamics :</h4>
-
-                    {% for i in dyndes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br>
-                    {% for i in adcondes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br>
-                    Parameters : 
-                    <ul>
-                        {% for i in dynparval %}
-                        <li> {{i}}</li>
-                        {% endfor %}
-                    </ul>
-
-
-
-
-
-
-                </div>
-                <div class="little_block">  
-                    <h4> Constraints :</h4>
-
-                    {% for i in stacondes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br>
-                    Parameters : 
-                    <ul>
-                        {% for i in staconparval %}
-                        <li> {{i}}</li>
-                        {% endfor %}
-                    </ul>
-
-
-
-                </div>
-                {% if tardes%}
-                <div class="little_block">  
-                    <h4> Target :</h4>
-
-                    {% for i in tardes%}
-                    {{ i }}<br>
-                    {% endfor %}
-                    <br><br>
-                    Parameters :  
-                    <ul>
-                        {% for i in tarparval %}
-                        <li> {{i}}</li>
-                        {% endfor %}
-                    </ul>
-
-                </div>
-                {% endif %}
             </div>
+        </div>
+        {% include 'sharekernel/viabilityproblem_mathinfo.html' %}
+        <div id="comparison-selection-box">
+            <p class="validateTips">Please select a ViNO to start a comparison:</p>
+            <ul>
+                {% for kernel in allkernels %}
+                <li><a href="{% url 'sharekernel:compareresult' result.id kernel.id %}" kernelid="{{kernel.id}}">{{kernel.parameters.viabilityproblem.title}} - {{kernel.author}} - {{kernel.submissiondate}}</a></li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </div>
