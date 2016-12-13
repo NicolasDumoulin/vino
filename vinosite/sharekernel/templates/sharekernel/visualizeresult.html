@@ -19,64 +19,61 @@
                 <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
                 <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
             </ol>
-
+            
+            <h1>Visualization</h1>
             {% if result.parameters.viabilityproblem.statedimension < 4 %}
-            <p><input type="submit" id="viewPlotlyBW" value="View ViNO with plotly.js " /> with <input id="ppa"> points per axis 
-                {% if result.parameters.viabilityproblem.statedimension == 3 %}
-                (max : 150)
-
-                {% else %}
-
-                (max : 1000)
-
-                {% endif %}
-
-            </p>
-
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="ppa">points per axis 
+                        {% if result.parameters.viabilityproblem.statedimension == 3 %}(max : 150){% else %}(max : 1000){% endif %}</label>
+                    <input type="text" class="form-control" id="ppa" value="50">
+                </div>
+                <button id="viewPlotlyBW" class="btn btn-primary">View Vino</button>
+            </div>
             <div id="viewPanelBW"></div>
             <div id='loading' style='display:none'>
                 <img src="{% static 'sharekernel/images/ajax-loader.gif' %}"/>
             </div>
-            <p><input type="submit" id="viewPlotlyColor" value="View distance colored ViNO with plotly.js" /> with <input id="distanceppa"> points per axis 
-
-                {% if result.parameters.viabilityproblem.statedimension == 3 %}
-                (max : 150)
-
-                {% else %}
-
-                (max : 200)
-
-                {% endif %}
-            </p>
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="distanceppa">points per axis 
+                        {% if result.parameters.viabilityproblem.statedimension == 3 %}(max : 150){% else %}(max : 200){% endif %}</label>
+                    <input type="text" class="form-control" id="distanceppa" value="50">
+                </div>
+                <button id="viewPlotlyColor" class="btn btn-primary">View distance</button>
+            </div>
             <div id="viewPanel"></div>
-
             {% endif %}
 
             {% if result.parameters.viabilityproblem.statedimension > 2 %}
-            <p>    
-                <input type="submit" id="viewPlotlyColorSection" value="View distance colored ViNO 2D-section with plotly.js" /> with <input id="sectiondistanceppa"> points per axis (max : 200)<br>
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="sectiondistanceppa">points per axis (max : 200)</label>
+                    <input type="text" class="form-control" id="sectiondistanceppa" value="50">
+                </div>
+                <button id="viewPlotlyColorSection" class="btn btn-primary">View distance 2D-section</button>
+            </div>
             <div id="sectionDirections"></div>
             <div id="sectionAxes"></div>
             <div id="sectionSliders"></div>
             <div id="sliderValues"></div>
-
-
-
-            </p>
             <div id="viewSectionPanel"></div>
 
             {% endif %}
 
-            <p><input type="submit" id="viewHisto" value="View Distance Histogram with plotly.js" /> with <input id="distancehistoppa"> points per axis (max : 200) and with maximum value <input id="maxvalue"></p>
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="distancehistoppa">points per axis (max : 200)</label>
+                    <input type="text" class="form-control" id="distancehistoppa" value="50">
+                </div>
+                <button type="submit" id="viewHisto" class="btn btn-primary">View distance histogram</button>
+            </div>
             <div id="histo"></div>
             <div id="labels"></div>
             <div class="spacer"></div>
-
-
-            <!-- close #main content -->
         </div>
-        <!-- close #container -->
-    </div></div>
+    </div>
+</div>
 
 <script type="text/javascript">
 
@@ -650,7 +647,9 @@ ShowSectionCoordinates(tabvalues);
 var tabvalues = ['(x,y)', '(y,x)'];
 ShowSectionCoordinates(tabvalues);
 })
-
+$("#plopbtn").click(function(){
+    console.log('plop');
+});
         $("#viewPlotlyBW").click(function(){
 {% if result.parameters.viabilityproblem.statedimension == 2 %}
 var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
