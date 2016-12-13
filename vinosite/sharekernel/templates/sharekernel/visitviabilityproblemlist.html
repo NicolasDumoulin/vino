@@ -2,35 +2,35 @@
 
 {% block body %}
 <div id="container">
-		<div id="row"><div class="col-sm-12">
-			Several viability kernel approximations have been obtained in many fiels.<br>
- 
-			The viability kernel approximations available on this website have been posted by their authors.<br> They 
-			either have been published in scientific revues or show the efficiency of approximation algorithms and softwares used to compute them. <br><br>
-			They are classified into the following categories :<br><br>
+    <div id="row"><div class="col-sm-12">
+            Several viability kernel approximations have been obtained in many fiels.<br>
 
-			{% if category_list %}
-			    <ul>
-    				{% for category in category_list %}
-        				<li><a href="{% url 'sharekernel:visitviabilityproblemlist' category.id %}">{{ category.text }}</a></li>
-					{% if category.id in t  %}
-		    			<ul>
-    					{% for viabilityproblem in viabilityproblem_list %}
-        				<li><a href="{% url 'sharekernel:visitviabilityproblem' viabilityproblem.id %}">{{ viabilityproblem.title }}</a></li>
-			    		{% endfor %}
-    				</ul>
+            The viability kernel approximations available on this website have been posted by their authors.<br> They 
+            either have been published in scientific revues or show the efficiency of approximation algorithms and softwares used to compute them. <br><br>
+            They are classified into the following categories :<br><br>
 
-				{% endif %}
-    				{% endfor %}
-				    </ul>
-				{% else %}
-    				<p>No categories are available.</p>
-				{% endif %}
+            {% if category_list %}
+            <ul>
+                {% for category in category_list %}
+                <li><a href="{% url 'sharekernel:visitviabilityproblemlist' category.id %}">{{ category.text }}</a></li>
+                {% if category.id in t  %}
+                <ul>
+                    {% for viabilityproblem in viabilityproblem_list %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblem' viabilityproblem.id %}">{{ viabilityproblem.title }}</a></li>
+                    {% endfor %}
+                </ul>
+
+                {% endif %}
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No categories are available.</p>
+            {% endif %}
 
 
 
- 
-			 </div>
-		</div>
-	</div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}
