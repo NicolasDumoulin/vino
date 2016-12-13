@@ -731,8 +731,8 @@ function makeGraph() {
         value = content[0];
         item.innerHTML = value;
         if (parseInt(value) > maxvalue){
-        value = maxvalue + 10;
-        item.style.borderTop = "1px dotted white";
+            value = maxvalue + 10;
+            item.style.borderTop = "1px dotted white";
         }
         item.style.top = (199 - value * 200 / maxvalue) + "px";
         item.style.left = (i * 61 + 20) + "px";
@@ -740,7 +740,6 @@ function makeGraph() {
         item.style.width = 60 + "px";
         item.style.visibility = "visible";
         left = (i * 60 + 120) + "px";
-//	labels.innerHTML = labels.innerHTML + content[1];
         var ecart = "";
         if (parseInt(content[1]) < 10) ecart = "25";
         else if (parseInt(content[1]) < 100) ecart = "21";
