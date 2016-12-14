@@ -1,4 +1,5 @@
 django==1.9.7
+docutils
 django-jfu
 django-bootstrap3
 Equation
