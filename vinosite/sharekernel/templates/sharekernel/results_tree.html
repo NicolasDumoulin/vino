@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
+{% load sort_by %}
 
 {% block body %}
 
@@ -16,72 +17,82 @@
 			</div>
         <div class="tab-content">
         <div class="tab-pane active" id="tree-problem-view">
-                {% for problem in problems %}
-                    <li><span class="label label-default" title="Viability problem">VP</span>
-                        <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }}</a> :
-                    <ul>
-                    {% for param in problem.parameters_set.all %}
-                        <li><span class="label label-default" title="Problem parameters (settings)">S</span>
-                           {{ param.pk }} -  {{ param.dynamicsparametervalues }}
-                        </li>
-                        {% regroup param.results_set.all by algorithm as resultsbyalgorithm %}
-                        <ul>
-                        {% for resultbyalgorithm in resultsbyalgorithm %}
-                            <li><span class="label label-default" title="Algorithm">A</span> {{ resultbyalgorithm.grouper.name }} v.{{ resultbyalgorithm.grouper.version }}</li>
-                                <ul>
-                                {% for result in resultbyalgorithm.list %}
-                                    <li><span class="label label-default" title="Viability results">R</span>
-                                        <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.name }})</a>
-                                    </li>
-                                {% endfor %}
-                                <li><span class="label label-default" title="Viability results">R</span>
-                                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbyalgorithm.grouper.id %}" role="button">
-                                        <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
-                                    </a>
-                                </li>                    
-                                </ul>
-                        {% endfor %}
-                            <li><span class="label label-default" title="Viability results">A</span>
-                                <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
-                                </a>
-                            </li>
-                        </ul>
-                    {% endfor %}
-                    <li><span class="label label-default" title="Problem parameters (settings)">S</span>
-                        <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' problem.pk %}" role="button">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
-                        </a>
-                    </li>                    
-                    </ul>
-                    </li>
-                {% endfor %}
+            <ul>
                 <li><span class="label label-default" title="Viability problem">VP</span>
                     <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new problem
                     </a>
                 </li>
+                {% for problem in problems %}
+                    <li><span class="label label-default" title="Viability problem">VP</span>
+                        <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }} ({{problem.statedimension}}-D)</a> :
+                    <ul>
+                        {% for param in problem.parameters_set.all %}
+                            <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                               {{ param.pk }} -  {{ param.dynamicsparametervalues }}
+                            </li>
+                            {% regroup param.results_set.all by algorithm as resultsbyalgorithm %}
+                            <ul>
+                            {% for resultbyalgorithm in resultsbyalgorithm %}
+                                <li><span class="label label-default" title="Algorithm">A</span> {{ resultbyalgorithm.grouper.name }} v.{{ resultbyalgorithm.grouper.version }}</li>
+                                    <ul>
+                                    {% for result in resultbyalgorithm.list %}
+                                        <li><span class="label label-default" title="Viability results">R</span>
+                                            <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.name }})</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li><span class="label label-default" title="Viability results">R</span>
+                                        <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbyalgorithm.grouper.id %}" role="button">
+                                            <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
+                                        </a>
+                                    </li>                    
+                                    </ul>
+                            {% endfor %}
+                            </ul>
+                        {% endfor %}
+                        <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                            <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' problem.pk %}" role="button">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
+                            </a>
+                        </li>                    
+                    </ul>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>            
         <div class="tab-pane" id="tree-algorithm-view">
-                <ul>
+            <ul>
+                <li><span class="label label-default" title="Viability results">A</span>
+                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
+                    </a>
+                </li>
                 {% for algo in algorithms %}
                     <li><span class="label label-default" title="Algorithm">A</span> {{ algo.name }} - v.{{ algo.version }} :
-                    {% regroup algo.results_set.all by parameters as resultsbyparam %}
+                    {% regroup algo.results_set.all|sort_by:'parameters' by parameters as resultsbyparam %}
                     {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}
                     <ul>{% for resultbyvp in resultsbyvp %}
                         <li><span class="label label-default" title="Viability problem">VP</span>
-                            {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}
+                            <a href="{% url 'sharekernel:visitviabilityproblem' resultbyvp.grouper.pk %}">
+                                {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}
+                            </a>
                         </li>
                         <ul>
                             {% for resultbyparam in resultsbyparam %}
+                            {% ifequal resultbyparam.grouper.viabilityproblem.pk resultbyvp.grouper.pk %}
                                 <li><span class="label label-default" title="Problem parameters (settings)">S</span>
                                     {{ resultbyparam.grouper.pk }} - {{ resultbyparam.grouper.dynamicsparametervalues }}
                                 </li>
                                 <ul>
                                     {% for result in resultbyparam.list %}
-                                        <li><span class="label label-default" title="Viability results">R</span> {{ result.title }} ({{ result.resultformat.name }})</li>
+                                    <li><span class="label label-default" title="Viability results">R</span>
+                                        <a href="{% url 'sharekernel:visitresult' result.pk %}">
+                                            {{ result.title }} ({{ result.resultformat.name }})
+                                        </a>
+                                    </li>
                                     {% endfor %}
                                 </ul>
+                            {% endifequal %}
                             {% endfor %}
                             <li><span class="label label-default" title="Problem parameters (settings)">S</span>
                                 <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' resultbyvp.grouper.pk %}" role="button">
@@ -90,19 +101,9 @@
                             </li>                    
                         </ul>
                     {% endfor %}
-                    <li><span class="label label-default" title="Viability problem">VP</span>
-                        <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new problem
-                        </a>
-                    </li>
                     </ul>
                     </li>
                 {% endfor %}
-                <li><span class="label label-default" title="Viability results">A</span>
-                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
-                    </a>
-                </li>
             </ul>
         </div>            
     </div>
