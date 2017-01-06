@@ -9,6 +9,8 @@ class Document(models.Model):
 class Category(models.Model):
     text = models.CharField(max_length=200)
     color = models.IntegerField(default=0)
+    def __str__(self):
+        return str(self.pk) + " " + self.text
 
 class ViabilityProblem(models.Model):
     category = models.ForeignKey(Category, null = True)
@@ -67,7 +69,7 @@ class Algorithm(models.Model):
     author = models.CharField(max_length=200,default =0)
     version = models.CharField(max_length=20,default=0)
     publication = models.TextField(max_length=1000,default =0)
-    softwarewebsite = models.GenericIPAddressField(default=0)
+    softwarewebsite = models.URLField(default=0)
     softwarecontact = models.EmailField(default=0)
     softwareparameters = models.CharField(max_length=500,default = 0)
     def __str__(self):
@@ -114,6 +116,9 @@ class ResultFormat(models.Model):
     name = models.CharField(max_length=200,default = 0)
     description = models.TextField(max_length=2000,default = 0)
     parameterlist = models.CharField(max_length=500,default = 0)
+    
+    def __str__(self):
+        return str(self.pk) + " " + self.name
     
     def toDict(self):
         '''

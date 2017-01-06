@@ -12,13 +12,18 @@
 
 {% block body %}
 
-<div class="container">
-		<div id="topbar"> 
-		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a>  <a href="{% url 'sharekernel:visitresult'  result.id %}">Up</a></div>
-<a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a> >  <a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a>
-> <a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a><br><br>
-
+<div id="container">
+		<div id="row"><div class="col-sm-12">
+<ol class="breadcrumb">
+                    <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+                    {% if category %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
+                    <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
+                </ol>
+                    </div></div>
+    <div id="row"><div class="col-sm-6">
             <form id="controlinputform" method="post" action="{% url 'sharekernel:controltostate' result.id %}">
             {% csrf_token %}
              <p id='controlinputtext'>
@@ -39,13 +44,10 @@
             </form>
     <div id="info">Click on graph below to draw piecewise linear control functions : </div>        
     <div id="infobis">Clik on a graph point to remove it : </div>        
-    
+    <div id="controltrajectories" onmouseout= "erasepink();" onmousemove = "positioncurseur(event);" onclick = "addcursorpoint();"></div>
 
-    <div class="row">
-        <div class="col-md-8">     <div id="controltrajectories" onmouseout= "erasepink();" onmousemove = "positioncurseur(event);" onclick = "addcursorpoint();"></div>
-
-        </div>
-        <div class="col-md-4">
+</div>
+        <div class="col-sm-6">
             <div id="viewPanel"><div id="statetrajectories"></div></div>
         </div>
     </div>

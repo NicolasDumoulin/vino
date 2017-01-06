@@ -29,4 +29,3 @@ And then, start the server in debug mode:
 You can now add a breackpoint anywhere in your code with `import pdb; pdb.set_trace()`
 
 See also this tutorial for using the debugger pdb https://mike.tig.as/blog/2010/09/14/pdb/
-  

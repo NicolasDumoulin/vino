@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404,render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import  ensure_csrf_cookie
 from sharekernel.models import Document, Category, ViabilityProblem, Algorithm, Parameters,Results,ResultFormat 
 from sharekernel.forms import DocumentForm, TrajForm
@@ -16,7 +15,7 @@ from django.views.decorators.http import require_POST
 import os
 import METADATA
 from datetime import datetime
-from forms import ViabilityProblemForm, MetadataFromListForm
+from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, AlgorithmForm
 
 import json
 import tempfile
@@ -52,7 +51,10 @@ def visitviabilityproblemlist(request,category_id):
 def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
     p = r.parameters
-    vp = p.viabilityproblem    
+    if not p or not r.algorithm:
+        r=Results.objects.get(id=result_id)    
+        return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
+    vp = p.viabilityproblem
     stanaab = []
     connaab = []
     dynparval = []
@@ -103,35 +105,6 @@ def visitresult(request,result_id):
     if f.parameterlist.split(",")[0]!="none":
         for i in range(len(f.parameterlist.split(","))):
             formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
-
-    '''
-    r_list = Results.objects.filter(parameters = p)
-    if r_list:
-        tabvaluesbisbis = []
-        tabvaluesbis = []
-        for i in range(len(vp.dynamicsparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
-        for i in range(len(vp.stateconstraintparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
-        for i in range(len(vp.targetparameters.split(","))):
-            tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-
-
-        tabvaluesbis.append(tabvaluesbisbis)
-        tabvaluesbisbis = []
-#!!!!! c est pas Results a la ligne suivante
-        rr_list = Results.objects.filter(parameters = p,algorithm = a)
-        tabvaluesbisbis = []
-        if rr_list:
-            for r in rr_list:
-                tabvaluesbisbis.append(r)
-        else:
-            tabvaluesbisbis.append("None")
-            tabvaluesbis.append(tabvaluesbisbis)
-            tabvaluesbisbis = []
-        tabvalues.append(tabvaluesbis)
-        tabvaluesbis = []
-    '''    
     version = []
     if a.version!="none":
         version.append(a.version)
@@ -161,12 +134,14 @@ def visitviabilityproblem(request,viabilityproblem_id):
     index = 0
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
-        stanaab.append(''.join([j[0]," : ",j[1]]))
-        dyndes[index] = j[1]+"' = "+dyndes[index]
-        index = index+1
+        if len(j)>1:
+            stanaab.append(''.join([j[0]," : ",j[1]]))
+            dyndes[index] = j[1]+"' = "+dyndes[index]
+            index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
-        connaab.append(''.join([j[0]," : ",j[1]]))
+        if len(j)>1:
+            connaab.append(''.join([j[0]," : ",j[1]]))
    
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
@@ -764,9 +739,12 @@ def compareresultbis(request, vinoA_id, vinoB_id):
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
-def kerneluploadpage(request):
+def kerneluploadpage(request, parameters_id=None, algorithm_id=None):
     form = DocumentForm()
-    context = { 'form': form} 
+    context = { 'form': form,
+        'parameters_id' : parameters_id,
+        'algorithm_id' : algorithm_id,
+        }
     return render(request, 'sharekernel/kernelupload.html', context)
 
 def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
@@ -1140,8 +1118,67 @@ def controltostate(request,result_id):
             return HttpResponse(out_json)
         return HttpResponse("Pas POST")
     return HttpResponse("Pas POST")
+    
+def results_tree(request):
+    return render(request, 'sharekernel/results_tree.html', {
+        'problems':ViabilityProblem.objects.all(),
+        'parameters':Parameters.objects.all(),
+        'algorithms':Algorithm.objects.all(),
+        'results':Results.objects.all(),
+        'problemform': ViabilityProblemForm()
+        })            
 
+def newproblem(request, viabilityproblem_id=None):
+    page_title = 'Create a new viability problem'
+    if request.method == 'POST':
+        form = ViabilityProblemForm(request.POST)
+        if form.is_valid():
+            problem = form.save()
+            return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[problem.pk]))
+    else:
+        if viabilityproblem_id:
+            page_title = 'Edit a viability problem'
+            form = ViabilityProblemForm(instance=ViabilityProblem.objects.get(id=viabilityproblem_id))
+        else:
+            form = ViabilityProblemForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
+     
+def newalgorithm(request):
+    if request.method == 'POST':
+        form = AlgorithmForm(request.POST)
+        if form.is_valid():
+            algorithm = form.save()
+            # TODO redirect to a view of the submitted algorithm
+            return HttpResponseRedirect(reverse('sharekernel:home'))
+    else:
+        form = AlgorithmForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new algorithm','form': form})            
+    
+def newparameters(request, viabilityproblem_id):
+    vp = ViabilityProblem.objects.get(id=viabilityproblem_id)
+    page_title = 'Add new parameters for the viability problem "'+vp.title+'"'
+    if request.method == 'POST':
+        form = ParametersForm(request.POST)
+        if form.is_valid():
+            parameters = form.save()
+            return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[parameters.viabilityproblem.pk]))
+    else:
+        form = ParametersForm(initial={'viabilityproblem':vp})
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
 
+def editresult(request, result_id):
+    if request.method == 'GET':
+        result = Results.objects.get(id=result_id)
+        # TODO ModelChoiceField for selecting foreign keys
+        form = ResultForm(instance=result)
+    elif request.method == 'POST':
+        form = ResultForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # TODO save and redirect
+            return HttpResponse("OK")
+    return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})            
+    
 from jfu.http import upload_receive, UploadResponse
 
 @require_POST
@@ -1158,9 +1195,15 @@ def kerneluploadfile(request):
     # If multiple files can be uploaded simulatenously,
     # 'file' may be a list of files.
     file = upload_receive(request)
+    resultFormat = None
+    parameters_id=request.POST['parameters_id'] # may be None
+    algorithm_id=request.POST['algorithm_id'] # may be None
     if "metadata" in request.POST:
         # in this case, the file has already been uploaded, and now we get missing metadata
-        metadata = {METADATA.statedimension: int(request.POST['statedimension'])}
+        metadata = {
+            METADATA.statedimension: int(request.POST['statedimension']),
+            METADATA.resultformat_name: request.POST['format'],
+        }
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
         hdf5manager.writeKernel(kernel, tmpfilename)
@@ -1175,7 +1218,9 @@ def kerneluploadfile(request):
                 tmpfile.write(chunk)
             tmpfile.close()
             kernel = loader.load(tmpfile.name)
-            if not kernel:
+            if kernel:
+                metadata = kernel.getMetadata()
+            else:
                 # try to detect viabilitree format
                 try:
                     with open(tmpfile.name, 'r') as f:
@@ -1201,9 +1246,11 @@ def kerneluploadfile(request):
                                             'userFilename' : file.name,
                                             "path": tmpfile.name,
                                             "metadata": resultFormat.toDict(),
+                                            "parameters_id": parameters_id,
+                                            "algorithm_id": algorithm_id,
                                             'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split()),
                                             'head': head,
-                                            'format': resultFormat,
+                                            'format': resultFormat.name,
                                             'callback': request.POST['callback']
                                         }).content
                                 })
@@ -1211,7 +1258,7 @@ def kerneluploadfile(request):
                         #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})                       
                 except Exception as e:
                     # unable to detect a valid format so displaying the doc TODO
-                    return UploadResponse( request, {"error": "No valid format."})                    
+                    return UploadResponse( request, {"error": "No valid format.", "exception":e})                    
                 return UploadResponse( request, {"error": "No valid format"})
         except Exception as e:
             return UploadResponse( request, {'error':str(e)})
@@ -1222,15 +1269,35 @@ def kerneluploadfile(request):
             # kernel loaded, we bring the metadata to the user
             # we take care to not ask metadata about the results before to be sure to be able to read the file
             # for preventing bad experience if the user take time to complete useless forms
-            
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
-            result = findandsaveobject(Results, metadata, fields={
+            fields = {
                 "datafile": File(file),
                 "submissiondate": datetime.today()
-                })
+                }
+            warnings=[]
+            if parameters_id and parameters_id!="None":
+                try:
+                    fields["parameters"] = Parameters.objects.get(id=parameters_id)
+                except Parameters.DoesNotExist:
+                    warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
+            if algorithm_id and algorithm_id!="None":
+                try:
+                    fields["algorithm"] = Algorithm.objects.get(id=algorithm_id)
+                except Algorithm.DoesNotExist:
+                    warnings.append('Algorithm with id='+algorithm_id+' has disappeared!')
+            if not resultFormat:
+                try:
+                    resultFormat = ResultFormat.objects.get(name=metadata[METADATA.resultformat_name])
+                except ResultFormat.DoesNotExist:
+                    # TODO log this error that should be fixed by administrators!
+                    warnings.append('The format "'+metadata["resultformat.name"]+'" is unknown!')
+            fields["resultformat"] = resultFormat
+            result = findandsaveobject(Results, metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
                 'status': 'success',
+                # TODO displays warnings
+                'warnings': warnings,
                 'pk': result.pk
             })            
     return UploadResponse( request, {'error':'No file provided'})
