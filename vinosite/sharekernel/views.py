@@ -44,7 +44,7 @@ def viabilityproblem_carddata(vp):
 def home(request):
     context = {
         'lastkernels':Results.objects.order_by('-submissiondate')[:5],
-        'lastproblems':[viabilityproblemCarddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')[:5]]
+        'lastproblems':[viabilityproblem_carddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')[:5]]
         }
     return render(request, 'sharekernel/home.html', context)            
     
