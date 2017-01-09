@@ -1,0 +1,42 @@
+{% comment %}
+Displays information about a problem in a card format.
+This format is suitable for displaying several problems in a thumbnails/cards layout.
+{% endcomment %}
+<div class="col-md-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class=""><a href="{% url 'sharekernel:visitviabilityproblem' problem.value.id %}">{{ problem.value.title }}</a></h4>
+            <table class="resultscolours"><tr>
+                {% for format,results in problem.resultsByFormat.items %}
+                    {% for result in results %}
+                    <td class="{{format}}" title=" Format {{format}}">&nbsp;</td>
+                    {% endfor %}
+                {% endfor %}
+            </tr></table>
+            <p><strong>{{ problem.value.parameters_set.count }}</strong> parameters set{{ problem.value.parameters_set.count|pluralize }} - <strong>{{ problem.nbResults }}</strong> Vino{{problem.nbResults|pluralize }}</p>
+        </div>
+        <div class="panel-body">
+            {% comment %}
+            FIXME formatStats is empty
+            <p>{{ problem.formatStats }}</p>
+            <div class="format-stats-graph" style="width:100%">
+                {% for format,prop in problem.formatStats.items %}
+                <span class="format-color" style="width:{{prop}}%;background-color={% cycle '#90C3D4' '#D4A190' %};">&nbsp;</span>
+                {% endfor %}
+            </div>
+            {% endcomment %}
+            <ul class="list-unstyled">
+                <li><strong>{{ problem.value.statedimension }}D</strong> space</li>
+                <li><strong>{{ problem.value.controldimension }}D</strong> control</li>
+                <li><strong>?D</strong> perturbation</li>
+                <li>continuous or discrete time ?</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+.resultscolours { width:100%; }
+.resultscolours tr,.resultscolours td {height:8px;overflow: hidden; padding:0; line-height: 0; }
+table .bars { background-color:#90C3D4; }
+table .kdtree { background-color:#D4A190; }
+</style>

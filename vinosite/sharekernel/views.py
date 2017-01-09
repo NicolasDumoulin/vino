@@ -28,9 +28,23 @@ from django.http import HttpResponse
 hdf5manager = HDF5Manager([BarGridKernel])
 loader = Loader()
 
+def viabilityproblem_carddata(vp):
+    '''
+    Build the view data for displaying an information card about a viability problem.
+    '''
+    resultsByFormat = {}
+    nbResults = 0
+    for param in vp.parameters_set.all():
+        nbResults += len(param.results_set.all())
+        for result in param.results_set.all():
+            resultsByFormat.setdefault(result.resultformat.name,[]).append(result)
+    formatsStats={f:100*float(len(results))/nbResults for f,results in resultsByFormat.iteritems()}
+    return {'value':vp, 'nbResults':nbResults, 'resultsByFormat':resultsByFormat, 'formatsStats':formatsStats}
+
 def home(request):
     context = {
-        'lastkernels':Results.objects.order_by('-submissiondate')[:5]
+        'lastkernels':Results.objects.order_by('-submissiondate')[:5],
+        'lastproblems':[viabilityproblemCarddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')[:5]]
         }
     return render(request, 'sharekernel/home.html', context)            
     
