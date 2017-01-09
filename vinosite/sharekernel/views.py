@@ -1221,8 +1221,10 @@ def kerneluploadfile(request):
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
         hdf5manager.writeKernel(kernel, tmpfilename)
+        print 'oh1' 
     elif file:
         # in this case, we receive a file that we try to read
+        print 'oh2'
         try:
             tmpfile = tempfile.NamedTemporaryFile(delete=False)
             tmpfilename = tmpfile.name
@@ -1274,7 +1276,8 @@ def kerneluploadfile(request):
                 return UploadResponse( request, {"error": "No valid format"})
         except Exception as e:
             return UploadResponse( request, {'error':str(e)})
-    if kernel:                
+    if kernel:    
+            print 'oh3'            
             if not file:
                 file = open(tmpfilename,'r')
             # kernel loaded, we bring the metadata to the user
