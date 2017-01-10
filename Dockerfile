@@ -1,7 +1,7 @@
 FROM python:2.7-slim
 MAINTAINER Nicolas Dumoulin "nicolas.dumoulin@irstea.fr"
 
-RUN apt-get update && apt-get install -y libhdf5-dev python-numpy python-pip ipython
+RUN apt-get update && apt-get install -y libhdf5-dev python-numpy python-pip ipython && pip install --upgrade pip
 
 ENV VINOPATH /vino
 
