@@ -681,6 +681,13 @@ def visualizeresult(request,result_id):
 def visualizeresulttrajectories(request,result_id):
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
+    p_list = Parameters.objects.filter(viabilityproblem=vp)
+    r_list=[]
+    print r_list
+    for p in p_list:
+        r_list = r_list+list(Results.objects.filter(parameters = p))
+        print r_list
+
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
     c=vp.category
@@ -689,7 +696,7 @@ def visualizeresulttrajectories(request,result_id):
 #    bargrid = hm.readKernel(r.datafile.path)
 
 
-    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'category':c} 
+    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
     return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
 
 def visualizeresulttrajectoriesancien(request,result_id):
