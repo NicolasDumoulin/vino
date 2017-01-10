@@ -23,7 +23,86 @@
                     <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
                 </ol>
                     </div></div>
-    <div id="row"><div class="col-sm-6">
+		  <div class="page-header">
+<h2>Evolution visualisation  - Viable evolution building</h2>
+                    </div>
+    <div id="row"><div class="col-sm-2">
+  <form class="form-horizontal">
+    <div class="form-group">
+      <label class="control-label col-sm-6" for="email"><p class="small">Using : </p></label>
+      <div class="col-sm-6">
+  <div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">ViNO
+    <span class="caret"></span></button>
+    <ul class="dropdown-menu">
+              {% for r in results%}
+      <li><a href="#">{{r.title}}</a></li>
+		{% endfor %}
+    </ul>
+  </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-6" for="pwd"><p class="small">Integration method : </p></label>
+      <div class="col-sm-6">     
+  <div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Euler
+    <span class="caret"></span></button>
+    <ul class="dropdown-menu">
+      <li><a href="#">Euler</a></li>
+
+    </ul>
+  </div>
+     
+
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-6" for="pwd"><p class="small">Integration time step : </p></label>
+      <div class="col-sm-6">          
+        <input type="password" class="form-control" id="timestep" placeholder="time step">
+      </div>
+    </div>
+
+ <button type="button" class="btn btn-default btn-sm btn-block disabled">Complete evolution </button>
+ <p class="small">by a viable one with caution threshold equal to :</p>   
+    <div class="form-group">
+      <label class="control-label col-sm-6" for="pwd"><p class="small">Caution threshold : </p></label>
+      <div class="col-sm-6">          
+        <input type="password" class="form-control" id="caution" placeholder="caution">
+      </div>
+    </div>
+
+  <button type="button" class="btn btn-default btn-sm btn-block disabled">Complete evolution </button> <p class="small">by the closest viable one in terms of control values</p> 
+  <button type="button" class="btn btn-default btn-sm btn-block " id="newev" onclick="addEvolution()">New evolution </button>  
+<button type="button" class="btn btn-default btn-sm btn-block disabled">Copy evolution </button>
+  <button type="button" class="btn btn-default btn-sm btn-block" onclick="deleteEvolution()">Delete evolution </button>
+  </form>
+
+                   </div>
+
+    <div class="col-sm-10">
+              <ul class="nav nav-pills" id="listev">
+    
+    <li class="active" id="lignetype"><a data-toggle="pill" id="menutype" href="#menu" onclick="changeActiveEvolution()">Evolution 1</a></li>
+  </ul>
+ <ul class="nav nav-tabs nav-justified">
+  <li class="active"><a data-toggle="tab" href="#tevol">Time Evolution</a></li>
+  <li class="disabled"><a data-toggle="tab" href="#menu1">Phase space</a></li>
+</ul>
+
+<div class="tab-content">
+  <div id="tevol" class="tab-pane fade in active">
+ <ul class="nav nav-tabs ">
+  <li class="active"><a data-toggle="tab" href="#cstevol">Control and state Evolution</a></li>
+  <li><a data-toggle="tab" href="#cadmstc">Control admissibilty and state constraints</a></li>
+</ul>
+
+<div class="tab-content">
+  <div id="cstevol" class="tab-pane fade in active">
+
+
+    <div id="row"><div class="col-sm-12">
             <form id="controlinputform" method="post" action="{% url 'sharekernel:controltostate' result.id %}">
             {% csrf_token %}
              <p id='controlinputtext'>
@@ -42,23 +121,265 @@
                 Time Horizon :  <input type="text" name="horizon" id="horizon" size = "5%" value="10" onKeyUp="return updateTrajectoriesHorizon()"/>
               </p>
             </form>
+
+  </div>
+
+</div>
+    <div id="row"><div class="col-sm-6">
+    <h3>Control Evolution</h3>
     <div id="info">Click on graph below to draw piecewise linear control functions : </div>        
     <div id="infobis">Clik on a graph point to remove it : </div>        
     <div id="controltrajectories" onmouseout= "erasepink();" onmousemove = "positioncurseur(event);" onclick = "addcursorpoint();"></div>
 
 </div>
         <div class="col-sm-6">
+<h3>State Evolution</h3>
             <div id="viewPanel"><div id="statetrajectories"></div></div>
         </div>
     </div>
 
+  </div>
+  <div id="cadmstc" class="tab-pane fade">
+    <h3>TODO</h3>
+    <p>Todo</p>
+  </div>
+</div> 
+
+    
+  </div>
+  <div id="menu1" class="tab-pane fade">
+    <h3>TODO</h3>
+    <p>Todo.</p>
+  </div>
+</div> 
+</div></div>
+
+
+
 </div>
 
 <script type="text/javascript">
+    var evolutionnumber = 1;
+    var evolutionactive = 0;
+
+    var tabcolors = [        ['red','pink','lightgrey'],
+                             ['rgba(255, 102, 51,1)','rgba(255, 204, 153,1)','lightgrey'], 
+                             ['rgba(255, 255, 0,1)','rgba(255, 255, 153,1)','lightgrey'], 
+                             ['rgba(51, 153, 51,1)','rgba(51, 204, 102,1)','lightgrey'], 
+                             ['rgba(0, 102,255,1)','rgba(51, 204, 255,1)','lightgrey'] , 
+                             ['rgba(153, 0,153,1)','rgba(204, 0, 204,1)','lightgrey'] , 
+                             ['rgba(255, 51, 153,1)', 'rgba(255, 153, 255,1)','lightgrey'], 
+                             ['rgba(153, 51, 0,1)','rgba(153, 102, 51,1)','lightgrey']
+    ];
+
+    function changeActiveEvolution(){
+      setTimeout(changeActiveEvolutionbis, 200); }
+    function changeActiveEvolutionbis(){
+
+       var x = document.getElementById('listev');
+       var i = x.children.length;
+       for (j = 0; j < i; j++) {
+          if ( x.children[j].className.match(/(?:^|\s)active(?!\S)/g) ){
+          var indice = j;
+    }}
+       evolutionactive = indice;
+      var container = document.getElementById("controltrajectories");
+      var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+      var controltraces =[];
+      var ii=0;
+	      {% for ab in controlabbrevs%}
+                controltraces.push(container.data[rang+ii*2+1]);
+                ii = ii+1;
+		{% endfor %}
+container = document.getElementById("statetrajectories");
+       rang = {{viabilityproblem.statedimension}}*evolutionactive; 
+      var statetraces =[];
+
+       ii=0;
+	      {% for ab in stateabbrevs%}
+                statetraces.push(container.data[rang+ii]);
+                ii = ii+1;
+		{% endfor %}
+
+      fromPlotlytoForm(controltraces,statetraces);
+container = document.getElementById("controltrajectories");
+     var update = {
+        hoverinfo: 'none'
+     };
+     Plotly.restyle(container, update);
+     update = {
+        hoverinfo: 'x+y'
+     };
+      rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+     var traceindices = [];
+     ii = 0;
+     	      {% for ab in controlabbrevs%}
+                 traceindices.push(rang+2*ii+1);
+                 ii = ii+1;
+		{% endfor %}
+             Plotly.restyle(container, update,traceindices);
+
+   }
+     function addEvolution(){
+    if (evolutionnumber<8){
+    var x = document.getElementById('listev');
+    var i = x.children.length;
+    for (j = 0; j < i; j++) {
+    x.children[j].className =
+   x.children[j].className.replace
+      ( /(?:^|\s)active(?!\S)/g , '' )
+    }
+    var entry = document.getElementById('lignetype').cloneNode(false);
+    entry.className += "active" 
+    var entrychild = document.getElementById('menutype').cloneNode(true);
+    evolutionnumber = evolutionnumber +1;
+    entrychild.innerHTML = "Evolution "+evolutionnumber;
+    entry.appendChild(entrychild);
+    x.appendChild(entry);
+    evolutionactive = i;
+
+              var ii = 0;
+	      var traces = [];
+             {% for ab in controlabbrevs%}
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: tabcolors[evolutionnumber-1][1] }, hoverinfo: 'none',yaxis: 'y'+(ii+1) });
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: tabcolors[evolutionnumber-1][0] }, hoverinfo: 'x+y',yaxis: 'y'+(ii+1) });
+                 ii=ii+1
+             {% endfor %}
+         var container = document.getElementById("controltrajectories");
+      var update = {
+        hoverinfo: 'none'
+     };
+             Plotly.restyle(container, update);
+	     Plotly.addTraces(container,traces);
+             container = document.getElementById("statetrajectories");
+                 ii = 0;
+	      traces = [];
+             {% for ab in stateabbrevs%}
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'blue' ,cmin : 0, cmax : 2}, hoverinfo: 'x+y',yaxis: 'y'+(ii+1) });
+                 ii=ii+1
+             {% endfor %}
+	     Plotly.addTraces(container,traces);
+
 	      {% for ab in controlabbrevs%}
 document.getElementById("controlinput{{forloop.counter}}").value = "";
 		{% endfor %}
 
+	      {% for ab in stateabbrevs%}
+document.getElementById("startingstate{{forloop.counter}}").value = "";
+		{% endfor %}
+
+     }}
+
+     function deleteEvolution(){
+    var x = document.getElementById('listev');
+    var i = x.children.length;
+    if (i>1){
+    for (j = 0; j < i; j++) {
+     if ( x.children[j].className.match(/(?:^|\s)active(?!\S)/g) ){
+      var indice = j;
+    }}
+    x.removeChild(x.children[indice]);
+    x.children[0].className += "active";
+    var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+
+    var traceindices = [];
+    var ii = 0;
+     	      {% for ab in controlabbrevs%}
+                 traceindices.push(rang+ii*2);
+                 traceindices.push(rang+ii*2+1);
+                 ii = ii+1;
+		{% endfor %}
+      var container = document.getElementById("controltrajectories");
+    Plotly.deleteTraces(container,traceindices);
+
+    rang = {{viabilityproblem.statedimension}}*evolutionactive;
+    traceindices = [];
+    ii = 0;
+     	      {% for ab in stateabbrevs%}
+                 traceindices.push(rang+ii);
+                 ii = ii+1;
+		{% endfor %}
+      container = document.getElementById("statetrajectories");
+    Plotly.deleteTraces(container,traceindices);
+
+    evolutionactive = 0;
+container = document.getElementById("controltrajectories");
+      var controltraces =[];
+      var ii=0;
+	      {% for ab in controlabbrevs%}
+                controltraces.push(container.data[ii*2+1]);
+                ii = ii+1;
+		{% endfor %}
+      var statetraces =[];
+container = document.getElementById("statetrajectories");
+
+       ii=0;
+	      {% for ab in stateabbrevs%}
+                statetraces.push(container.data[ii]);
+                ii = ii+1;
+		{% endfor %}
+
+      fromPlotlytoForm(controltraces,statetraces);
+container = document.getElementById("controltrajectories");
+
+      var update = {
+        hoverinfo: 'x+y'
+     };
+     traceindices = [];
+    var ii = 0;
+     	      {% for ab in controlabbrevs%}
+                 traceindices.push(ii*2+1);
+                 ii = ii+1;
+		{% endfor %}
+             Plotly.restyle(container, update,traceindices);
+
+     }}
+
+    function fromPlotlytoForm(controltraces,statetraces){
+              var i=0;
+	      {% for ab in controlabbrevs%}
+                      var trace = controltraces[i];
+                       var str = '';
+                       for (j = 0; j < trace.x.length; j++) {
+                          str= str+'('+trace.x[j]+','+trace.y[j]+')';
+                    
+                       }
+                         
+                       document.getElementById("controlinput{{forloop.counter}}").value = str;
+                       i=i+1;
+		{% endfor %}
+                        if (statetraces[0].y.length>0){ 
+              i=0;
+
+	      {% for ab in stateabbrevs%}
+                       document.getElementById("startingstate{{forloop.counter}}").value = statetraces[i].y[0];  
+                       i=i+1;
+		{% endfor %}
+                        if (statetraces[0].x.length>1){ 
+                 
+                       var r = statetraces[0].x[1]-statetraces[0].x[0];
+                       document.getElementById("dt").value=r.toFixed(2);}
+                       else{
+                       document.getElementById("dt").value = "1";
+
+}
+                   }
+                   else {
+	        i=0;
+                {% for ab in stateabbrevs%}
+                       document.getElementById("startingstate{{forloop.counter}}").value = "";
+                       i=i+1;
+		{% endfor %}
+            }
+    }
+
+	      {% for ab in controlabbrevs%}
+document.getElementById("controlinput{{forloop.counter}}").value = "";
+		{% endfor %}
+
+	      {% for ab in stateabbrevs%}
+document.getElementById("startingstate{{forloop.counter}}").value = "";
+		{% endfor %}
       var graphheight = 300;
       var gap = 0.05;
       var margin = 40;
@@ -89,13 +410,15 @@ document.getElementById("controlinput{{forloop.counter}}").value = "";
       document.getElementById("controltrajectories").on('plotly_hover', function(data){
               var lx = data.points[0].x;
               var ly = data.points[0].y;
-              var number = data.points[0].curveNumber;
+             var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+
+              var number = data.points[0].curveNumber-rang;
               var n= (number-1)/2+1;
            document.getElementById("infobis").innerHTML = 'Click to remove point ('+lx+','+ly+') from plot '+n;
 
 	});
       document.getElementById("controltrajectories").on('plotly_unhover', function(data){
-           document.getElementById("infobis").innerHTML = 'Double-clik on a graph point to remove it :';
+           document.getElementById("infobis").innerHTML = 'Clik on a graph point to remove it :';
 
 	});
 
@@ -162,7 +485,9 @@ document.getElementById("controlinput{{forloop.counter}}").value = "";
          var lx = parseFloat(str.split("(")[1]);
          var ly = parseFloat(str.split(",")[1]);
          var n = parseInt(str.split("plot")[1]);
-         var number = 2*(n-1);
+         var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+
+         var number = 2*(n-1)+rang;
          var lastt = 0;
          if (container.data[number+1].x.length>0){ lastt = container.data[number+1].x[container.data[number+1].x.length-1];} 
          if ((isNaN(lx)== false)&&(isNaN(ly)== false)&&(isNaN(n)== false)&&(lx>=lastt)){
@@ -186,14 +511,15 @@ else{
 
       function erasepink(){
          var container = document.getElementById("controltrajectories");
+         var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
 
                for(i = 0;i<{{viabilityproblem.controldimension}};i++){
-                 if (container.data[2*i].x.length >1 ){
+                 if (container.data[rang+2*i].x.length >1 ){
 
-                  update = {x:[[container.data[2*i].x[0]]],y:[[container.data[2*i].y[0]]]}
+                  update = {x:[[container.data[rang+2*i].x[0]]],y:[[container.data[rang+2*i].y[0]]]}
 //                var update = {x:[[0,9]],y:[[1,1]]};
 
-		Plotly.restyle(container,update,[2*i]);
+		Plotly.restyle(container,update,[rang+2*i]);
                 }
              }
      }
@@ -207,8 +533,9 @@ else{
 
          if ((py>=0)&&(px>=0)&&(px<=totalcontrolgraphwidth)){
             var ny = sition[1];
-   
-            var number = 2*(ny-1);
+            var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+
+            var number = 2*(ny-1)+rang;
 
              if (ny>1){
                var str = 'yaxis'+sition[1];
@@ -335,8 +662,9 @@ else{
 
 	      } 	
              var update = {x: [xnew,tab[1]],y:[ynew,tab[2]]};
+             var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
 //document.getElementById("info").innerHTML = "popo";
-             Plotly.restyle(containerTraj, update, [(number-1)*2,(number-1)*2+1])
+             Plotly.restyle(containerTraj, update, [rang+(number-1)*2,rang+(number-1)*2+1])
         }
       }
 
@@ -368,20 +696,32 @@ else{
                 var form = document.getElementById('controlinputform');
                 var formdata = new FormData(form);
                 var url = "{% url 'sharekernel:controltostate' result.id%}"
-		var container = document.getElementById('statetrajectories');
+		var container = document.getElementById('controltrajectories');
+                var rang = {{viabilityproblem.statedimension}}*evolutionactive;
+                var colori = container.data[rang+1].marker.color;
+                for (i=0;i<tabcolors.length;i++){
+                 if( tabcolors[i].indexOf(colori)!=-1){
+                        indice = i;
 
+                     }
+                }
+
+                container = document.getElementById('statetrajectories');
                 loadAndPlotbis(url,formdata,function(data){
                       $.each(data, function(index,bar) {
                         if (index == 0){
 			    color = bar;
+                           for ( i=0;i<color.length;i++){
+                             color[i] = tabcolors[indice][2-color[i]];
+                          }
                         }
                         else if(index == 1){
 			    times = bar;
                         } 
                         else{
-			    container.data[index-2].x = times;
-			    container.data[index-2].y = bar;
-			    container.data[index-2].marker.color = color;
+			    container.data[rang+index-2].x = times;
+			    container.data[rang+index-2].y = bar;
+			    container.data[rang+index-2].marker.color = color;
 
                         }
 			})	
