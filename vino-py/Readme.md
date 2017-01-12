@@ -34,3 +34,16 @@ from hdf5common import HDF5Manager
 # Save in HDF5 Vino format
 HDF5Manager.writeKernel(kernel, '2D.h5')
 ```
+
+### Logging
+
+We use the standard Python [logging module](https://docs.python.org/2/library/logging.html) ([tutorial](https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/)) for logging messages, so by default you may miss some warnings or informations.
+
+For example, when you try to load a Vino file, if you get None as result, messages will
+you give informations about this fail.
+
+So for enabling the "INFO" messages, you can type:
+```
+import logging
+logging.basicConfig(level=logging.INFO)
+```
