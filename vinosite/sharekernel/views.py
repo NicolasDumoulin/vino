@@ -16,7 +16,7 @@ import os
 import METADATA
 from datetime import datetime
 from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, AlgorithmForm
-
+import humanize
 import json
 import tempfile
 
@@ -157,12 +157,10 @@ def visitviabilityproblem(request,viabilityproblem_id):
         if len(j)>1:
             connaab.append(''.join([j[0]," : ",j[1]]))
    
-    adcondes = vp.admissiblecontroldescription.split(",")
-    stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
-    p_list = Parameters.objects.filter(viabilityproblem=vp)
+    p_list = vp.parameters_set.all()
     a_list = Algorithm.objects.all()
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
@@ -173,10 +171,9 @@ def visitviabilityproblem(request,viabilityproblem_id):
         tabvaluesbisbis = []
     tabvalues.append(tabvaluesbis)
     tabvaluesbis = []
- 
+
     for p in p_list:
-        r_list = Results.objects.filter(parameters = p)
-        if r_list:
+        if p.results_set.count(): # if at least one result
             tabvaluesbisbis = []
             tabvaluesbis = []
             for i in range(len(vp.dynamicsparameters.split(","))):
@@ -186,24 +183,24 @@ def visitviabilityproblem(request,viabilityproblem_id):
             if vp.targetparameters.split(",")[0]!="none":
                 for i in range(len(vp.targetparameters.split(","))):
                     tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-
-
             tabvaluesbis.append(tabvaluesbisbis)
             tabvaluesbisbis = []
             for a in a_list:    
-#!!!!! c est pas Results a la ligne suivante
-                rr_list = Results.objects.filter(parameters = p,algorithm = a)
-                tabvaluesbisbis = []
-                if rr_list:
-                    for r in rr_list:
-                        tabvaluesbisbis.append(r)
-                else:
-                    tabvaluesbisbis.append("None")
-                tabvaluesbis.append(tabvaluesbisbis)
-                tabvaluesbisbis = []
+                tabvaluesbis.append(p.results_set.filter(algorithm=a))
             tabvalues.append(tabvaluesbis)
-            tabvaluesbis = []    
-    context = {'category' : vp.category,'viabilityproblem' : vp,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab,'tabvalues' : tabvalues}
+    resultsByParameters = {}
+    for parameter in p_list:
+        results = []
+        for result in parameter.results_set.all():
+            resultData = {'value' : result, 'filesize': humanize.naturalsize(result.datafile.size)}
+            results.append(resultData)
+        resultsByParameters[parameter] = results
+    context = {'category' : vp.category,'viabilityproblem' : vp,'dyndes' : dyndes,
+    'adcondes' : vp.admissiblecontroldescription.split(","),
+    'stacondes' : vp.stateconstraintdescription.split(","),
+    'tardes' : tardes,'stanaab' : stanaab,
+    'connaab' : connaab,'tabvalues' : tabvalues,
+    'resultsByParameters': resultsByParameters}
     return render(request, 'sharekernel/visitviabilityproblem.html', context)            
 
 def kerneluploaded(request):

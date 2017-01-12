@@ -51,6 +51,4 @@ def truncatesmart(value, limit):
     end = begin[-1]+end
     # remove the last word (maybe truncated) and collate again
     begin = ' '.join(begin[:-1])
-    # Join the words and return
-    #return begin + mark_safe('<span class="truncated">') + end + mark_safe('</span>')
     return Template(begin + u'… <span class="truncated">' + end + '</span><span class="show-truncated glyphicon glyphicon-plus" aria-hidden="true"></span>').render(Context())

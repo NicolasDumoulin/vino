@@ -10,11 +10,13 @@ class FileFormatException(Exception):
 
 import logging
 
-#TODO howto guess the kdtree format
-
 class Loader(object):
     def __init__(self):
-        self.loaders = [Hdf5Loader(), PspLoader()]
+        self.loaders = [Hdf5Loader(), PspLoader(), ViabilitreeLoader()]
+    
+    def loadersdoc(self):
+        for loader in self.loaders:
+            print("{0}: {1}".format(type(loader).__name__, str(loader.__doc__)))
     
     def load(self, filename):
         '''
@@ -47,6 +49,10 @@ from KdTree import KdTree
 from hdf5common import HDF5Manager
 
 class Hdf5Loader(FileFormatLoader):
+    '''
+    Loader for the Vino HDF5 file format.
+    '''
+    
     def __init__(self, strategies=[BarGridKernel, KdTree]):
         self.hdf5manager = HDF5Manager(strategies) 
     
@@ -54,8 +60,35 @@ class Hdf5Loader(FileFormatLoader):
     def read(self, filename):
         return self.hdf5manager.readKernel(filename)
 
-import re, numpy as np
+import re
+import numpy as np
+import os
+import METADATA
 
+class ViabilitreeLoader(FileFormatLoader):
+    '''
+    Loader for the output format of the software viabilitree.
+    The loader assumes that a second file with the path and the same name but
+    with the file extension '.txt' provides metadata in the form 'key:value'
+    for each line.
+    The metadata 'viabilityproblem.statedimension' is mandatory for loading the file.
+    '''
+
+    @overrides
+    def read(self, filename):
+        metadata = {}
+        myre = re.compile('^(.*):(.*)$')
+        with open(os.path.splitext(filename)[0]+'.txt') as f:
+            for line in f:
+                if not line.startswith('#'):
+                    match = myre.match(line)
+                    if match:
+                        k, v = match.groups()
+                        metadata[k.strip()] = v.strip()
+        metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
+        k = KdTree.readViabilitree(filename, metadata)
+        return k
+    
 class PspLoader(FileFormatLoader):
     '''
     Reader for the output format of the software of Patrick Saint-Pierre.

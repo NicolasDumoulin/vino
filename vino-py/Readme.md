@@ -35,6 +35,11 @@ from hdf5common import HDF5Manager
 HDF5Manager.writeKernel(kernel, '2D.h5')
 ```
 
+You can get the list of available implemented loaders and their documentation with:
+```
+loader.loadersdoc()
+```
+
 ### Logging
 
 We use the standard Python [logging module](https://docs.python.org/2/library/logging.html) ([tutorial](https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/)) for logging messages, so by default you may miss some warnings or informations.
