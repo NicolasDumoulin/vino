@@ -1,7 +1,14 @@
 {% comment %}
 Displays information about a problem in a card format.
 This format is suitable for displaying several problems in a thumbnails/cards layout.
+
+See also about the card layout:
+ - http://semantic-ui.com/views/card.html
+ - "Card" component in bootstrap4
 {% endcomment %}
+
+{% load truncatesmart %}
+
 <div class="col-md-6">
     <div class="panel panel-default">
         <div class="panel-heading">
@@ -25,6 +32,7 @@ This format is suitable for displaying several problems in a thumbnails/cards la
                 {% endfor %}
             </div>
             {% endcomment %}
+            <p>{{ problem.value.issue|truncatesmart:80 }}</p>
             <ul class="list-unstyled">
                 <li><strong>{{ problem.value.statedimension }}D</strong> space</li>
                 <li><strong>{{ problem.value.controldimension }}D</strong> control</li>
@@ -34,6 +42,8 @@ This format is suitable for displaying several problems in a thumbnails/cards la
         </div>
     </div>
 </div>
+{% truncatesmartjavascript %}
+
 <style type="text/css">
 .resultscolours { width:100%; }
 .resultscolours tr,.resultscolours td {height:8px;overflow: hidden; padding:0; line-height: 0; }

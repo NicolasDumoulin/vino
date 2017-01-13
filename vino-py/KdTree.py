@@ -14,11 +14,11 @@ class KdTree(Kernel):
     def __init__(self, cells=[], metadata={},origin=None,opposite=None):
         super(KdTree, self).__init__(metadata)
         self.cells = cells
-        if origin:
+        if np.any(origin):
             self.originCoords = np.array(origin,float)
         else:
             self.originCoords = self.getMinBounds()
-        if opposite:
+        if np.any(opposite):
             self.oppositeCoords = np.array(opposite,float)
         else:
             self.oppositeCoords = self.getMaxBounds()
