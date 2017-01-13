@@ -106,10 +106,31 @@ class Parameters(models.Model):
              for i in range(len(descon)):
                   descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
              j = j+1 
-        params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
+        params= self.viabilityproblem.stateabbreviation()
         
         for expr in descon :
             eqcons.append(Expression(expr,params))
+        return eqcons
+
+    def leftandrighthandconstraints(self):
+        eqcons = []
+        desstateandcontrol = []
+        descon = self.viabilityproblem.constraints()
+        j=0
+        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+             for i in range(len(descon)):
+                  descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
+             j = j+1 
+        params= self.viabilityproblem.stateabbreviation()
+
+        for i in range(len(descon)):
+             desconsplitted = descon[i].split("<=");
+             if (len(desconsplitted)==2):
+                 eqcons.append([Expression(desconsplitted[0],params),Expression(desconsplitted[1],params)])
+             else :
+                 desconsplitted = descon[i].split(">=");
+                 if (len(desconsplitted)==2):
+                     eqcons.append([Expression(desconsplitted[1],params),Expression(desconsplitted[0],params)])
         return eqcons
 
 class ResultFormat(models.Model):
