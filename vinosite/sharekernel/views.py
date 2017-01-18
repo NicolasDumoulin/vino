@@ -9,6 +9,7 @@ from BarGridKernel import BarGridKernel
 from KdTree import KdTree
 from hdf5common import HDF5Reader, HDF5Manager
 from distance import Matrix, EucNorm
+import FileFormatLoader
 from FileFormatLoader import Loader
 from KdTree import KdTree
 from django.views.decorators.http import require_POST
@@ -214,12 +215,11 @@ def kerneluploaded(request):
 
     return HttpResponse("Your file has been successfully uploaded")          
 
-
+pspModifiedLoader = FileFormatLoader.PspModifiedLoader()
 def bargrid2json(request):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
-        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        bargrid = pspModifiedLoader.read(source)
         distancegriddimensions = [31,31] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
@@ -508,10 +508,6 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
 
 def bargrid2jsonNew(request,result_id):
     if request.method == 'POST':
-#        source=request.FILES['docfile'] # InMemoryUploadedFile instance
-#        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
-        
         vino = Results.objects.get(id=result_id)
         bargrid = hdf5manager.readKernel(vino.datafile.path)
 
@@ -544,8 +540,7 @@ def bargrid2jsonNew(request,result_id):
 def bargrid2json2(request,hist_maxvalue):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
-        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        bargrid = pspModifiedLoader.readFile(source)
         distancegriddimensions = [31,31] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
@@ -575,10 +570,6 @@ def bargrid2json2(request,hist_maxvalue):
 
 def bargrid2json2New(request,result_id,hist_maxvalue):
     if request.method == 'POST':
-#        source=request.FILES['docfile'] # InMemoryUploadedFile instance
-#        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
-
         vino = Results.objects.get(id=result_id)
         bargrid = hdf5manager.readKernel(vino.datafile.path)
         distancegriddimensions = [31,31] #[301,301]
@@ -610,8 +601,7 @@ def bargrid2json2New(request,result_id,hist_maxvalue):
 def bargrid2json3(request,hist_maxvalue):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
-        bargrid = BarGridKernel.readPatrickSaintPierreFile(source)
-#        bargrid = BarGridKernel.readPatrickSaintPierrebis('/home/sophie/vino/samples/2D_light.txt')
+        bargrid = pspModifiedLoader.read(source)
         distancegriddimensions = [31,31] #[301,301]
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
