@@ -665,6 +665,7 @@ def visualizeresult(request,result_id):
     context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
+@ensure_csrf_cookie
 def visualizeresulttrajectories(request,result_id):
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
@@ -678,12 +679,14 @@ def visualizeresulttrajectories(request,result_id):
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
     c=vp.category
+    descon = vp.constraints()
+    ldescon=len(descon)
 #    rf=r.resultformat
 #    hm = HDF5Manager([BarGridKernel])
 #    bargrid = hm.readKernel(r.datafile.path)
 
 
-    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
+    context = {'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
     return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
 
 def visualizeresulttrajectoriesancien(request,result_id):
@@ -1037,9 +1040,27 @@ def controltostate(request,result_id):
                         colors[i] = 2
             statetrajectories.insert(0,list(colors))      
 
-#            print statetrajectories[0]    
+#            print statetrajectories[0]
+            constrainttrajectories=[]    
+            eqhandconstraints = p.leftandrighthandconstraints()
+#            print eqhandconstraints
+            for eqhands in eqhandconstraints:
+                for eqhand in eqhands :
+#                    print eqhand 
+                    b = 0
+                    for var in eqhand:
+                        b = 1
+                        if var in stateabbrevs:
+#                            print "dedans"
+                            eqhand[var] = np.array(statetrajectories[stateabbrevs.index(var)+2])
+#                    print eqhand()
+                    if (b==0):
+                        constrainttrajectories.append([eqhand()]*len(statetrajectories[0]))
+                    else:
+
+                        constrainttrajectories.append(list(eqhand()))
             
-            out_json = json.dumps(list(statetrajectories), sort_keys = True, ensure_ascii=False)
+            out_json = json.dumps(list(statetrajectories)+constrainttrajectories, sort_keys = True, ensure_ascii=False)
 #        return JsonResponse([1, 2, 3], safe=False)   
             return HttpResponse(out_json)
         return HttpResponse("Pas POST")

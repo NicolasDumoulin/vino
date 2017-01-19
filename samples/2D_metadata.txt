@@ -9,7 +9,7 @@
 #viabilityproblem.controldimension:1
 #viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation,u
 #viabilityproblem.dynamicsdescription:u,-b*P+L+r*P^q/(m^q+P^q)
-#viabilityproblem.admissiblecontroldescription:u in [umin;umax]
+#viabilityproblem.admissiblecontroldescription:u>=umin,u<=umax
 #viabilityproblem.dynamicsparameters:b,r,q,m,umin,umax
 #viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P>=0,P<=Pmax
 #viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax

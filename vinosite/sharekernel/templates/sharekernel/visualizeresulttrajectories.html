@@ -140,8 +140,20 @@
 
   </div>
   <div id="cadmstc" class="tab-pane fade">
-    <h3>TODO</h3>
-    <p>Todo</p>
+
+
+    <div id="row"><div class="col-sm-6">
+    <h3>Control Admissibility</h3>
+    <div id="checkcontroltrajectories"></div>
+
+</div>
+        <div class="col-sm-6">
+<h3>State Constraint Satisfaction</h3>
+            <div id="viewPanel"><div id="checkstatetrajectories"></div></div>
+        </div>
+    </div>
+
+
   </div>
 </div> 
 
@@ -390,6 +402,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
       var plotheighplusgap = plotheigh+gap;
       initControlTrajPlot(10,gap,margin,graphheight,graphwidth,controltrajectories);
       initStateTrajPlot(10,gap,margin,graphheight,statetrajectories);
+      initCheckStateTrajPlot(10,gap,margin,graphheight,checkstatetrajectories);
 
       document.getElementById("controltrajectories").on('plotly_click', function(data){
 
@@ -453,6 +466,35 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
 	     Plotly.newPlot(container,traces,layout);
 //           document.getElementById("info").innerHTML =layout.yaxis1.title;
 	}
+
+      function createAnnotation(){
+              var annot = {x: 0.5,    xanchor: 'right',    y: 0,    yanchor: 'bottom',text:'yop',xref : 'paper',yref:'paper',showarrow : false};
+     
+        return annot;
+     }
+      function initCheckStateTrajPlot(maxtime,gap,margin,graphheight,container){
+              var plotheighinpx = graphheight*{{ldescon}};
+
+	      var layout = {annotations:[],showlegend: false,margin:{t:margin,l:margin,r:margin,b:margin},width: 500,height: plotheighinpx,xaxis:{title : 't',range:[0,maxtime]},hovermode:'closest'};
+              var plotheigh = (1-({{ldescon}}-1)*gap)/{{ldescon}};
+              var i = 0;
+	      var traces = [];
+             {% for ab in descon%}
+                 init = i*(plotheigh+gap);
+                 annot = createAnnotation();
+                 annot.y = init+plotheigh;
+                 annot.text = 'Condition : {{ab}}';
+                 layout.annotations.push(annot);
+                 layout['yaxis'+(i+1)] = {title: '',domain:[init,init+plotheigh]}
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'blue' ,cmin : 0, cmax : 2}, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
+                 traces.push({x:[],y:[], mode:'lines+markers', type: 'scatter', marker: { size : 10, color: 'red' ,cmin : 0, cmax : 2}, hoverinfo: 'x+y',yaxis: 'y'+(i+1) });
+
+                 i=i+1
+             {% endfor %}
+	     Plotly.newPlot(container,traces,layout);
+//           document.getElementById("info").innerHTML =layout.yaxis1.title;
+	}
+
       function positioncurseuringraph(y){
         var newy = [-1];
         var ystar = y/(totalcontrolgraphheight*plotheighplusgap);
@@ -697,6 +739,7 @@ else{
                 var formdata = new FormData(form);
                 var url = "{% url 'sharekernel:controltostate' result.id%}"
 		var container = document.getElementById('controltrajectories');
+		var containerbis = document.getElementById('checkstatetrajectories');
                 var rang = {{viabilityproblem.statedimension}}*evolutionactive;
                 var colori = container.data[rang+1].marker.color;
                 for (i=0;i<tabcolors.length;i++){
@@ -718,15 +761,26 @@ else{
                         else if(index == 1){
 			    times = bar;
                         } 
-                        else{
+                        else if (index<{{viabilityproblem.statedimension}}+2){
 			    container.data[rang+index-2].x = times;
 			    container.data[rang+index-2].y = bar;
 			    container.data[rang+index-2].marker.color = color;
 
                         }
+                        else {
+                            rang = {{ldescon}}*2*evolutionactive;
+ 			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].x = times;
+			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].y = bar;
+
+                        }
+
+
+
 			})	
 
 			Plotly.redraw(container);
+			Plotly.redraw(containerbis);
+
                 });
               }
         }
