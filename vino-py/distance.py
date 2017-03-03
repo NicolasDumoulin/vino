@@ -338,6 +338,7 @@ class Matrix(object):
 if __name__ == "__main__":
     
     import time
+    import FileFormatLoader
     
     norm = EucNorm()
    
@@ -345,7 +346,7 @@ if __name__ == "__main__":
 #    bargrid.addBar([1],3,7)
 #    bargrid.addBar([2],5,5)
 #    bargrid.addBar([3],0,10)
-    bargrid = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
+    bargrid = FileFormatLoader.PspModifiedLoader().read('../samples/2D_light.txt')
     distancegriddimensions = [31,31]#[2001,2001]
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     print "of"    

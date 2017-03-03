@@ -4,6 +4,7 @@ from hdf5common import HDF5Manager,HDF5Writer,HDF5Reader
 import re
 import METADATA
 import time
+import FileFormatLoader
 
 def CompareProcedure():
     with HDF5Reader('2Dlake_light.h5') as f:
@@ -19,8 +20,7 @@ def CompareProcedure():
 
     hm = HDF5Manager([BarGridKernel])
     bargrid = hm.readKernel('2Dlake_light.h5')
-
-    bargrid2 = BarGridKernel.readPatrickSaintPierrebis('../samples/2D_light.txt')
+    bargrid2 = FileFormatLoader.PspModifiedLoader().read('../samples/2D_light.txt')
 
     distancegriddimensions = [31,31] #[301,301]
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
@@ -66,7 +66,7 @@ def testRead():
     h5way = '2D.h5'
     hm = HDF5Manager([BarGridKernel])
     
-    grid = BarGridKernel.readPatrickSaintPierrebis(dataway)
+    grid = FileFormatLoader.PspModifiedLoader().read(dataway)
     myre = re.compile('^#(.*):(.*)$')
     with open(metadataway) as f:
       for line in f:
