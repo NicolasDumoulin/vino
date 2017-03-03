@@ -672,6 +672,7 @@ class BarGridKernel(Kernel):
         point = np.array(point,float)
         # first we need to project the point into the cells coordinate system
         point_int = self.intervalNumberperaxis * (point - self.originCoords)/(self.oppositeCoords - self.originCoords)
+        point_int = np.dot(self.permutation, np.transpose(point_int))
         points = [point_int]
         for i,coord in enumerate(point_int):
             new_points = []
