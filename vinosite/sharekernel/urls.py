@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^compare/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/$', views.compareresult, name='compareresult'),
     url(r'^recorded/$', views.recorded, name='recorded'),
     url(r'^controltostate/(?P<result_id>([0-9]|N)+)/$', views.controltostate, name='controltostate'),
+    url(r'^makeEvolutionViable/(?P<result_id>([0-9]|N)+)/$', views.makeEvolutionViable, name='makeEvolutionViable'),
     url(r'^verify/$', views.verify, name='verify'),
     url(r'^problem/new/$', views.newproblem, name='newproblem'),
     url(r'^problem/(?P<viabilityproblem_id>([0-9]|N)+)/edit$', views.newproblem, name='editviabilityproblem'),

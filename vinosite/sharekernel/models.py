@@ -35,6 +35,10 @@ class ViabilityProblem(models.Model):
       dyns = self.stateconstraintdescription.split(",")
       return dyns
 
+    def admissibles(self):
+      dyns = self.admissiblecontroldescription.split(",")
+      return dyns
+
     def stateabbreviation(self):
       abbrevs = []
       donnees = self.statenameandabbreviation.split("/")
@@ -97,6 +101,21 @@ class Parameters(models.Model):
     def __str__(self):
         return str(self.pk) + " " + self.dynamicsparametervalues
 
+    def admissibles(self):
+        eqadms = []
+        desstateandcontrol = []
+        desadm = self.viabilityproblem.admissibles()
+        j=0
+        for thing in self.viabilityproblem.dynamicsparameters.split(","):
+             for i in range(len(desadm)):
+                  desadm[i] = desadm[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
+             j = j+1 
+        params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
+        
+        for expr in desadm :
+            eqadms.append(Expression(expr,params))
+        return eqadms
+
     def constraints(self):
         eqcons = []
         desstateandcontrol = []
@@ -111,6 +130,7 @@ class Parameters(models.Model):
         for expr in descon :
             eqcons.append(Expression(expr,params))
         return eqcons
+
 
     def leftandrighthandconstraints(self):
         eqcons = []

@@ -665,16 +665,19 @@ def visualizeresult(request,result_id):
     context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
+
+
+
 @ensure_csrf_cookie
 def visualizeresulttrajectories(request,result_id):
+    tab = [0,0,0,0,0]
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     p_list = Parameters.objects.filter(viabilityproblem=vp)
     r_list=[]
-    print r_list
     for p in p_list:
         r_list = r_list+list(Results.objects.filter(parameters = p))
-        print r_list
+#        print r_list
 
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
@@ -685,8 +688,9 @@ def visualizeresulttrajectories(request,result_id):
 #    hm = HDF5Manager([BarGridKernel])
 #    bargrid = hm.readKernel(r.datafile.path)
 
-
-    context = {'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
+    desadm = vp.admissibles()
+    ldesadm = len(desadm)
+    context = {'ldesadm':ldesadm,'desadm':desadm,'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
     return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
 
 def visualizeresulttrajectoriesancien(request,result_id):
@@ -968,6 +972,203 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
 #    print statetrajectories
     return statetrajectories
 
+def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs):
+    import numpy as np
+    npcontrolsteps = np.array(controlsteps)
+    statetrajectories = []
+    for i in range(vp.statedimension+1):
+	statetrajectories.append([])
+#    print statetrajectories
+    tmin = 0
+    tmax = Tmax
+    for ct in controltrajectories:
+        if (len(ct[0])>=1):
+            tmin = max (tmin,ct[0][0])
+            tmax = min (tmax,ct[0][-1])
+
+        else :
+            tmin = Tmax
+            tmax = 0     
+    if (tmin<=tmax):
+        tcurrent = tmin
+        i = 1
+        admissibles = p.admissibles()
+
+        for s in startingstate:
+            statetrajectories[i].append(s)
+            i = i+1
+        laststate = startingstate
+        while (tcurrent <= tmax):
+            statetrajectories[0].append(tcurrent)
+            valcontrols = []
+            
+            for ct in controltrajectories:
+                valcontrols = valcontrols+valcontrol(ct[0],ct[1],tcurrent,0)
+             
+            currentlaststate = next(laststate,valcontrols,dt,method,p)
+            distance = 1
+            if vino.isInSet(currentlaststate)==False:
+#                print valcontrols
+                bbb = True
+                while bbb:  #distance<40: #a modifier quand on pourra tester si un controle est admissible
+                    bbb = False
+                    base = 2*distance +1
+                    baseminus1 = base-1
+                    tab=[0]*vp.controldimension
+                    b=True
+                    l=len(tab)
+                    while b==True :
+                        if 0 in tab or baseminus1 in tab:
+#                            print tab
+                            newvalcontrols = list(np.array(valcontrols)+(np.array(tab)-distance)*npcontrolsteps)
+#                            print newvalcontrols
+                            bb = True
+                            for adm in admissibles:
+                                for var in adm:
+#                                    print var
+                                    if var in stateabbrevs:
+                                        adm[var] = laststate[stateabbrevs.index(var)]
+                                    if var in controlabbrevs:
+                                        adm[var] = newvalcontrols[controlabbrevs.index(var)]
+                                bb= bb and adm()
+#                                print bb 
+                            if bb:
+                                bbb = True
+                                currentlaststate = next(laststate,newvalcontrols,dt,method,p)
+#                                print currentlaststate
+                                if vino.isInSet(currentlaststate):
+                                    b=False
+                                    bbb = False
+#                                    print "youi"
+#                                    print newvalcontrols                               
+                        j=0
+
+                        while j<l:
+                            if tab[j]<(base-1):
+                                tab[j]=tab[j]+1
+                                j=l
+                            else:
+                                tab[j]=0
+                                if j==(l-1):
+                                    b=False
+                                    distance = distance+1 
+                                j=j+1
+                    distance = distance +1
+            if vino.isInSet(currentlaststate):
+                laststate=currentlaststate
+                i = 1
+                for coord in laststate:
+                    statetrajectories[i].append(coord)
+                    i = i+1
+                tcurrent = tcurrent + dt
+            else:
+                tcurrent = Tmax+1
+                print "Can't build viable evolution"
+#    print statetrajectories
+    return statetrajectories
+
+
+def makeEvolutionViable(request,result_id):
+    if request.method == 'POST':
+        import cgi
+        form = cgi.FieldStorage()
+        if request.POST.has_key("controlinput1"):
+            r=Results.objects.get(id=result_id)
+            if r.resultformat.name =='bars':
+                hm = HDF5Manager([BarGridKernel])
+                vino = hm.readKernel(r.datafile.path)
+            elif r.resultformat.name =='kdtree':
+                hm = HDF5Manager([BarGridKernel])
+                vino = hm.readKernel(r.datafile.path)
+
+            p=r.parameters
+#            print "ohoh"
+            vp=r.parameters.viabilityproblem
+            import numpy as np
+            stateabbrevs = vp.stateabbreviation()
+            controlabbrevs = vp.controlabbreviation()
+
+            controltrajectories = [];
+            controlsteps = [];
+            for i in range(vp.controldimension):
+                t = []
+	        u = []
+		
+                text = request.POST["controlinput"+str(i+1)]
+#                print text
+#                print 'youpi'
+           
+                donnees = text.split(")(")
+                donnees[0] = donnees[0].replace("(","")
+                donnees[-1] = donnees[-1].replace(")","")
+                for d in donnees:
+                    if (d.find(",") >= 0) : 
+		        dd = d.split(",")
+                        t.append(float(dd[0]))
+                        u.append(float(dd[1]))
+	        controltrajectories.append([t,u])
+                controlsteps.append(float(request.POST["hiddencontrolstep"+str(i+1)]))
+#            print controltrajectories
+            Tmax = float(request.POST["horizon"])
+            dt = float(request.POST["dt"])
+            method = request.POST["method"]
+            startingstate = []
+            for i in range(vp.statedimension):
+                startingstate.append(float(request.POST["startingstate"+str(i+1)]))
+
+#            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
+            statetrajectories = viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs)           
+            
+            colors = np.array([1]*len(statetrajectories[1]))
+            constraints = p.constraints()
+            for con in constraints:
+#                print con
+#                print statetrajectories[0]
+                for var in con:
+#                    print var
+                    if var in stateabbrevs:
+#                        print "dedans"
+                        con[var] = np.array(statetrajectories[stateabbrevs.index(var)+1])
+#                print(con())
+        
+                colors = colors*np.array(con(),dtype=int)
+            dimension = vp.statedimension
+            for i in range(len(colors)):
+                if (colors[i] == 1):
+                    point = []
+                    for j in range(dimension):
+                        point.append(statetrajectories[j+1][i])
+#                    print point
+                    if vino.isInSet(point):
+                        colors[i] = 2
+            statetrajectories.insert(0,list(colors))      
+
+#            print statetrajectories[0]
+            constrainttrajectories=[]    
+            eqhandconstraints = p.leftandrighthandconstraints()
+#            print eqhandconstraints
+            for eqhands in eqhandconstraints:
+                for eqhand in eqhands :
+#                    print eqhand 
+                    b = 0
+                    for var in eqhand:
+                        b = 1
+                        if var in stateabbrevs:
+#                            print "dedans"
+                            eqhand[var] = np.array(statetrajectories[stateabbrevs.index(var)+2])
+#                    print eqhand()
+                    if (b==0):
+                        constrainttrajectories.append([eqhand()]*len(statetrajectories[0]))
+                    else:
+
+                        constrainttrajectories.append(list(eqhand()))
+            
+            out_json = json.dumps(list(statetrajectories)+constrainttrajectories, sort_keys = True, ensure_ascii=False)
+#        return JsonResponse([1, 2, 3], safe=False)   
+            return HttpResponse(out_json)
+        return HttpResponse("Pas POST")
+    return HttpResponse("Pas POST")
+
 def controltostate(request,result_id):
     if request.method == 'POST':
         import cgi
@@ -989,6 +1190,7 @@ def controltostate(request,result_id):
             controlabbrevs = vp.controlabbreviation()
 
             controltrajectories = [];
+            controlsteps = [];
             for i in range(vp.controldimension):
                 t = []
 	        u = []
