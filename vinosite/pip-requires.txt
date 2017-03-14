@@ -4,3 +4,4 @@ django-jfu
 django-bootstrap3
 Equation
 humanize
+sqlite
