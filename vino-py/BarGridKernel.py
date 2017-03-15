@@ -37,7 +37,7 @@ class BarGridKernel(Kernel):
             self.kernelMaxPoint = [-1] * len(originCoords)
         else :
             self.kernelMaxPoint = kernelMaxPoint
-
+        self.metadata.update(self.getDataAttributes())
 
     @staticmethod   
     @overrides
