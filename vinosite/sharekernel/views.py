@@ -755,6 +755,9 @@ def compareresultbis(request, vinoA_id, vinoB_id):
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
 def kerneluploadpage(request, parameters_id=None, algorithm_id=None):
+    '''
+    Returns a form for uploading a kernel file, using jfu form plugin (through kerneluploadfile.htm template) that will give file to views.kerneluploadfile method.
+    '''
     form = DocumentForm()
     context = { 'form': form,
         'parameters_id' : parameters_id,
@@ -1356,10 +1359,8 @@ def kerneluploadfile(request):
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
         hdf5manager.writeKernel(kernel, tmpfilename)
-        print 'oh1' 
     elif file:
         # in this case, we receive a file that we try to read
-        print 'oh2'
         try:
             tmpfile = tempfile.NamedTemporaryFile(delete=False)
             tmpfilename = tmpfile.name
@@ -1412,7 +1413,6 @@ def kerneluploadfile(request):
         except Exception as e:
             return UploadResponse( request, {'error':str(e)})
     if kernel:    
-            print 'oh3'            
             if not file:
                 file = open(tmpfilename,'r')
             # kernel loaded, we bring the metadata to the user
