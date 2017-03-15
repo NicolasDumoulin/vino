@@ -13,7 +13,7 @@ class Category(models.Model):
         return str(self.pk) + " " + self.text
 
 class ViabilityProblem(models.Model):
-    category = models.ForeignKey(Category, null = True)
+    category = models.ForeignKey(Category, null = True, blank=True)
     title = models.CharField(max_length=200)
     issue = models.TextField(max_length=2000,default =0)
     statedimension = models.IntegerField(default=0)
@@ -69,13 +69,13 @@ class ViabilityProblem(models.Model):
 
 
 class Algorithm(models.Model):
-    name = models.CharField(max_length=500,default=0)
-    author = models.CharField(max_length=200,default =0)
-    version = models.CharField(max_length=20,default=0)
-    publication = models.TextField(max_length=1000,default =0)
-    softwarewebsite = models.URLField(default=0)
-    softwarecontact = models.EmailField(default=0)
-    softwareparameters = models.CharField(max_length=500,default = 0)
+    name = models.CharField(max_length=500,default='')
+    author = models.CharField(max_length=200,default ='')
+    version = models.CharField(max_length=20,default='', blank=True)
+    publication = models.TextField(max_length=1000,default ='', blank=True)
+    softwarewebsite = models.URLField(default='', blank=True)
+    softwarecontact = models.EmailField(default='', blank=True)
+    softwareparameters = models.CharField(max_length=500,default = '', blank=True)
     def __str__(self):
         return str(self.pk) + " " + self.name + " " + self.version
     
