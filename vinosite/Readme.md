@@ -13,6 +13,7 @@ If you want to deploy the webserver but won't/can't use Docker, follow these ins
  pip install -r vino-py/pip-requires.txt
  pip install -r vinosite/pip-requires.txt
  ```
+ - Under Windows, you have to install the package 'sqlite' with Anaconda
  - Go into the folder `vinosite`
  - Copy the config file `vinosite/local_settings.py.dist` to `vinosite/local_settings.py`.
  - Initialize the database by running:
