@@ -159,7 +159,7 @@ class ResultFormat(models.Model):
     parameterlist = models.CharField(max_length=500,default = 0)
     
     def __str__(self):
-        return str(self.pk) + " " + self.name
+        return self.name
     
     def toDict(self):
         '''
