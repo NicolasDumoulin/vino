@@ -154,7 +154,7 @@ class Parameters(models.Model):
         return eqcons
 
 class ResultFormat(models.Model):
-    name = models.CharField(max_length=200,default = 0)
+    name = models.CharField(primary_key=True, max_length=200,default = 0)
     description = models.TextField(max_length=2000,default = 0)
     parameterlist = models.CharField(max_length=500,default = 0)
     
