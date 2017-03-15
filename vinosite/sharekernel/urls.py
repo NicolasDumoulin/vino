@@ -25,7 +25,8 @@ urlpatterns = [
     url(r'^result/(?P<result_id>([0-9]|N)+)/$', views.visitresult, name='visitresult'),
     url(r'^algorithm/new/$', views.newalgorithm, name='newalgorithm'),
     url(r'^upload/p=(?P<parameters_id>([0-9]|N)+)/a=(?P<algorithm_id>([0-9]|N)+)/$', views.kerneluploadpage, name='kerneluploadpage'),
-    url(r'^upload/$', views.kerneluploadpage, name='kerneluploadpage'),
+    # Upload feature without parameters selected disabled
+    #url(r'^upload/$', views.kerneluploadpage, name='kerneluploadpage'),
     url(r'kerneluploadfile/', views.kerneluploadfile, name = 'kerneluploadfile' ),
     url(r'^ViNOComparison2D/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOComparison2D, name='ViNOComparison2D'),
     url(r'^ViNOView3D/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOView3D, name='ViNOView3D'),
