@@ -23,6 +23,13 @@ If you want to deploy the webserver but won't/can't use Docker, follow these ins
  ```
  - Start the server with the cammand: `python manage.py runserver`
 
+Initialisation
+==============
+You can create the superuser account with this command:
+```
+python manage.py createsuperuser
+```
+Then, you will be able to log in to the administration backend through the URL http://localhost:8000/admin
 
 Run
 ===
