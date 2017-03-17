@@ -1,0 +1,69 @@
+﻿Métadonnées d'origine écrites par Isabelle Alvarez pour les données
+bilingual21dil0control0.1ustep0.01dt0.05WC ET
+Bilingual21TS05dil3
+
+Les métadonnées sont présentes dans les fichiers .txt accompagnant les fichiers .dat, et ce fichier est conservé pour l'histoire de la science, du temps où on bricolait avec des fichiers texte.
+
+tous paramètres communs sauf le paramètre dilations
+***************************************************
+
+- paramètres du modèle de compétition de langue
+  val a: Double = 1.31
+
+def dynamic(state: Point, control: Point) = {
+    def sA = state(0)
+    def sB = state(1)
+    def s = state(2)
+    def σaDot(state: Array[Double], t: Double) =
+      (1 - sA - sB) * pow(1 - sB, a) * s - sA * pow(sB, a) * (1 - s)
+
+    def σbDot(state: Array[Double], t: Double) =
+      (1 - sA - sB) * pow(1 - sA, a) * (1 - s) - sB * pow(sA, a) * s
+
+    def sDot(state: Array[Double], t: Double) =
+      control(0)
+
+    val dynamic = Dynamic(σaDot, σbDot, sDot)
+ 
+- domaine d'exploration
+    pour le calcul du noyau zone = Seq(0.2 -> 1.0, 0.2 -> 1.0, 0.0 -> 1.0)
+    pour le calcul de distance le domaine est différent
+
+- ensemble de contrainte K p(0) est sa, p(1) est sb, p(2) est s
+
+ def k(p: Point) = {
+    p(0) <= 1 && p(0) >= 0.2 && p(1) <= 1 && p(1) >= 0.2   &&  (p(0)+p(1) <=1 ) && p(2)<=1 && p(2)>=0
+  }
+
+- contrôles
+    controls = (-0.1 to 0.1 by 0.01)
+
+
+- profondeur maximale de la division du kd-tree : 21
+(soit 2^7 sur chaque axe, c'est à dire (128)^3 points)
+
+- paramètre de dilation du kd-tree 
+dilations = 0 : pas de dilatation (pour le fichier dil0)
+Ceci implique que l'approximation peut être à l'intérieur du noyau
+dilations = 3 : 3 dilatations unitaires (pour le fichier dil3)
+Normalements contient le noyau si µ=1 (mais pour le problème de langue, µ > 1)
+
+- paramètres d'intégration de la méthode de Runge-Kutta
+   	integrationStep = 0.05
+   	timeStep = 0.5
+
+- random seed 
+	new Random(42)
+
+Contenu du fichier (champs séparés par un blanc)
+sa sb s samin samax sbmin sbmax smin smax u
+
+point de coordonnées sa,sb,s
+
+samin : séparateur minimum selon sa de la feuille représentée par le point (sa,sb,s)
+samax : séparateur maximum selon sa de la feuille représentée par le point (sa,sb,s)
+sbmin : séparateur minimum selon sb de la feuille représentée par le point (sa,sb,s)
+sbmax : séparateur maximum selon sb de la feuille représentée par le point (sa,sb,s)
+smin : séparateur minimum selon s de la feuille représentée par le point (sa,sb,s)
+smax : séparateur maximum selon s de la feuille représentée par le point (sa,sb,s)
+u : un contrôle viable pour (sa,sb,s) avec les paramètres d'intégration du modèle
