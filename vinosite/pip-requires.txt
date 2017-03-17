@@ -1,7 +1,8 @@
 django==1.9.7
 docutils
-django-jfu
+#django-jfu with a missing fix
+https://github.com/PerFuchs/django-jfu/archive/9f621d3025ef0a5aa543fa9964c7483d8421c1d1.zip
 django-bootstrap3
 Equation
 humanize
-sqlite
+
