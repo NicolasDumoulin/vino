@@ -77,14 +77,14 @@ class ViabilitreeLoader(FileFormatLoader):
     @overrides
     def read(self, filename):
         metadata = {}
-        myre = re.compile('^(.*):(.*)$')
+        myre = re.compile('^([^:]*):(.*)$')
         with open(os.path.splitext(filename)[0]+'.txt') as f:
             for line in f:
                 if not line.startswith('#'):
                     match = myre.match(line)
                     if match:
                         k, v = match.groups()
-                        metadata[k.strip()] = v.strip()
+                        metadata[k.strip().lower()] = v.strip()
         metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
         k = KdTree.readViabilitree(filename, metadata)
         return k
