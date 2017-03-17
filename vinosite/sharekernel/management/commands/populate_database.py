@@ -37,11 +37,11 @@ def addKernel(kernel, file):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        ResultFormat.objects.all().delete()
-        ViabilityProblem.objects.all().delete()
-        Algorithm.objects.all().delete()
-        Parameters.objects.all().delete()
-        Results.objects.all().delete()
+        #ResultFormat.objects.all().delete()
+        #ViabilityProblem.objects.all().delete()
+        #Algorithm.objects.all().delete()
+        #Parameters.objects.all().delete()
+        #Results.objects.all().delete()
         # Now populating some kernels
         loader = Loader()
         myre = re.compile('^#(.*):(.*)$')
