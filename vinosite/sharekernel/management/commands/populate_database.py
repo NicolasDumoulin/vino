@@ -14,7 +14,7 @@ from sharekernel.views import findandsaveobject
 
 hdf5manager = HDF5Manager([BarGridKernel])
 
-def addKernel(kernel, file):
+def addKernel(kernel):
     resultformat_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("resultformat")}
     resultformat = findandsaveobject(ResultFormat, {METADATA.resultformat_name:resultformat_md[METADATA.resultformat_name]}, add_metadata=resultformat_md)
     problem_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("viabilityproblem")}
@@ -36,49 +36,50 @@ def addKernel(kernel, file):
     return result
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        # Named (optional) arguments
+        parser.add_argument(
+            '--delete',
+            action='store_true',
+            dest='delete',
+            default=False,
+            help='Delete all objects',
+        )
+        parser.add_argument(
+            '--sure-delete',
+            action='store_true',
+            dest='sure-delete',
+            default=False,
+            help='Confirm deletion of all objects',
+        )
+
     def handle(self, *args, **options):
-        #ResultFormat.objects.all().delete()
-        #ViabilityProblem.objects.all().delete()
-        #Algorithm.objects.all().delete()
-        #Parameters.objects.all().delete()
-        #Results.objects.all().delete()
+        if options['delete']:
+            if not options['sure-delete']:
+                self.stdout.write("You want to delete all objects before populating the database with samples. If you know what you are doing, please add the argument 'sure' in the command:\n    python manage.py populate_database --delete --sure-delete")
+                return
+            ResultFormat.objects.all().delete()
+            ViabilityProblem.objects.all().delete()
+            Algorithm.objects.all().delete()
+            Parameters.objects.all().delete()
+            Results.objects.all().delete()
         # Now populating some kernels
         loader = Loader()
         myre = re.compile('^#(.*):(.*)$')
-        for lake in ['2D','2D_light']:
+        for prefix in ['lake/2D','lake/2D_light','rangeland/3D_rangeland']:
             metadata = {}
-            with open('../samples/lake/'+lake+'_metadata.txt') as f:
+            with open('../samples/'+prefix+'_metadata.txt') as f:
                 for line in f:
                     if line.startswith('#'):
                         k, v = myre.match(line).groups()
                         metadata[k.strip()] = v.strip()
-            f = '../samples/lake/'+lake+'.txt'
+            f = '../samples/'+prefix+'.txt'
             kernel = loader.load(f)
             kernel.metadata.update(metadata)
-            addKernel(kernel, f)
+            addKernel(kernel)
         
         for f in ['../samples/lake/lake_Isa_R1.dat', '../samples/bilingual-viabilitree/Bilingual21TS05dil3.dat', '../samples/bilingual-viabilitree/bilingual21dil0control0.1ustep0.01WC.dat']:
             kernel = loader.load(f)
-            addKernel(kernel, f)
-        
-        for vp in [{
-            'category':None,
-            'title':'Rangeland management',
-            'issue':'We consider the issue of rangeland management and use a model to describe grass dynamics consisting of two parts, the crown and the shoots. We associate the grazing pressure with rangeland management policies by adjusting stock rate. However, pastoralists can not adjust stocking rates instantaneously. The aim is to design effective policies for delivering economically and environmentally viable agricultural systems.',
-            'statedimension':3,
-            'statenameandabbreviation':'Crown biomass,c/Shoot biomass,s/Grazing pressure,g',
-            'controldimension':1,
-            'controlnameandabbreviation':'Variation of grazing pressure,u',
-            'dynamicsdescription':"c'=rs*s-c,s'=(a*c + rc*c*s)(1-s)-g*s,g'=u",
-            'admissiblecontroldescription':'u in [umin;umax]',
-            'dynamicsparameters':'rs,a,rc,umin,umax',
-            'stateconstraintdescription':'c in [0;rs],s in [smin;1],g in [gmin;1]',
-            'stateconstraintparameters':'smin,gmin',
-        }]:
-            o = ViabilityProblem(**vp)
-            try:
-                o.full_clean()
-            except ValidationError as e:
-                self.stdout.write("Viability problem '{}' can't be added because of these field's errors: {}".format(vp['title'],e))
-            o.save()
+            addKernel(kernel)
+
             

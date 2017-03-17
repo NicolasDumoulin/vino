@@ -1,0 +1,23 @@
+#viabilityproblem.title:Rangeland management
+#viabilityproblem.issue:We consider the issue of rangeland management and use a model to describe grass dynamics consisting of two parts, the crown and the shoots. We associate the grazing pressure with rangeland management policies by adjusting stock rate. However, pastoralists can not adjust stocking rates instantaneously. The aim is to design effective policies for delivering economically and environmentally viable agricultural systems.
+#viabilityproblem.statedimension:3
+#viabilityproblem.statenameandabbreviation:Crown biomass,c/Shoot biomass,s/Grazing pressure,g
+#viabilityproblem.controldimension:1
+#viabilityproblem.controlnameandabbreviation:Variation of grazing pressure,u
+#viabilityproblem.dynamicsdescription:c'=rs*s-c,s'=(a*c + rc*c*s)(1-s)-g*s,g'=u
+#viabilityproblem.admissiblecontroldescription:u in [umin;umax]
+#viabilityproblem.dynamicsparameters:rs,a,rc,umin,umax
+#viabilityproblem.stateconstraintdescription:c in [0;rs],s in [smin;1],g in [gmin;1]
+#viabilityproblem.stateconstraintparameters:smin,gmin
+
+#parameters.dynamicsparametervalues:0,0,0,0,0
+#parameters.stateconstraintparametervalues:0,0,0
+#parameters_stateconstraintparametervalues:0,0
+
+#algorithm.name:Patrick Saint-Pierre Software
+#resultformat.name:bars
+#resultformat.parameterlist:MinimalValues,MaximalValues,PointNumberPerAxis,PointSize,ColumnDescription
+
+#results.title:Rangeland
+#results.author:Sophie Martin
+#results.formatparametervalues:0,0,0/3,1,1/1920,1920,1920/2/empty,x3,x2,x1min,x1max
