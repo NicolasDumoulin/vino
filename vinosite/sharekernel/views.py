@@ -15,11 +15,12 @@ from KdTree import KdTree
 from django.views.decorators.http import require_POST
 import os
 import METADATA
-from datetime import datetime
+from django.utils import timezone
 from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, AlgorithmForm
 import humanize
 import json
 import tempfile
+import logging
 
 # Create your views here.
 
@@ -862,33 +863,40 @@ def metadatafilecontent(request,category_id,viabilityproblem_id,parameters_id,al
     context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'algorithm' : a}
     return render(request, 'sharekernel/content.html', context)            
 
-def findandsaveobject(cls, metadata, foreignkeys={}, fields={}):
+def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={}):
     '''
-    Try to find object with same metadata, or return a new object
+    Try to find object with same metadata (excluding pk and foreign keys), or return a new object.
+    If foreignkeys are given as a dict (class field name, key value), they will be used for the comparison.
+    If additional fields are given as a dict (field name, field value).
+    If add_metadata provided, these metadata will be added if a new object is created but won't be used for the search.
     '''
     # find objects with same metadata and foreign keys
     p = [ o for o in cls.objects.all()
             if all(
-                str(metadata.get(cls.__name__.lower()+'.'+f.name)) == str(getattr(o, f.name))
+#                str(metadata.get(cls.__name__.lower()+'.'+f.name)) == str(getattr(o, f.name))
                 # list all model attributes except db keys
-                for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields)
+#                for f in filter(lambda f:not f.is_relation, cls._meta.fields)
+                hasattr(o, k[len(cls.__name__)+1:]) and getattr(o, k[len(cls.__name__)+1:]) == v
+                for k,v in metadata.iteritems()
             ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
         ]
     if not p:
         # no object found, creating a new one
         p = cls()
         # setting metadata
-        for f in filter(lambda f:not f.primary_key and not f.is_relation, cls._meta.fields):
-            try:
+        for f in filter(lambda f:not f.is_relation, cls._meta.fields):
+            if cls.__name__.lower()+'.'+f.name in metadata:
                 setattr(p, f.name, metadata[cls.__name__.lower()+'.'+f.name])
-            except:
-                print("metadata not found: "+cls.__name__.lower()+'.'+f.name)
+            elif cls.__name__.lower()+'.'+f.name in add_metadata:
+                setattr(p, f.name, add_metadata[cls.__name__.lower()+'.'+f.name])
+            else:
+                logging.getLogger(__name__).info("metadata not found: "+cls.__name__.lower()+'.'+f.name)
         # setting additional field (data file)
-        for fn,f in fields.iteritems():
-            setattr(p, fn, f)
+        for name, value in fields.iteritems():
+            setattr(p, name, value)
         # setting foreign keys
-        for f,fk in foreignkeys.iteritems():
-            setattr(p, f, fk)
+        for fn,fk in foreignkeys.iteritems():
+            setattr(p, fn, fk)
         p.save()
     else :
         p=p[0]
@@ -1421,7 +1429,7 @@ def kerneluploadfile(request):
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
             fields = {
                 "datafile": File(file),
-                "submissiondate": datetime.today()
+                "submissiondate": timezone.now()
                 }
             warnings=[]
             if parameters_id and parameters_id!="None":
