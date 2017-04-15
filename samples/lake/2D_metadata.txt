@@ -1,9 +1,7 @@
 //Metadata describing the viability problem
-#category.text:Environmental Sciences
-#category.color:3
 
 #viabilityproblem.title:Lake eutrophication
-#viabilityproblem.issue:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
+#viabilityproblem.description:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
 #viabilityproblem.statedimension:2
 #viabilityproblem.statenameandabbreviation:Phosphorus Inputs,L/Phosphorus Concentration,P
 #viabilityproblem.controldimension:1
@@ -23,16 +21,16 @@
 
 //Metadata describing the software used to compute the result described by the output file
 
-#algorithm.name:Patrick Saint-Pierre Software
-#algorithm.author:Patrick Saint-Pierre 
-#algorithm.version:none
-#algorithm.publication:Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209  
-#algorithm.softwarewebsite:none
-#algorithm.softwarecontact:none
-#algorithm.softwareparameters:none
+#software.title:Patrick Saint-Pierre Software
+#software.author:Patrick Saint-Pierre 
+#software.version:none
+#software.publication:Saint-Pierre (1994) Approximation of the viability kernel. Applied Mathematics and Optimization, 29, 187-209  
+#software.website:none
+#software.contact:none
+#software.parameters:none
 
 //Metadata describing the software output file 
-#resultformat.name:bars
+#resultformat.title:bars
 #resultformat.description:Each file line contains a given number of integers ranging from 0 to PointNumberPerAxis corresponding to a segment. The result is the union of all these segments. If (4,6,46,57) is written on a line, that means that the problem is 3-dimensional and that points (4,6,46), (4,6,47), ... ,(4,6,57) belong to the result set. Moreover, all real-valued points whose sup-distance is smaller than PointSize/2 also belong to the result set. ColumnDescription corresponds to identity matrix if the file columns correspond to the order according to which variables appear in the model description. Again in dimension 3 for instance, (0,0,0) corresponds to MinimalValues (possibly interchanged according to ColumnDescription) and (PointNumberPerAxis,PointNumberPerAxis,PointNumberPerAxis) to MaximalValues. 
 #resultformat.parameterlist:MinimalValues,MaximalValues,PointNumberPerAxis,PointSize,ColumnDescription
 
@@ -40,6 +38,6 @@
 #results.title:2D-lake-PSP-65536ppa
 #results.author:Sophie Martin
 #results.submissiondate:2015-09-09
-#results.contactemail:sophie.martin@irstea.fr
+#results.contact:sophie.martin@irstea.fr
 #results.softwareparametervalues:none
 #results.formatparametervalues:0.1,0/1,1.4/65537,65537/1/vide,vide,y,xmin,xmax

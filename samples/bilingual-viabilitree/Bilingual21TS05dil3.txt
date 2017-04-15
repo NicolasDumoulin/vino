@@ -1,15 +1,15 @@
-algorithm.author:Isabelle Alvarez and Romain Reuillon
-algorithm.name:Viabilitree
-algorithm.softwarewebsite: https://github.com/ISCPIF/viabilitree
-algorithm.softwareparameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
+software.author:Isabelle Alvarez and Romain Reuillon
+software.title:Viabilitree
+software.website: https://github.com/ISCPIF/viabilitree
+software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
 parameters.dynamicsparametervalues:1.31,-0.1,0.1
 parameters.stateconstraintparametervalues:0.2,0.2
 parameters.targetparametervalues:none
 resultformat.description:Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
-resultformat.name:kdtree
+resultformat.title:kdtree
 resultformat.parameterlist:ColumnDescription
 results.author:Isabelle Alvarez
-results.contactemail:isabelle.alvarez@irstea.fr
+results.contact:isabelle.alvarez@irstea.fr
 results.formatparametervalues:x,y,z
 results.softwareparametervalues:0.2,0.2,0,1,1,1/0.01/21/3/0.05/0.5/new Random(42)
 results.submissiondate:2016-09-28 13:23
@@ -19,7 +19,7 @@ viabilityproblem.controldimension:1
 viabilityproblem.controlnameandabbreviation:Prestige Variation,u
 viabilityproblem.dynamicsdescription:x'=(1-x-y)(1-y)^c*z-xy^c*(1-z),y'=(1-x-y)(1-x)^c*(1-z)-yx^c*z,z'=u
 viabilityproblem.dynamicsparameters:c,umin,umax
-viabilityproblem.issue:Many languages might become extinct. It is, therefore, an important challenge to understand language dynamics, and to recognise whether there are measures that can help us preserve some of them.
+viabilityproblem.description:Many languages might become extinct. It is, therefore, an important challenge to understand language dynamics, and to recognise whether there are measures that can help us preserve some of them.
 viabilityproblem.stateconstraintdescription:x in [amin; 1],y in [bmin;1],z in [0;1],x+y in [0;1]
 viabilityproblem.stateconstraintparameters:amin,bmin
 viabilityproblem.statedimension:3

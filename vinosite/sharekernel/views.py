@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import  ensure_csrf_cookie
-from sharekernel.models import Document, Category, ViabilityProblem, Algorithm, Parameters,Results,ResultFormat 
+from sharekernel.models import Document, ViabilityProblem, Software, Parameters,Results,ResultFormat 
 from sharekernel.forms import DocumentForm, TrajForm
 from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
@@ -16,7 +16,7 @@ from django.views.decorators.http import require_POST
 import os
 import METADATA
 from django.utils import timezone
-from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, AlgorithmForm
+from forms import ViabilityProblemForm, MetadataFromListForm, ResultForm, ParametersForm, SoftwareForm
 import humanize
 import json
 import tempfile
@@ -39,7 +39,7 @@ def viabilityproblem_carddata(vp):
     for param in vp.parameters_set.all():
         nbResults += len(param.results_set.all())
         for result in param.results_set.all():
-            resultsByFormat.setdefault(result.resultformat.name,[]).append(result)
+            resultsByFormat.setdefault(result.resultformat.title,[]).append(result)
     formatsStats={f:100*float(len(results))/nbResults for f,results in resultsByFormat.iteritems()}
     return {'value':vp, 'nbResults':nbResults, 'resultsByFormat':resultsByFormat, 'formatsStats':formatsStats}
 
@@ -50,24 +50,10 @@ def home(request):
         }
     return render(request, 'sharekernel/home.html', context)            
     
-def visitcategorylist(request):
-    c_list = Category.objects.all()
-    context = {'category_list' : c_list}
-    return render(request, 'sharekernel/visitcategorylist.html', context)            
-
-def visitviabilityproblemlist(request,category_id):
-    c=Category.objects.get(id=category_id)    
-    t = []
-    t.append(c.id)
-    c_list = Category.objects.all()
-    vp_list = ViabilityProblem.objects.filter(category=Category.objects.get(id=category_id))
-    context = {'t': t,'viabilityproblem_list' : vp_list,'category_list' : c_list}
-    return render(request, 'sharekernel/visitviabilityproblemlist.html', context)            
-
 def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
     p = r.parameters
-    if not p or not r.algorithm:
+    if not p or not r.software:
         r=Results.objects.get(id=result_id)    
         return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
     vp = p.viabilityproblem
@@ -97,13 +83,13 @@ def visitresult(request,result_id):
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
-    a = r.algorithm
+    a = r.software
     f = r.resultformat
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
     tabvaluesbisbis = []
     
-    tabvaluesbisbis.append(a.name)
+    tabvaluesbisbis.append(a.title)
     tabvaluesbis.append(tabvaluesbisbis)
     tabvaluesbisbis = []
     tabvalues.append(tabvaluesbis)
@@ -115,9 +101,10 @@ def visitresult(request,result_id):
         staconparval.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
     for i in range(len(vp.targetparameters.split(","))):
         tarparval.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-    if a.softwareparameters.split(",")[0]!="none":
-        for i in range(len(a.softwareparameters.split(","))):
-            softparval.append(''.join([a.softwareparameters.split(",")[i]," = ",r.softwareparametervalues.split("/")[i]]))
+    #import pdb; pdb.set_trace()
+    if a.parameters.split(",")[0]!="none":
+        for i in range(min(len(a.parameters.split(",")),len(r.softwareparametervalues.split("/")))):
+            softparval.append(''.join([a.parameters.split(",")[i]," = ",r.softwareparametervalues.split("/")[i]]))
     if f.parameterlist.split(",")[0]!="none":
         for i in range(len(f.parameterlist.split(","))):
             formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
@@ -128,13 +115,13 @@ def visitresult(request,result_id):
     if a.publication!="none":
         publication.append(a.publication)
     website = []
-    if a.softwarewebsite!="none":
-        website.append(a.softwarewebsite)
+    if a.website!="none":
+        website.append(a.website)
     contact = []
-    if a.softwarecontact!="none":
-        contact.append(a.softwarecontact)
+    if a.contact!="none":
+        contact.append(a.contact)
 
-    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat,'category' : r.parameters.viabilityproblem.category, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'algorithm' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
+    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
     return render(request, 'sharekernel/visitresult.html', context)            
 
 def visitviabilityproblem(request,viabilityproblem_id):
@@ -163,12 +150,12 @@ def visitviabilityproblem(request,viabilityproblem_id):
     if tardes[0]=="none":
         tardes = []
     p_list = vp.parameters_set.all()
-    a_list = Algorithm.objects.all()
+    a_list = Software.objects.all()
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
     tabvaluesbisbis = []
     for a in a_list:    
-        tabvaluesbisbis.append(a.name)
+        tabvaluesbisbis.append(a.title)
         tabvaluesbis.append(tabvaluesbisbis)
         tabvaluesbisbis = []
     tabvalues.append(tabvaluesbis)
@@ -188,7 +175,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
             tabvaluesbis.append(tabvaluesbisbis)
             tabvaluesbisbis = []
             for a in a_list:    
-                tabvaluesbis.append(p.results_set.filter(algorithm=a))
+                tabvaluesbis.append(p.results_set.filter(software=a))
             tabvalues.append(tabvaluesbis)
     resultsByParameters = {}
     for parameter in p_list:
@@ -197,7 +184,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
             resultData = {'value' : result, 'filesize': humanize.naturalsize(result.datafile.size)}
             results.append(resultData)
         resultsByParameters[parameter] = results
-    context = {'category' : vp.category,'viabilityproblem' : vp,'dyndes' : dyndes,
+    context = {'viabilityproblem' : vp,'dyndes' : dyndes,
     'adcondes' : vp.admissiblecontroldescription.split(","),
     'stacondes' : vp.stateconstraintdescription.split(","),
     'tardes' : tardes,'stanaab' : stanaab,
@@ -256,9 +243,9 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
     if request.method == 'POST':
       vinos.append(Results.objects.get(id=vinoA_id))
       vinos.append(Results.objects.get(id=vinoB_id))
-      data = [[vinos[0].resultformat.name,vinos[1].resultformat.name,'bars','bars','bars','bars','bars']]
+      data = [[vinos[0].resultformat.title,vinos[1].resultformat.title,'bars','bars','bars','bars','bars']]
       for vino in vinos:
-        if vino.resultformat.name =='bars':
+        if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
             pyvinos.append(bargrid)
@@ -275,7 +262,7 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
             bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
             data.append(bargridbis.getDataToPlot())
-        elif vino.resultformat.name =='kdtree':
+        elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
             pyvinos.append(kdt)
@@ -332,7 +319,7 @@ def ViNOView2D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        if vino.resultformat.name =='bars':
+        if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
 
@@ -344,7 +331,7 @@ def ViNOView2D(request,result_id,ppa):
             out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
-        elif vino.resultformat.name =='kdtree':
+        elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
             kdt = hm.readKernel(vino.datafile.path)
             data = kdt.getDataToPlot()
@@ -358,7 +345,7 @@ def ViNOView3D(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        if vino.resultformat.name =='bars':
+        if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
             distancegridintervals = [150]*3
@@ -382,7 +369,7 @@ def ViNOView3D(request,result_id,ppa):
 #            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
             return HttpResponse(out_json)#, mimetype='text/plain')
-        elif vino.resultformat.name =='kdtree':
+        elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
             kdtree = hm.readKernel(vino.datafile.path)
             data = kdtree.getDataToPlot()
@@ -399,9 +386,9 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
     import re
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        if vino.resultformat.name =='bars':
+        if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
-        elif vino.resultformat.name =='kdtree':
+        elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
@@ -470,9 +457,9 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
-        if vino.resultformat.name =='bars':
+        if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
-        elif vino.resultformat.name =='kdtree':
+        elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
@@ -652,7 +639,6 @@ def visualizeresult(request,result_id):
     stanaab = []
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
-    c=vp.category
     rf=r.resultformat
     for i in range(vp.statedimension):
         forms.append(TrajForm())
@@ -663,7 +649,7 @@ def visualizeresult(request,result_id):
         j = i.split(",")
         stanaab.append(j[1])
 
-    context = {'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
+    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 
@@ -682,7 +668,6 @@ def visualizeresulttrajectories(request,result_id):
 
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
-    c=vp.category
     descon = vp.constraints()
     ldescon=len(descon)
 #    rf=r.resultformat
@@ -691,7 +676,7 @@ def visualizeresulttrajectories(request,result_id):
 
     desadm = vp.admissibles()
     ldesadm = len(desadm)
-    context = {'ldesadm':ldesadm,'desadm':desadm,'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp,'category':c} 
+    context = {'ldesadm':ldesadm,'desadm':desadm,'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp} 
     return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
 
 def visualizeresulttrajectoriesancien(request,result_id):
@@ -703,7 +688,6 @@ def visualizeresulttrajectoriesancien(request,result_id):
     vp=r.parameters.viabilityproblem
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
-    c=vp.category
     rf=r.resultformat
     for i in range(vp.statedimension):
         forms.append(TrajForm())
@@ -714,7 +698,7 @@ def visualizeresulttrajectoriesancien(request,result_id):
         j = i.split(",")
         stanaab.append(j[1])
 
-    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'category':c,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms} 
+    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms} 
     return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
 
 
@@ -722,12 +706,10 @@ def compareresult(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)
     vpA=vinoA.parameters.viabilityproblem
-    cA=vpA.category
     rfA=vinoA.resultformat
     vpB=vinoB.parameters.viabilityproblem
-    cB=vpB.category
     rfB=vinoB.resultformat
-    context = {'vinoA':vinoA,'viabilityproblemA':vpA,'categoryA':cA,'resultformatA':rfA,'vinoB':vinoB,'viabilityproblemB':vpB,'categoryB':cB,'resultformatB':rfB} 
+    context = {'vinoA':vinoA,'viabilityproblemA':vpA,'resultformatA':rfA,'vinoB':vinoB,'viabilityproblemB':vpB,'resultformatB':rfB} 
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
 
@@ -755,18 +737,18 @@ def compareresultbis(request, vinoA_id, vinoB_id):
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)            
 
-def kerneluploadpage(request, parameters_id=None, algorithm_id=None):
+def kerneluploadpage(request, parameters_id=None, software_id=None):
     '''
     Returns a form for uploading a kernel file, using jfu form plugin (through kerneluploadfile.htm template) that will give file to views.kerneluploadfile method.
     '''
     form = DocumentForm()
     context = { 'form': form,
         'parameters_id' : parameters_id,
-        'algorithm_id' : algorithm_id,
+        'software_id' : software_id,
         }
     return render(request, 'sharekernel/kernelupload.html', context)
 
-def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
+def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,software_id,resultformat_id):
     if category_id == 'N':
         c=False
         vp=False
@@ -782,28 +764,18 @@ def metadatafilespecification(request,category_id,viabilityproblem_id,parameters
                 p=False
             else:
                 p = get_object_or_404(Parameters, id=parameters_id)
-    if algorithm_id == 'N':
+    if software_id == 'N':
         a=False
     else:
-        a = get_object_or_404(Algorithm, id=algorithm_id)    
+        a = get_object_or_404(Software, id=software_id)    
     if resultformat_id == 'N':
         f=False
     else:
         f= get_object_or_404(ResultFormat, id=resultformat_id)
-    context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'algorithm' : a,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
+    context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'software' : a,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/metadatafilespecification.html', context)            
-        
-def categorylist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
-    c_list = Category.objects.all()
-    context = {'category_list' : c_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/categorylist.html', context)            
-    
-def viabilityproblemlist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
-    vp_list = ViabilityProblem.objects.filter(category=Category.objects.get(id=category_id))
-    context = {'category' : Category.objects.get(id=category_id),'viabilityproblem_list' : vp_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/viabilityproblemlist.html', context)            
-    
-def parameterslist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
+
+def parameterslist(request,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
     tabvalues = []
     vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
     p_list = Parameters.objects.filter(viabilityproblem=vp)
@@ -824,25 +796,22 @@ def parameterslist(request,category_id,viabilityproblem_id,parameters_id,algorit
                 tabvalues.append(p.targetparametervalues.split(",")[i])
 
        
-    context = {'n' : range(len(p_list)),'N' : len(p_list)+1,'tabvalues': tabvalues,'viabilityproblem' : vp,'parameters_list' : p_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
+    context = {'n' : range(len(p_list)),'N' : len(p_list)+1,'tabvalues': tabvalues,'viabilityproblem' : vp,'parameters_list' : p_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/parameterslist.html', context)            
 
-def algorithmlist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
-    a_list = Algorithm.objects.all()
-    context = {'algorithm_list' : a_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/algorithmlist.html', context)            
+def softwarelist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
+    a_list = Software.objects.all()
+    context = {'software_list' : a_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
+    return render(request, 'sharekernel/softwarelist.html', context)            
 
-def resultformatlist(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
+def resultformatlist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
     f_list = ResultFormat.objects.all()
-    context = {'resultformat_list' : f_list,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'algorithm_id' : algorithm_id,'resultformat_id' : resultformat_id}
+    context = {'resultformat_list' : f_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/resultformatlist.html', context)            
 
     
-def metadatafilecontent(request,category_id,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
-    if category_id == 'N':
-        c=False
-    else:
-        c = get_object_or_404(Category, id=category_id)
+def metadatafilecontent(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
+    c=False
     if viabilityproblem_id == 'N':
         vp=False
     else:
@@ -851,16 +820,16 @@ def metadatafilecontent(request,category_id,viabilityproblem_id,parameters_id,al
         p=False
     else:
         p = get_object_or_404(Parameters, id=parameters_id)
-    if algorithm_id == 'N':
+    if software_id == 'N':
         a=False
     else:
-        a = get_object_or_404(Algorithm, id=algorithm_id)    
+        a = get_object_or_404(Software, id=software_id)    
     if resultformat_id == 'N':
         f=False
     else:
         f= get_object_or_404(ResultFormat, id=resultformat_id)
     #13/12/1/1/1
-    context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'algorithm' : a}
+    context = { 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'software' : a}
     return render(request, 'sharekernel/content.html', context)            
 
 def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={}):
@@ -1085,10 +1054,10 @@ def makeEvolutionViable(request,result_id):
         form = cgi.FieldStorage()
         if request.POST.has_key("controlinput1"):
             r=Results.objects.get(id=result_id)
-            if r.resultformat.name =='bars':
+            if r.resultformat.title =='bars':
                 hm = HDF5Manager([BarGridKernel])
                 vino = hm.readKernel(r.datafile.path)
-            elif r.resultformat.name =='kdtree':
+            elif r.resultformat.title =='kdtree':
                 hm = HDF5Manager([BarGridKernel])
                 vino = hm.readKernel(r.datafile.path)
 
@@ -1186,10 +1155,10 @@ def controltostate(request,result_id):
         form = cgi.FieldStorage()
         if request.POST.has_key("controlinput1"):
             r=Results.objects.get(id=result_id)
-            if r.resultformat.name =='bars':
+            if r.resultformat.title =='bars':
                 hm = HDF5Manager([BarGridKernel])
                 vino = hm.readKernel(r.datafile.path)
-            elif r.resultformat.name =='kdtree':
+            elif r.resultformat.title =='kdtree':
                 hm = HDF5Manager([BarGridKernel])
                 vino = hm.readKernel(r.datafile.path)
 
@@ -1283,7 +1252,7 @@ def results_tree(request):
     return render(request, 'sharekernel/results_tree.html', {
         'problems':ViabilityProblem.objects.all(),
         'parameters':Parameters.objects.all(),
-        'algorithms':Algorithm.objects.all(),
+        'softwares':Software.objects.all(),
         'results':Results.objects.all(),
         'problemform': ViabilityProblemForm()
         })            
@@ -1303,16 +1272,16 @@ def newproblem(request, viabilityproblem_id=None):
             form = ViabilityProblemForm()
     return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
      
-def newalgorithm(request):
+def newsoftware(request):
     if request.method == 'POST':
-        form = AlgorithmForm(request.POST)
+        form = SoftwareForm(request.POST)
         if form.is_valid():
-            algorithm = form.save()
-            # TODO redirect to a view of the submitted algorithm
+            software = form.save()
+            # TODO redirect to a view of the submitted software
             return HttpResponseRedirect(reverse('sharekernel:home'))
     else:
-        form = AlgorithmForm()
-    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new algorithm','form': form})            
+        form = SoftwareForm()
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new software','form': form})            
     
 def newparameters(request, viabilityproblem_id):
     vp = ViabilityProblem.objects.get(id=viabilityproblem_id)
@@ -1357,12 +1326,12 @@ def kerneluploadfile(request):
     file = upload_receive(request)
     resultFormat = None
     parameters_id=request.POST['parameters_id'] # may be None
-    algorithm_id=request.POST['algorithm_id'] # may be None
+    software_id=request.POST['software_id'] # may be None
     if "metadata" in request.POST:
         # in this case, the file has already been uploaded, and now we get missing metadata
         metadata = {
             METADATA.statedimension: int(request.POST['statedimension']),
-            METADATA.resultformat_name: request.POST['format'],
+            METADATA.resultformat_title: request.POST['format'],
         }
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
@@ -1405,10 +1374,10 @@ def kerneluploadfile(request):
                                             "path": tmpfile.name,
                                             "metadata": resultFormat.toDict(),
                                             "parameters_id": parameters_id,
-                                            "algorithm_id": algorithm_id,
+                                            "software_id": software_id,
                                             'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split()),
                                             'head': head,
-                                            'format': resultFormat.name,
+                                            'format': resultFormat.title,
                                             'callback': request.POST['callback']
                                         }).content
                                 })
@@ -1437,17 +1406,17 @@ def kerneluploadfile(request):
                     fields["parameters"] = Parameters.objects.get(id=parameters_id)
                 except Parameters.DoesNotExist:
                     warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
-            if algorithm_id and algorithm_id!="None":
+            if software_id and software_id!="None":
                 try:
-                    fields["algorithm"] = Algorithm.objects.get(id=algorithm_id)
-                except Algorithm.DoesNotExist:
-                    warnings.append('Algorithm with id='+algorithm_id+' has disappeared!')
+                    fields["software"] = Software.objects.get(id=software_id)
+                except Software.DoesNotExist:
+                    warnings.append('Software with id='+software_id+' has disappeared!')
             if not resultFormat:
                 try:
-                    resultFormat = ResultFormat.objects.get(name=metadata[METADATA.resultformat_name])
+                    resultFormat = ResultFormat.objects.get(name=metadata[METADATA.resultformat_title])
                 except ResultFormat.DoesNotExist:
                     # TODO log this error that should be fixed by administrators!
-                    warnings.append('The format "'+metadata["resultformat.name"]+'" is unknown!')
+                    warnings.append('The format "'+metadata["resultformat.title"]+'" is unknown!')
             fields["resultformat"] = resultFormat
             result = findandsaveobject(Results, metadata, fields=fields)
             return UploadResponse( request, {
@@ -1458,347 +1427,4 @@ def kerneluploadfile(request):
                 'pk': result.pk
             })            
     return UploadResponse( request, {'error':'No file provided'})
-     
-def verify(request):
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            newdoc = Document(docfile = request.FILES['docfile'])
-            source = newdoc.docfile
-            t = [] 
-            tt=[]
-            for i in range(32):
-                t.append(-1)
-            c = Category()
-            a = Algorithm()
-            vp = ViabilityProblem() 
-            p = Parameters()
-            r = Results()    
-            f = ResultFormat()    
-        #    vp = c.viabilityproblem_set.create()
-        #    p = vp.parameters_set.create()
-            oui = -1 
-            try:
-        # Appeler la fonction de traitement
-                for ligne in source:
-                    donnees = ligne.rstrip('\n\r').split(":")
-                    if ("#Category") in donnees:
-                        if donnees[donnees.index("#Category")+1].isdigit() == False:
-                            t[0] = 1
-                            c.category_text = donnees[donnees.index("#Category")+1]
-                    if ("#Title") in donnees:
-                        if donnees[donnees.index("#Title")+1].isdigit() == False:
-                            t[1] = 1
-                            vp.title = donnees[donnees.index("#Title")+1]
-                    if ("#Issue") in donnees:
-                        t[2] = 1
-                        vp.issue = donnees[donnees.index("#Issue")+1]
-                    if ("#StateDimension") in donnees:
-                        if donnees[donnees.index("#StateDimension")+1].isdigit() == True:
-                            t[3] = 1
-                            vp.statedimension = donnees[donnees.index("#StateDimension")+1]
-                    if ("#StateNameAndAbbreviation") in donnees:
-                        t[4] = 1
-                        vp.statenameandabbreviation = donnees[donnees.index("#StateNameAndAbbreviation")+1]
-                    if ("#ControlDimension") in donnees:
-                        if donnees[donnees.index("#ControlDimension")+1].isdigit() == True:
-                            t[5] = 1
-                            vp.controldimension = donnees[donnees.index("#ControlDimension")+1]
-                    if ("#ControlNameAndAbbreviation") in donnees:
-                        t[6] = 1
-                        vp.controlnameandabbreviation = donnees[donnees.index("#ControlNameAndAbbreviation")+1]
-                    if ("#DynamicsDescription") in donnees:
-                        t[7] = 1
-                        vp.dynamicsdescription = donnees[donnees.index("#DynamicsDescription")+1]
-                    if ("#AdmissibleControlDescription") in donnees:
-                        t[8] = 1
-                        vp.admissiblecontroldescription = donnees[donnees.index("#AdmissibleControlDescription")+1]
-                    if ("#DynamicsParameters") in donnees:
-                        t[9] = 1
-                        vp.dynamicsparameters = donnees[donnees.index("#DynamicsParameters")+1]
-                    if ("#StateConstraintDescription") in donnees:
-                        t[10] = 1
-                        vp.stateconstraintdescription = donnees[donnees.index("#StateConstraintDescription")+1]
-                    if ("#StateConstraintParameters") in donnees:
-                        t[11] = 1
-                        vp.stateconstraintparameters = donnees[donnees.index("#StateConstraintParameters")+1]
-                    if ("#TargetDescription") in donnees:
-                        t[12] = 1
-                        vp.targetdescription = donnees[donnees.index("#TargetDescription")+1]
-                    if ("#TargetParameters") in donnees:
-                        t[13] = 1
-                        vp.targetparameters = donnees[donnees.index("#TargetParameters")+1]
-         
-                    if ("#DynamicsParameterValues") in donnees:
-                        if len(donnees[donnees.index("#DynamicsParameterValues")+1].split(","))==len(vp.dynamicsparameters.split(",")):
-                            t[14] = 1
-                            p.dynamicsparametervalues = donnees[donnees.index("#DynamicsParameterValues")+1]
-                    if ("#StateConstraintParameterValues") in donnees:
-                        if len(donnees[donnees.index("#StateConstraintParameterValues")+1].split(","))==len(vp.stateconstraintparameters.split(",")):
-                            t[15] = 1
-                            p.stateconstraintparametervalues = donnees[donnees.index("#StateConstraintParameterValues")+1]
-                    if ("#TargetParameterValues") in donnees:
-                        if len(donnees[donnees.index("#TargetParameterValues")+1].split(","))==len(vp.targetparameters.split(",")):
-                            t[16] = 1
-                            p.targetparametervalues = donnees[donnees.index("#TargetParameterValues")+1]
-        
-                    if ("#ProgramName") in donnees:
-                        if donnees[donnees.index("#ProgramName")+1].isdigit() == False:
-                            t[17] = 1
-                            a.name = donnees[donnees.index("#ProgramName")+1]
-                    if ("#ProgramAuthor") in donnees:
-                        if donnees[donnees.index("#ProgramAuthor")+1].isdigit() == False:
-                            t[18] = 1
-                            a.author = donnees[donnees.index("#ProgramAuthor")+1]
-                    if ("#Version") in donnees:
-                        t[19] = 1
-                        a.version = donnees[donnees.index("#Version")+1]
-                    if ("#Publication") in donnees:
-                        if donnees[donnees.index("#Publication")+1].isdigit() == False:
-                            t[20] = 1
-                            a.publication = donnees[donnees.index("#Publication")+1]
-                    if ("#SoftwareWebSite") in donnees:
-                        if donnees[donnees.index("#SoftwareWebSite")+1].isdigit() == False:
-                            t[21] = 1
-                            a.softwarewebsite = donnees[donnees.index("#SoftwareWebSite")+1]
-                    if ("#SoftwareContact") in donnees:
-                        t[22] = 1
-                        a.softwarecontact = donnees[donnees.index("#SoftwareContact")+1]
-                    if ("#SoftwareParameters") in donnees:
-                        t[23] = 1
-                        a.softwareparameters = donnees[donnees.index("#SoftwareParameters")+1]
-                    if ("#FormatName") in donnees:
-                        t[24] = 1
-                        f.name = donnees[donnees.index("#FormatName")+1]
-                    if ("#FormatDescription") in donnees:
-                        t[25] = 1
-                        f.description = donnees[donnees.index("#FormatDescription")+1]
-                    if ("#FormatParameterList") in donnees:
-                        t[26] = 1
-                        f.parameterlist = donnees[donnees.index("#FormatParameterList")+1]
-                    if ("#ResultAuthor") in donnees:
-                        t[27] = 1
-                        r.author = donnees[donnees.index("#ResultAuthor")+1]
-                    if ("#ResultSubmissionDate") in donnees:
-                        t[28] = 1
-                        r.submissiondate = donnees[donnees.index("#ResultSubmissionDate")+1]
-                    if ("#ResultContactEmail") in donnees:
-                        t[29] = 1
-                        r.contactemail = donnees[donnees.index("#ResultContactEmail")+1]
-                    if ("#SoftwareParameterValues") in donnees:
-                        if len(donnees[donnees.index("#SoftwareParameterValues")+1].split(","))==len(a.softwareparameters.split(",")):
-                            t[30] = 1
-                            r.softwareparametervalues = donnees[donnees.index("#SoftwareParameterValues")+1]
-                    if ("#FormatParameterValues") in donnees:
-                        if len(donnees[donnees.index("#FormatParameterValues")+1].split("/"))==len(f.parameterlist.split(",")):
-                            t[31] = 1
-                            r.formatparametervalues = donnees[donnees.index("#FormatParameterValues")+1]
-        
-                if (-1) in t:        
-                    oui = -1
-                else:
-                    oui = 1
-                for i in range(32):
-                    if t[i]==-1:
-                        tt.append(i)        
-            finally:          
-        # Fermerture du fichier source
-                source.close()                    
-            if oui == 1:
-                context = {'category': c,'viabilityproblem' : vp, 'parameters' : p, 'algorithm' : a, 'results' : r, 'resultformat' : f, 'form' : form, 'newdoc' : newdoc}
-                return render(request, 'sharekernel/verif.html', context)            
-            else:
-                context = {'tt' : tt}
-                return render(request, 'sharekernel/specificationerror.html', context)            
-        else:
-            context = {'form' : form}
-            return render(request, 'sharekernel/kernelupload.html', context)            
-           
-def recorded(request):
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            newdoc = Document(docfile = request.FILES['docfile'])
-    source = newdoc.docfile
-    t = [-1] * 32 
-    c = Category()
-    a = Algorithm()
-    vp = ViabilityProblem() 
-    p = Parameters()
-    r = Results()    
-    f = ResultFormat()    
-#    vp = c.viabilityproblem_set.create()
-#    p = vp.parameters_set.create()
-    try:
-# Appeler la fonction de traitement
-        for ligne in source:
-            donnees = ligne.rstrip('\n\r').split(":")
-            if ("#Category") in donnees:
-                if donnees[donnees.index("#Category")+1].isdigit() == False:
-                    t[0] = 1
-                    c.category_text = donnees[donnees.index("#Category")+1]
-            if ("#Title") in donnees:
-                if donnees[donnees.index("#Title")+1].isdigit() == False:
-                    t[1] = 1
-                    vp.title = donnees[donnees.index("#Title")+1]
-            if ("#Issue") in donnees:
-                t[2] = 1
-                vp.issue = donnees[donnees.index("#Issue")+1]
-            if ("#StateDimension") in donnees:
-                if donnees[donnees.index("#StateDimension")+1].isdigit() == True:
-                    t[3] = 1
-                    vp.statedimension = donnees[donnees.index("#StateDimension")+1]
-            if ("#StateNameAndAbbreviation") in donnees:
-                t[4] = 1
-                vp.statenameandabbreviation = donnees[donnees.index("#StateNameAndAbbreviation")+1]
-            if ("#ControlDimension") in donnees:
-                if donnees[donnees.index("#ControlDimension")+1].isdigit() == True:
-                    t[5] = 1
-                    vp.controldimension = donnees[donnees.index("#ControlDimension")+1]
-            if ("#ControlNameAndAbbreviation") in donnees:
-                t[6] = 1
-                vp.controlnameandabbreviation = donnees[donnees.index("#ControlNameAndAbbreviation")+1]
-            if ("#DynamicsDescription") in donnees:
-                t[7] = 1
-                vp.dynamicsdescription = donnees[donnees.index("#DynamicsDescription")+1]
-            if ("#AdmissibleControlDescription") in donnees:
-                t[8] = 1
-                vp.admissiblecontroldescription = donnees[donnees.index("#AdmissibleControlDescription")+1]
-            if ("#DynamicsParameters") in donnees:
-                t[9] = 1
-                vp.dynamicsparameters = donnees[donnees.index("#DynamicsParameters")+1]
-            if ("#StateConstraintDescription") in donnees:
-                t[10] = 1
-                vp.stateconstraintdescription = donnees[donnees.index("#StateConstraintDescription")+1]
-            if ("#StateConstraintParameters") in donnees:
-                t[11] = 1
-                vp.stateconstraintparameters = donnees[donnees.index("#StateConstraintParameters")+1]
-            if ("#TargetDescription") in donnees:
-                t[12] = 1
-                vp.targetdescription = donnees[donnees.index("#TargetDescription")+1]
-            if ("#TargetParameters") in donnees:
-                t[13] = 1
-                vp.targetparameters = donnees[donnees.index("#TargetParameters")+1]
  
-            if ("#DynamicsParameterValues") in donnees:
-                if len(donnees[donnees.index("#DynamicsParameterValues")+1].split(","))==len(vp.dynamicsparameters.split(",")):
-                    t[14] = 1
-                    p.dynamicsparametervalues = donnees[donnees.index("#DynamicsParameterValues")+1]
-            if ("#StateConstraintParameterValues") in donnees:
-                if len(donnees[donnees.index("#StateConstraintParameterValues")+1].split(","))==len(vp.stateconstraintparameters.split(",")):
-                    t[15] = 1
-                    p.stateconstraintparametervalues = donnees[donnees.index("#StateConstraintParameterValues")+1]
-            if ("#TargetParameterValues") in donnees:
-                if len(donnees[donnees.index("#TargetParameterValues")+1].split(","))==len(vp.targetparameters.split(",")):
-                    t[16] = 1
-                    p.targetparametervalues = donnees[donnees.index("#TargetParameterValues")+1]
-
-            if ("#ProgramName") in donnees:
-                if donnees[donnees.index("#ProgramName")+1].isdigit() == False:
-                    t[17] = 1
-                    a.name = donnees[donnees.index("#ProgramName")+1]
-            if ("#ProgramAuthor") in donnees:
-                if donnees[donnees.index("#ProgramAuthor")+1].isdigit() == False:
-                    t[18] = 1
-                    a.author = donnees[donnees.index("#ProgramAuthor")+1]
-            if ("#Version") in donnees:
-                t[19] = 1
-                a.version = donnees[donnees.index("#Version")+1]
-            if ("#Publication") in donnees:
-                if donnees[donnees.index("#Publication")+1].isdigit() == False:
-                    t[20] = 1
-                    a.publication = donnees[donnees.index("#Publication")+1]
-            if ("#SoftwareWebSite") in donnees:
-                if donnees[donnees.index("#SoftwareWebSite")+1].isdigit() == False:
-                    t[21] = 1
-                    a.softwarewebsite = donnees[donnees.index("#SoftwareWebSite")+1]
-            if ("#SoftwareContact") in donnees:
-                t[22] = 1
-                a.softwarecontact = donnees[donnees.index("#SoftwareContact")+1]
-            if ("#SoftwareParameters") in donnees:
-                t[23] = 1
-                a.softwareparameters = donnees[donnees.index("#SoftwareParameters")+1]
-            if ("#FormatName") in donnees:
-                t[24] = 1
-                f.name = donnees[donnees.index("#FormatName")+1]
-            if ("#FormatDescription") in donnees:
-                t[25] = 1
-                f.description = donnees[donnees.index("#FormatDescription")+1]
-            if ("#FormatParameterList") in donnees:
-                t[26] = 1
-                f.parameterlist = donnees[donnees.index("#FormatParameterList")+1]
-            if ("#ResultAuthor") in donnees:
-                t[27] = 1
-                r.author = donnees[donnees.index("#ResultAuthor")+1]
-            if ("#ResultSubmissionDate") in donnees:
-                t[28] = 1
-                r.submissiondate = donnees[donnees.index("#ResultSubmissionDate")+1]
-            if ("#ResultContactEmail") in donnees:
-                t[29] = 1
-                r.contactemail = donnees[donnees.index("#ResultContactEmail")+1]
-            if ("#SoftwareParameterValues") in donnees:
-                if len(donnees[donnees.index("#SoftwareParameterValues")+1].split(","))==len(a.softwareparameters.split(",")):
-                    t[30] = 1
-                    r.softwareparametervalues = donnees[donnees.index("#SoftwareParameterValues")+1]
-            if ("#FormatParameterValues") in donnees:
-                if len(donnees[donnees.index("#FormatParameterValues")+1].split("/"))==len(f.parameterlist.split(",")):
-                    t[31] = 1
-                    r.formatparametervalues = donnees[donnees.index("#FormatParameterValues")+1]
-
-        if -1 not in t:
-            b=-1
-            for cc in Category.objects.all():
-                if cc.category_text == c.category_text:
-                    b=1
-                    bb=-1
-                    for vpvp in cc.viabilityproblem_set.all():
-                        if vpvp.title == vp.title:
-                            bb = 1
-                            bbb = -1
-                            for pp in vpvp.parameters_set.all():
-                                if (pp.dynamicsparametervalues == p.dynamicsparametervalues) and (pp.stateconstraintparametervalues == p.stateconstraintparametervalues) and (pp.targetparametervalues == p.targetparametervalues):
-                                    bbb = 1
-                                    pbis = pp
-                                
-                            if bbb == -1:
-                                pbis = vpvp.parameters_set.create(dynamicsparametervalues = p.dynamicsparametervalues,stateconstraintparametervalues = p.stateconstraintparametervalues,targetparametervalues = p.targetparametervalues)
-                                cc.save()
-                            
-
-                    if bb == -1:
-                        vpbis = cc.viabilityproblem_set.create(title = vp.title, issue = vp.issue, statedimension = vp.statedimension, statenameandabbreviation = vp.statenameandabbreviation, controldimension = vp.controldimension, controlnameandabbreviation = vp.controlnameandabbreviation, dynamicsdescription = vp.dynamicsdescription, admissiblecontroldescription = vp.admissiblecontroldescription, dynamicsparameters = vp.dynamicsparameters, stateconstraintdescription = vp.stateconstraintdescription, stateconstraintparameters = vp.stateconstraintparameters, targetdescription = vp.targetdescription, targetparameters = vp.targetparameters)
-                        cc.save()
-                        pbis = vpbis.parameters_set.create(dynamicsparametervalues = p.dynamicsparametervalues,stateconstraintparametervalues = p.stateconstraintparametervalues,targetparametervalues = p.targetparametervalues)
-                        cc.save()
-            if b == -1:
-                c.save()
-                vpbis = c.viabilityproblem_set.create(title = vp.title, issue = vp.issue, statedimension = vp.statedimension, statenameandabbreviation = vp.statenameandabbreviation, controldimension = vp.controldimension, controlnameandabbreviation = vp.controlnameandabbreviation, dynamicsdescription = vp.dynamicsdescription, admissiblecontroldescription = vp.admissiblecontroldescription, dynamicsparameters = vp.dynamicsparameters, stateconstraintdescription = vp.stateconstraintdescription, stateconstraintparameters = vp.stateconstraintparameters, targetdescription = vp.targetdescription, targetparameters = vp.targetparameters)
-                c.save()
-                pbis = vpbis.parameters_set.create(dynamicsparametervalues = p.dynamicsparametervalues,stateconstraintparametervalues = p.stateconstraintparametervalues,targetparametervalues = p.targetparametervalues)
-                c.save()            
-            b=-1
-            for aa in Algorithm.objects.all():
-                if (aa.name == a.name) and (aa.version == a.version):
-                    b=1
-                    abis = aa
-            if b == -1:
-                a.save()
-                abis = a         
-            b=-1
-            for ff in ResultFormat.objects.all():
-                if ff.name == f.name:
-                    b=1
-                    fbis = ff
-            if b == -1:
-                f.save()
-                fbis = f 
-            pbis.results_set.create(algorithm = abis,resultformat = fbis,author = r.author,submissiondate = r.submissiondate, contactemail = r.contactemail, softwareparametervalues = r.softwareparametervalues,formatparametervalues = r.formatparametervalues, datafile = request.FILES['docfile'])
-            pbis.save()
-    finally:  
-# Fermerture du fichier source
-        source.close()            
-    if -1 not in t:
-        return HttpResponse("Your file has been successfully uploaded")         
-    else:
-        return HttpResponse("Your kernel was not uploaded.")    
-        

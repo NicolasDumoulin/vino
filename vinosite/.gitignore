@@ -3,4 +3,5 @@ secret.txt
 db.sqlite3
 vinosite/local_settings.py
 sharekernel/migrations
+db.sqlite*.bak
 

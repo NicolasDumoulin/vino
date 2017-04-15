@@ -1,21 +1,26 @@
 from django.db import models
+from django.conf import settings
 from Equation import Expression
+from django.utils import timezone
 
-# Create your models here.
+class BaseEntity(models.Model):
+    title = models.CharField(max_length=500,default='')
+    description = models.TextField(max_length=2000,default = '', blank=True)
+    publication = models.TextField(max_length=1000,default ='', blank=True)
+    website = models.URLField(default='', blank=True)
+    submissiondate = models.DateTimeField('date published', default=timezone.now)
+    submitter = models.ForeignKey(settings.AUTH_USER_MODEL)
+    author = models.CharField(max_length=500,default='')
+    contact = models.CharField(max_length=500,default='')
+    illustration = models.ImageField(upload_to='illustrations', default=None, blank=True)
+
+    class Meta:
+        abstract = True
 
 class Document(models.Model):
     docfile = models.FileField(upload_to='documents/%Y/%m/%d')
 
-class Category(models.Model):
-    text = models.CharField(max_length=200)
-    color = models.IntegerField(default=0)
-    def __str__(self):
-        return str(self.pk) + " " + self.text
-
-class ViabilityProblem(models.Model):
-    category = models.ForeignKey(Category, null = True, blank=True)
-    title = models.CharField(max_length=200)
-    issue = models.TextField(max_length=2000,default =0)
+class ViabilityProblem(BaseEntity):
     statedimension = models.IntegerField(default=0)
     statenameandabbreviation = models.CharField(max_length=500,default =0)
     controldimension = models.IntegerField(default =0)
@@ -66,24 +71,18 @@ class ViabilityProblem(models.Model):
       
     def __str__(self):
         return str(self.pk) + " " + self.title
-
-
-class Algorithm(models.Model):
-    name = models.CharField(max_length=500,default='')
-    author = models.CharField(max_length=200,default ='')
+        
+class Software(BaseEntity):
     version = models.CharField(max_length=20,default='', blank=True)
-    publication = models.TextField(max_length=1000,default ='', blank=True)
-    softwarewebsite = models.URLField(default='', blank=True)
-    softwarecontact = models.EmailField(default='', blank=True)
-    softwareparameters = models.CharField(max_length=500,default = '', blank=True)
+    parameters = models.CharField(max_length=500,default = '', blank=True)
     def __str__(self):
-        return str(self.pk) + " " + self.name + " " + self.version
+        return str(self.pk) + " " + self.title + " " + self.version
     
-class Parameters(models.Model):
+class Parameters(BaseEntity):
     viabilityproblem = models.ForeignKey(ViabilityProblem)
-    dynamicsparametervalues = models.CharField(max_length=200,default=0)
-    stateconstraintparametervalues = models.CharField(max_length=200,default=0)
-    targetparametervalues = models.CharField(max_length=200,default=0)
+    dynamicsparametervalues = models.CharField(max_length=200,default='', blank=True)
+    stateconstraintparametervalues = models.CharField(max_length=200,default='', blank=True)
+    targetparametervalues = models.CharField(max_length=200,default='', blank=True)
     def speed(self):
         eqdyns = []
         desstateandcontrol = []
@@ -153,32 +152,26 @@ class Parameters(models.Model):
                      eqcons.append([Expression(desconsplitted[1],params),Expression(desconsplitted[0],params)])
         return eqcons
 
-class ResultFormat(models.Model):
-    name = models.CharField(primary_key=True, max_length=200,default = 0)
-    description = models.TextField(max_length=2000,default = 0)
-    parameterlist = models.CharField(max_length=500,default = 0)
+class ResultFormat(BaseEntity):
+    parameterlist = models.CharField(max_length=500,default = '', blank=True)
     
     def __str__(self):
-        return self.name
+        return self.title
     
     def toDict(self):
         '''
         Return a representation of the format as a dictionnary.
         '''
-        return {"pk":self.pk, "format":self.name, "description":self.description, "parameters":self.parameterlist.split()}
+        return {"pk":self.pk, "format":self.title, "description":self.description, "parameters":self.parameterlist.split()}
             
     
-class Results(models.Model):
+class Results(BaseEntity):
     parameters = models.ForeignKey(Parameters, null = True)
-    algorithm = models.ForeignKey(Algorithm, null = True)
-    resultformat = models.ForeignKey(ResultFormat,default = 0)
-    title = models.CharField(max_length=200,default = 0)
-    author = models.CharField(max_length=200,default = 0)
-    submissiondate = models.DateTimeField('date published')
-    contactemail = models.CharField(max_length=200,default = 0)
-    softwareparametervalues = models.CharField(max_length=500,default = 0)
-    formatparametervalues = models.CharField(max_length=500,default = 0)
-    datafile = models.FileField(upload_to='results/%Y/%m/%d',default = 0)
+    software = models.ForeignKey(Software, null = True)
+    resultformat = models.ForeignKey(ResultFormat, null=True)
+    softwareparametervalues = models.CharField(max_length=500,default = '', blank=True)
+    formatparametervalues = models.CharField(max_length=500,default = '', blank=True)
+    datafile = models.FileField(upload_to='results/%Y/%m/%d')
     def __str__(self):
         return str(self.pk) + " " + str(self.submissiondate.strftime("%Y%m%d-%H%M"))+ " " + self.title
 

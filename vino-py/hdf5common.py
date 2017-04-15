@@ -67,7 +67,7 @@ class HDF5Manager:
       metadata = f.readMetadata()
       # reading the data attributes for determining the format
       dataAttributes = f.readDataAttributes()
-      return self.formatsStrategies[dataAttributes[METADATA.resultformat_name]].initFromHDF5(metadata, dataAttributes, f.readData())
+      return self.formatsStrategies[dataAttributes[METADATA.resultformat_title]].initFromHDF5(metadata, dataAttributes, f.readData())
 
   @staticmethod
   def writeKernel(kernel, filename, **datasets_options):

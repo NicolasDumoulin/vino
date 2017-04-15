@@ -14,7 +14,7 @@ def CompareProcedure():
       dataAttributes = f.readDataAttributes()
       data = f.readData()
     print dataAttributes['intervals']
-    print dataAttributes[METADATA.resultformat_name]
+    print dataAttributes[METADATA.resultformat_title]
      
     bargridoh = BarGridKernel.initFromHDF5(metadata, dataAttributes, data)
 
@@ -61,8 +61,8 @@ def CompareProcedure():
 
 
 def testRead():
-    dataway = '../samples/2D.txt'
-    metadataway = '../samples/2D_metadata.txt'
+    dataway = '../samples/lake/2D.txt'
+    metadataway = '../samples/lake/2D_metadata.txt'
     h5way = '2D.h5'
     hm = HDF5Manager([BarGridKernel])
     

@@ -16,7 +16,7 @@ Please find below the parameter values for which results on the viability proble
  
 
 <table>
-<tr><th>Parameters</th>     {% for parameters in parameters_list %}<th><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters.id algorithm_id resultformat_id %}">Parameter Values</a></th>{% endfor %}</tr>
+<tr><th>Parameters</th>     {% for parameters in parameters_list %}<th><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters.id software_id resultformat_id %}">Parameter Values</a></th>{% endfor %}</tr>
 <tr>
     {% for parameters in tabvalues %}
         <td>{{ parameters }}</td>{% if forloop.counter|divisibleby:N %} </tr><tr>{% endif %}
@@ -26,7 +26,7 @@ Please find below the parameter values for which results on the viability proble
 {% else %}
     <p>No parameters are available.</p>
 {% endif %}
-<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software_id resultformat_id %}">Annuler</a>
 
 			<div class="spacer"></div>
 

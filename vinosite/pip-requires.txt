@@ -5,4 +5,4 @@ https://github.com/PerFuchs/django-jfu/archive/9f621d3025ef0a5aa543fa9964c7483d8
 django-bootstrap3
 Equation
 humanize
-
+Pillow

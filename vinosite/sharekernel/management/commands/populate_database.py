@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sharekernel.models import ResultFormat, Parameters, ViabilityProblem, Algorithm, Results
+from sharekernel.models import ResultFormat, Parameters, ViabilityProblem, Software, Results
 from django.core.files import File
 from django.core.exceptions import ValidationError
 from FileFormatLoader import Loader
@@ -11,27 +11,31 @@ import tempfile
 from BarGridKernel import BarGridKernel
 from django.utils.text import slugify
 from sharekernel.views import findandsaveobject
+from django.contrib.auth.models import User
 
 hdf5manager = HDF5Manager([BarGridKernel])
 
-def addKernel(kernel):
+def addKernel(kernel, user):
     resultformat_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("resultformat")}
-    resultformat = findandsaveobject(ResultFormat, {METADATA.resultformat_name:resultformat_md[METADATA.resultformat_name]}, add_metadata=resultformat_md)
+    resultformat = findandsaveobject(ResultFormat, {METADATA.resultformat_title:resultformat_md[METADATA.resultformat_title]},
+        fields={'submitter':user},
+        add_metadata=resultformat_md)
     problem_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("viabilityproblem")}
-    problem = findandsaveobject(ViabilityProblem, {METADATA.title:problem_md[METADATA.title]}, add_metadata=problem_md)
+    problem = findandsaveobject(ViabilityProblem, {METADATA.title:problem_md[METADATA.title]}, fields={'submitter':user}, add_metadata=problem_md)
     parameters_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("parameters")}
-    parameters = findandsaveobject(Parameters, parameters_md, foreignkeys={'viabilityproblem':problem})
-    algorithm_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("algorithm")}
-    algorithm = findandsaveobject(Algorithm, {METADATA.algorithm_name:algorithm_md[METADATA.algorithm_name]}, add_metadata=algorithm_md)
+    parameters = findandsaveobject(Parameters, parameters_md, foreignkeys={'viabilityproblem':problem}, fields={'submitter':user})
+    software_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("software")}
+    software = findandsaveobject(Software, {METADATA.software_title:software_md[METADATA.software_title]}, fields={'submitter':user}, add_metadata=software_md)
     tmpfile = tempfile.NamedTemporaryFile(prefix=slugify(kernel.metadata[METADATA.title]),suffix=".h5")
     hdf5manager.writeKernel(kernel, tmpfile.name)
     result = findandsaveobject(Results, kernel.metadata, foreignkeys={
             "parameters": parameters,
-            "algorithm": algorithm,
+            "software": software,
             "resultformat": resultformat
         },fields={
             "datafile": File(tmpfile),
-            "submissiondate": timezone.now()
+            "submissiondate": timezone.now(),
+            'submitter':user    
     })
     return result
 
@@ -60,9 +64,13 @@ class Command(BaseCommand):
                 return
             ResultFormat.objects.all().delete()
             ViabilityProblem.objects.all().delete()
-            Algorithm.objects.all().delete()
+            Software.objects.all().delete()
             Parameters.objects.all().delete()
             Results.objects.all().delete()
+        # Adding default users
+        for username, email in [['nicolas.dumoulin','nicolas.dumoulin@irstea.fr'],['sophie.martin','sophie.martin@irstea.fr']]:
+            User.objects.create_superuser(username=username, email=email, password=None)
+        user = User.objects.first()
         # Now populating some kernels
         loader = Loader()
         myre = re.compile('^#(.*):(.*)$')
@@ -76,10 +84,11 @@ class Command(BaseCommand):
             f = '../samples/'+prefix+'.txt'
             kernel = loader.load(f)
             kernel.metadata.update(metadata)
-            addKernel(kernel)
+            addKernel(kernel, user)
         
         for f in ['../samples/lake/lake_Isa_R1.dat', '../samples/bilingual-viabilitree/Bilingual21TS05dil3.dat', '../samples/bilingual-viabilitree/bilingual21dil0control0.1ustep0.01WC.dat']:
+            print(f)
             kernel = loader.load(f)
-            addKernel(kernel)
+            addKernel(kernel, user)
 
             
