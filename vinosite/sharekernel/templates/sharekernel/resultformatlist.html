@@ -13,13 +13,13 @@ Please find below the result file formats supported by the database. You have to
 {% if resultformat_list %}
     <ul>
     {% for resultformat in resultformat_list %}
-        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat.id %}">"{{ resultformat.name}}":<br></a>{{ resultformat.description }}</li>
+        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software_id resultformat.id %}">"{{ resultformat.name}}":<br></a>{{ resultformat.description }}</li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No result formats are available.</p>
 {% endif %}
-<a href="{% url 'sharekernel:metadatafilespecification' category_id viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+<a href="{% url 'sharekernel:metadatafilespecification' category_id viabilityproblem_id parameters_id software_id resultformat_id %}">Annuler</a>
 
 			<div class="spacer"></div>
 

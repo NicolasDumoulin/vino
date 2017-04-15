@@ -12,7 +12,7 @@
             <div id="tab" class="btn-group" data-toggle="buttons">
 				<a href="#tree-problem-view" class="btn btn-default active" data-toggle="tab">
 					<input type="radio">Viability problems</a>
-				<a href="#tree-algorithm-view" class="btn btn-default" data-toggle="tab">
+				<a href="#tree-software-view" class="btn btn-default" data-toggle="tab">
 					<input type="radio">Algorithms</a>
 			</div>
         <div class="tab-content">
@@ -31,18 +31,18 @@
                             <li><span class="label label-default" title="Problem parameters (settings)">S</span>
                                {{ param.pk }} -  {{ param.dynamicsparametervalues }}
                             </li>
-                            {% regroup param.results_set.all by algorithm as resultsbyalgorithm %}
+                            {% regroup param.results_set.all by software as resultsbysoftware %}
                             <ul>
-                            {% for resultbyalgorithm in resultsbyalgorithm %}
-                                <li><span class="label label-default" title="Algorithm">A</span> {{ resultbyalgorithm.grouper.name }} v.{{ resultbyalgorithm.grouper.version }}</li>
+                            {% for resultbysoftware in resultsbysoftware %}
+                                <li><span class="label label-default" title="Algorithm">A</span> {{ resultbysoftware.grouper.name }} v.{{ resultbysoftware.grouper.version }}</li>
                                     <ul>
-                                    {% for result in resultbyalgorithm.list %}
+                                    {% for result in resultbysoftware.list %}
                                         <li><span class="label label-default" title="Viability results">R</span>
                                             <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.name }})</a>
                                         </li>
                                     {% endfor %}
                                     <li><span class="label label-default" title="Viability results">R</span>
-                                        <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbyalgorithm.grouper.id %}" role="button">
+                                        <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbysoftware.grouper.id %}" role="button">
                                             <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
                                         </a>
                                     </li>                    
@@ -60,14 +60,14 @@
                 {% endfor %}
             </ul>
         </div>            
-        <div class="tab-pane" id="tree-algorithm-view">
+        <div class="tab-pane" id="tree-software-view">
             <ul>
                 <li><span class="label label-default" title="Viability results">A</span>
-                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newalgorithm' %}" role="button">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new algorithm
+                    <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newsoftware' %}" role="button">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new software
                     </a>
                 </li>
-                {% for algo in algorithms %}
+                {% for algo in softwares %}
                     <li><span class="label label-default" title="Algorithm">A</span> {{ algo.name }} - v.{{ algo.version }} :
                     {% regroup algo.results_set.all|sort_by:'parameters' by parameters as resultsbyparam %}
                     {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}

@@ -16,9 +16,6 @@
 		<div id="row"><div class="col-sm-12">
                 <ol class="breadcrumb">
                     <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
-                    {% if category %}
-                    <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
-                    {% endif %}
                     <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
                     <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
                 </ol>

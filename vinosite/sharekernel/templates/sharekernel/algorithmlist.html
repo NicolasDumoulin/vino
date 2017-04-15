@@ -11,16 +11,16 @@
 Please find below the softwares used to compute the results stored in the database :
 <br><br>
 
-{% if algorithm_list %}
+{% if software_list %}
     <ul>
-    {% for algorithm in algorithm_list %}
-        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm.id resultformat_id %}">{{ algorithm.name }}</a></li>
+    {% for software in software_list %}
+        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software.id resultformat_id %}">{{ software.title }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
-    <p>No algorithms are available.</p>
+    <p>No softwares are available.</p>
 {% endif %}
-<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id algorithm_id resultformat_id %}">Annuler</a>
+<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software_id resultformat_id %}">Annuler</a>
 
 			<div class="spacer"></div>
 

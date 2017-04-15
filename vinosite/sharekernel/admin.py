@@ -2,10 +2,9 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Category, Algorithm, ViabilityProblem, Parameters,Results,ResultFormat,Document
+from .models import Software, ViabilityProblem, Parameters,Results,ResultFormat,Document
 
-admin.site.register(Category)
-admin.site.register(Algorithm)
+admin.site.register(Software)
 admin.site.register(ViabilityProblem)
 admin.site.register(Parameters)
 admin.site.register(Results)

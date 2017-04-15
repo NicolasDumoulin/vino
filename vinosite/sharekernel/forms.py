@@ -6,7 +6,7 @@ Created on Fri Sep 11 13:49:04 2015
 """
 
 from django import forms
-from models import ViabilityProblem, Results, Parameters, Algorithm
+from models import ViabilityProblem, Results, Parameters, Software
 
 class DocumentForm(forms.Form):
     docfile = forms.FileField(
@@ -44,9 +44,9 @@ class ParametersForm(forms.ModelForm):
         exclude = ['']
         widgets = {'viabilityproblem': forms.HiddenInput}
 
-class AlgorithmForm(forms.ModelForm):
+class SoftwareForm(forms.ModelForm):
     class Meta:
-        model = Algorithm
+        model = Software
         exclude = ['']
         
 class MetadataFromListForm(forms.Form):

@@ -5,9 +5,6 @@
 <div class="container">
     <ol class="breadcrumb">
         <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
-        {% if category %}
-        <li><a href="{% url 'sharekernel:visitviabilityproblemlist'  category.id %}">{{category.text}}</a></li>
-        {% endif %}
         <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
     </ol>
         <h1>{{result.title}}
@@ -26,8 +23,8 @@
                             <button class="btn btn-default btn-sm" id="comparebutton" type="button">Compare with …</button>
                         </p>
                         <p>This result was posted by <a href="mailto:{{result.contactemail}}" title="Contact by e-mail">{{result.author}}</a> on {{result.submissiondate}}.</p>
-                        <p> It was computed thanks to {{algorithm.name}} {% if version %} version {{algorithm.version}} {% endif %} implemented by {{algorithm.author}} {% if publication %} described in 
-                            <i>{{algorithm.publication}}</i>{% endif%}. {% if website %}More information is available at {{algorithm.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{algorithm.softwarecontact}}.{% endif %}</p>
+                        <p> It was computed thanks to {{software.title}} {% if version %} version {{software.version}} {% endif %} implemented by {{software.author}} {% if publication %} described in 
+                            <i>{{software.publication}}</i>{% endif%}. {% if website %}More information is available at {{software.sofwarewebsite}}.{% endif %} {% if contact %} Contact : {{software.contact}}.{% endif %}</p>
                         <p>{% if softparval %} The software parameter values were the following : {% for i in softparval%} {{i}} {% endfor %}.{% else %} The software parameter values are not specified.{% endif %}</p>
 
                         <p>The format of the result file uploaded on this platform is the following : <br>{{resultformat.description}}</p>
@@ -38,12 +35,28 @@
                             {% endfor %}
                         </ul></p>
                     </div>
-                    <div class="col-sm-6">
-                    </div>
                 </div>
             </div>
         </div>
         {% include 'sharekernel/viabilityproblem_mathinfo.html' %}
+        <div id="row">
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-target="#rawmetadatapanel" class="collapsed">
+                                Raw Metadata
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="rawmetadatapanel" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            bla
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="comparison-selection-box">
             <p class="validateTips">Please select a ViNO to start a comparison:</p>
             <ul>
