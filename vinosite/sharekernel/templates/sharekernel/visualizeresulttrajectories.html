@@ -198,8 +198,51 @@
     </div>
   </div>
 </div>
+{% if viabilityproblem.statedimension >= 3%}
 
+<div class="panel-group">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" href="#collapse6bis"><span class="glyphicon glyphicon-collapse-down"></span> 3D-sections of the state space</a>
+      </h4>
+    </div>
+    <div id="collapse6bis" class="panel-collapse collapse">
+      <ul class="list-group">
+        <li class="list-group-item">  
+    <div class="row">
+             {% for ab in stateabbrevs%}
+             {% for ab in stateabbrevs%}
+             {% for ab in stateabbrevs%}
+             {% if  forloop.counter != forloop.parentloop.counter %}
+             {% if  forloop.counter != forloop.parentloop.parentloop.counter %}
+             {% if  forloop.parentloop.parentloop.counter != forloop.parentloop.counter %}
 
+                <div class="col-sm-4"><div id="3Dstatetrajectories{{forloop.parentloop.parentloop.counter}}{{forloop.parentloop.counter}}{{forloop.counter}}"></div></div>
+             {% endif %}
+             {% endif %}
+             {% endif %}
+             {% endfor %}
+
+             {% endfor %}
+             {% endfor %}
+</div>
+</li>
+        <li class="list-group-item">  
+{% if viabilityproblem.statedimension == 3%}
+<button id="viewPlotlyBW3D" class="btn btn-primary">View Vino</button> with <input type="text"  id="ppa" value="50"> ppa
+<button id="deletePlotlyBW3D" class="btn btn-primary">Delete Vino</button>
+{% endif %}
+
+</li>
+</ul>
+
+      <div class="panel-footer"><a href="javascript:void(0);" onclick="$('#collapse6').collapse('hide')"><span class="glyphicon glyphicon-collapse-up" >Close</span></a>          
+</div>
+    </div>
+  </div>
+</div>
+{% endif %}
  <div class="panel-group">
   <div class="panel panel-default">
     <div class="panel-heading">
@@ -269,8 +312,31 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
 
           document.getElementById("hiddencontrolstep"+n).value = me.value;
 	}
+      function init3DstateTrajPlotNew(margin){
+              var container;
+             {% for ab in stateabbrevs%}
+             {% for abb in stateabbrevs%}
+             {% for abbb in stateabbrevs%}
 
-      function init2DstateTrajPlotNew(maxtime,margin){
+             {% if  forloop.counter != forloop.parentloop.counter %}
+             {% if  forloop.counter != forloop.parentloop.parentloop.counter %}
+             {% if  forloop.parentloop.parentloop.counter != forloop.parentloop.counter %}
+
+                 container = document.getElementById("3Dstatetrajectories{{forloop.parentloop.parentloop.counter}}{{forloop.parentloop.counter}}{{forloop.counter}}");
+         	 Plotly.newPlot(container,[{x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' }],{scene : {xaxis:{title : '{{ab}}'}, yaxis:{title : '{{abb}}'}, zaxis:{title : '{{abbb}}'}},showlegend: false,margin:{t:margin,l:margin,r:margin,b:margin,pad:0},width: 400,height: 300,hovermode:'closest'});
+             {% endif %}
+             {% endif %}
+             {% endif %}
+             {% endfor %}
+             {% endfor %}
+             {% endfor %}
+
+	}
+{% if viabilityproblem.statedimension >= 3%}
+
+      init3DstateTrajPlotNew(40);
+{% endif %}
+      function init2DstateTrajPlotNew(margin){
               var container;
              {% for ab in stateabbrevs%}
              {% for abb in stateabbrevs%}
@@ -281,7 +347,7 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
              {% endfor %}
              {% endfor %}
 	}
-      init2DstateTrajPlotNew(10,40);
+      init2DstateTrajPlotNew(40);
       function initControlTrajPlotNew(maxtime,margin){
               var container;
              {% for ab in controlabbrevs%}
@@ -1120,7 +1186,41 @@ else{
 	                            	containerfivebis = document.getElementById(str+(j+1));
 
 					containerfivebis.data[0].x = bar;
+{% if viabilityproblem.statedimension >= 3%}
 
+                            		for (j3D=0;j3D<{{viabilityproblem.statedimension}};j3D++){
+				             if (((j+1)!=(j3D+1))&&((j3D+1)!=(index-1))){		            	
+					            str='3Dstatetrajectories'+(j+1);
+                                                    str = str+(j3D+1);
+             		                            containerfive = document.getElementById(str+(index-1));
+							containerfive.data[0].z = bar;
+					            str='3Dstatetrajectories'+(j3D+1);
+                                                    str = str+(j+1);
+             		                            containerfive = document.getElementById(str+(index-1));
+							containerfive.data[0].z = bar;
+					            str='3Dstatetrajectories'+(j+1);
+                                                    str = str+(index-1);
+             		                            containerfive = document.getElementById(str+(j3D+1));
+							containerfive.data[0].y = bar;
+					            str='3Dstatetrajectories'+(j3D+1);
+                                                    str = str+(index-1);
+             		                            containerfive = document.getElementById(str+(j+1));
+							containerfive.data[0].y = bar;
+					            str='3Dstatetrajectories'+(index-1);
+                                                    str = str+(j3D+1);
+             		                            containerfive = document.getElementById(str+(j+1));
+							containerfive.data[0].x = bar;
+					            str='3Dstatetrajectories'+(index-1);
+                                                    str = str+(j+1);
+             		                            containerfive = document.getElementById(str+(j3D+1));
+							containerfive.data[0].x = bar;
+
+
+
+                    		}
+
+			}
+{% endif %}
 
                     		}
 
@@ -1163,6 +1263,23 @@ else{
                 	      		Plotly.redraw(containerfive);
 
                     		}}}
+{% if viabilityproblem.statedimension >= 3%}
+
+                        for (k=0;k<{{viabilityproblem.statedimension}};k++){
+                        for (j=0;j<{{viabilityproblem.statedimension}};j++){
+                        for (i=0;i<{{viabilityproblem.statedimension}};i++){
+				if ((i!=j)&&(j!=k)&&(i!=k)){		            	
+					str='3Dstatetrajectories'+(k+1);
+                                        str = str +(j+1);
+                    			containerfive.data[0].marker.color = color;
+
+	                            	containerfive = document.getElementById(str+(i+1));
+                    			containerfive.data[0].marker.color = color;
+
+                	      		Plotly.redraw(containerfive);
+
+                    		}}}}
+{% endif %}
 
                 });
               }
