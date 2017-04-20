@@ -4,8 +4,8 @@
 #viabilityproblem.statedimension:2
 #viabilityproblem.statenameandabbreviation:Phosphorus Inputs,L/Phosphorus Concentration,P
 #viabilityproblem.controldimension:1
-#viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation, u
-#viabilityproblem.dynamicsdescription:u,-b*P+L+r*P^q/(m^q+P^q)
+#viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation,u
+#viabilityproblem.dynamicsdescription:L'=u,P'=-b*P+L+r*P^q/(m^q+P^q)
 #viabilityproblem.admissiblecontroldescription:u>=unin,u<=unax
 #viabilityproblem.dynamicsparameters:b,r,q,m,unin,unax
 #viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P>=0,P<=Pmax

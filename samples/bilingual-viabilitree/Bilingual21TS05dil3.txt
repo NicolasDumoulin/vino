@@ -14,13 +14,13 @@ results.formatparametervalues:x,y,z
 results.softwareparametervalues:0.2,0.2,0,1,1,1/0.01/21/3/0.05/0.5/new Random(42)
 results.submissiondate:2016-09-28 13:23
 results.title:3D-language-KdT-1024ppa-dil3
-viabilityproblem.admissiblecontroldescription:u in [umin;umax]
+viabilityproblem.admissiblecontroldescription:u>=umin,u<=umax
 viabilityproblem.controldimension:1
 viabilityproblem.controlnameandabbreviation:Prestige Variation,u
-viabilityproblem.dynamicsdescription:x'=(1-x-y)(1-y)^c*z-xy^c*(1-z),y'=(1-x-y)(1-x)^c*(1-z)-yx^c*z,z'=u
+viabilityproblem.dynamicsdescription:a'=(1-a-b)*(1-b)^c*s-a*b^c*(1-s),b'=(1-a-b)*(1-a)^c*(1-s)-b*a^c*s,s'=u
 viabilityproblem.dynamicsparameters:c,umin,umax
 viabilityproblem.description:Many languages might become extinct. It is, therefore, an important challenge to understand language dynamics, and to recognise whether there are measures that can help us preserve some of them.
-viabilityproblem.stateconstraintdescription:x in [amin; 1],y in [bmin;1],z in [0;1],x+y in [0;1]
+viabilityproblem.stateconstraintdescription:a>=amin,a<=1,b>=bmin,b<=1,s>=0,s<=1,a+b<=1
 viabilityproblem.stateconstraintparameters:amin,bmin
 viabilityproblem.statedimension:3
 viabilityproblem.statenameandabbreviation:Proportion of speakers of language A,a/Proportion of speakers of language B,b/Relative prestige,s

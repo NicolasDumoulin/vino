@@ -33,7 +33,9 @@ class ViabilityProblem(BaseEntity):
     targetdescription = models.CharField(max_length=500,default =0)
     targetparameters = models.CharField(max_length=500,default =0) 
     def dynamics(self):
-      dyns = self.dynamicsdescription.split(",")
+      dyns = []
+      for fulldyn in self.dynamicsdescription.split(","):
+          dyns.append(fulldyn.split("=")[1]) 
       return dyns
 
     def constraints(self):

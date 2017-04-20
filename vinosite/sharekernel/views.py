@@ -72,7 +72,7 @@ def visitresult(request,result_id):
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
         stanaab.append(''.join([j[0]," : ",j[1]]))
-        dyndes[index] = j[1]+"' = "+dyndes[index]
+    #    dyndes[index] = j[1]+"' = "+dyndes[index]
         index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
@@ -139,7 +139,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
         j = i.split(",")
         if len(j)>1:
             stanaab.append(''.join([j[0]," : ",j[1]]))
-            dyndes[index] = j[1]+"' = "+dyndes[index]
+ #           dyndes[index] = j[1]+"' = "+dyndes[index]
             index = index+1
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
@@ -634,22 +634,22 @@ def bargrid2json3(request,hist_maxvalue):
 
 @ensure_csrf_cookie
 def visualizeresult(request,result_id):
-    forms = []
-    form = TrajForm()
+#    forms = []
+#    form = TrajForm()
     stanaab = []
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     rf=r.resultformat
-    for i in range(vp.statedimension):
-        forms.append(TrajForm())
-    hm = HDF5Manager([BarGridKernel])
-    bargrid = hm.readKernel(r.datafile.path)
+#    for i in range(vp.statedimension):
+#        forms.append(TrajForm())
+#    hm = HDF5Manager([BarGridKernel])
+#    bargrid = hm.readKernel(r.datafile.path)
 
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
         stanaab.append(j[1])
 
-    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'bargrid' : bargrid,'forms' : forms} 
+    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab} 
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 
@@ -899,10 +899,8 @@ def next(state,control,dt,method,p):
         for var in dyn:
 #            print var
             if var in stateabbrevs:
-#                print "dedans"
                 dyn[var] = state[stateabbrevs.index(var)]
             elif var in controlabbrevs:
-#                print "dedans"
                 dyn[var] = control[controlabbrevs.index(var)]
 #        print(dyn())
         speed.append(dyn())
@@ -942,7 +940,6 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
             
             for ct in controltrajectories:
                 valcontrols = valcontrols+valcontrol(ct[0],ct[1],tcurrent,0)
-             
             laststate = next(laststate,valcontrols,dt,method,p)
             i = 1
             for coord in laststate:
@@ -1159,7 +1156,7 @@ def controltostate(request,result_id):
                 hm = HDF5Manager([BarGridKernel])
                 vino = hm.readKernel(r.datafile.path)
             elif r.resultformat.title =='kdtree':
-                hm = HDF5Manager([BarGridKernel])
+                hm = HDF5Manager([KdTree])
                 vino = hm.readKernel(r.datafile.path)
 
             p=r.parameters
@@ -1195,7 +1192,6 @@ def controltostate(request,result_id):
             startingstate = []
             for i in range(vp.statedimension):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
-
             statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
             
             colors = np.array([1]*len(statetrajectories[1]))

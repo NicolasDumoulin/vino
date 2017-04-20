@@ -4,10 +4,10 @@
 #viabilityproblem.statenameandabbreviation:Crown biomass,c/Shoot biomass,s/Grazing pressure,g
 #viabilityproblem.controldimension:1
 #viabilityproblem.controlnameandabbreviation:Variation of grazing pressure,u
-#viabilityproblem.dynamicsdescription:c'=rs*s-c,s'=(a*c + rc*c*s)(1-s)-g*s,g'=u
-#viabilityproblem.admissiblecontroldescription:u in [umin;umax]
+#viabilityproblem.dynamicsdescription:c'=rs*s-c,s'=(a*c + rc*c*s)*(1-s)-g*s,g'=u
+#viabilityproblem.admissiblecontroldescription:u>=umin,u<=umax
 #viabilityproblem.dynamicsparameters:rs,a,rc,umin,umax
-#viabilityproblem.stateconstraintdescription:c in [0;rs],s in [smin;1],g in [gmin;1]
+#viabilityproblem.stateconstraintdescription:c>=0,s>=smin,s<=1,g>=gmin,g<=1
 #viabilityproblem.stateconstraintparameters:smin,gmin
 
 #parameters.dynamicsparametervalues:3,0.1,1,-0.05,0.05

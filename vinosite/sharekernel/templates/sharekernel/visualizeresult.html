@@ -534,7 +534,7 @@ $("#z").change(function(){
 $("#viewPlotlyBW").click(function(){
     {% if result.parameters.viabilityproblem.statedimension == 2 %}
         var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
-        {% if resultformat.name == 'bars' %}
+        {% if resultformat.title == 'bars' %}
             document.getElementById('viewPanelBW').innerHTML = "";
             var x = document.getElementById("ppa").value;
             var container = document.getElementById('viewPanelBW');
@@ -542,7 +542,7 @@ $("#viewPlotlyBW").click(function(){
             var colorline = 'rgba(128, 0, 128, 1)';
             var fillcolor = 'rgba(128, 0, 128, 0.7)';
             bargridPlot(url, x, container, colormarker, colorline, fillcolor);
-        {% elif resultformat.name == 'kdtree' %}
+        {% elif resultformat.title == 'kdtree' %}
             document.getElementById('viewPanelBW').innerHTML = "";
             var container = document.getElementById('viewPanelBW');
             var colormarker = 'rgb(255,0,0,0.4)';
@@ -552,7 +552,7 @@ $("#viewPlotlyBW").click(function(){
         {% endif %}
     {% elif result.parameters.viabilityproblem.statedimension == 3 %}
             var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
-        {% if resultformat.name == 'bars' %}
+        {% if resultformat.title == 'bars' %}
             document.getElementById('viewPanelBW').innerHTML = "";
             var x = document.getElementById("ppa").value;
             var container = document.getElementById('viewPanelBW');
@@ -560,7 +560,7 @@ $("#viewPlotlyBW").click(function(){
             var colorline = 'rgba(128, 0, 128, 1)';
             var fillcolor = 'rgba(128, 0, 128, 0.7)';
             bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
-        {% elif resultformat.name == 'kdtree' %}
+        {% elif resultformat.title == 'kdtree' %}
             document.getElementById('viewPanelBW').innerHTML = "";
             var x = document.getElementById("ppa").value;
             var container = document.getElementById('viewPanelBW');

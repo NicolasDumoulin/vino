@@ -186,10 +186,8 @@
 </li>
         <li class="list-group-item">  
 {% if viabilityproblem.statedimension == 2%}
-{% if result.resultformat.name == 'bars' %}
 <button id="viewPlotlyBW" class="btn btn-primary">View Vino</button> with <input type="text"  id="ppa" value="50"> ppa
 <button id="deletePlotlyBW" class="btn btn-primary">Delete Vino</button>
-{% endif %}
 {% endif %}
 
 </li>
@@ -1360,6 +1358,40 @@ function bargridPlot(url, x, container, colormarker, colorline, fillcolor){
         })
     }
 }
+
+function kdtreeRectangle(xmin, xmax, ymin, ymax, colorline, fillcolor){
+    var rectangle = {'type': 'rect', 'x0': xmin, 'y0': ymin, 'x1': xmax, 'y1': ymax, 'line': {'color': colorline, 'width': 1}, 'fillcolor': fillcolor};
+    return rectangle;
+}
+
+function kdtreePlot(url, container, colormarker, colorline, fillcolor){
+    loadAndPlot(url, function (data) {
+        var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: 'rgb(55, 128, 191)' }, hoverinfo:'none' };
+        var trace = [];
+        var tracebis = [];
+        var xbounds = [];
+        var ybounds = [];
+        $.each(data, function(index, bar) {
+            if (index > 0){
+                items.x.push(bar[0]);
+                items.y.push(bar[1]);
+                tracebis.push(kdtreeRectangle(bar[2], bar[3], bar[4], bar[5], colorline, fillcolor));
+            } else{
+                xbounds.push(bar[0]);
+                xbounds.push(bar[2]);
+                ybounds.push(bar[1]);
+                ybounds.push(bar[3]);
+            }
+        });
+//        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+//        trace = [items];
+//        Plotly.newPlot(container, trace, layout);
+            update = {shapes:tracebis};
+            Plotly.relayout(container,update);
+
+    })
+}
+
 $("#deletePlotlyBW").click(function(){
      
             var container = document.getElementById('2Dstatetrajectories12');
@@ -1371,14 +1403,12 @@ $("#deletePlotlyBW").click(function(){
 })
 
 $("#viewPlotlyBW").click(function(){
-//    console.log("coucou")
     {% if result.parameters.viabilityproblem.statedimension == 2 %}
         var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
 //            console.log("coucoubis")
-//            console.log('{{result.resultformat.name}}')
+//            console.log('{{result.resultformat.title}}')
 
-        {% if result.resultformat.name == 'bars' %}
-//            console.log("coucouter")
+        {% if result.resultformat.title == 'bars' %}
 //            document.getElementById('2Dstatetrajectories12').innerHTML = "";
             var x = document.getElementById("ppa").value;
             var container = document.getElementById('2Dstatetrajectories12');
@@ -1386,9 +1416,8 @@ $("#viewPlotlyBW").click(function(){
             var colorline = 'rgba(128, 0, 128, 1)';
             var fillcolor = 'rgba(128, 0, 128, 0.7)';
             bargridPlot(url, x, container, colormarker, colorline, fillcolor);
-        {% elif resultformat.name == 'kdtree' %}
-            document.getElementById('viewPanelBW').innerHTML = "";
-            var container = document.getElementById('viewPanelBW');
+        {% elif result.resultformat.title == 'kdtree' %}
+            var container = document.getElementById('2Dstatetrajectories12');
             var colormarker = 'rgb(255,0,0,0.4)';
             var colorline = 'rgba(128, 0, 128, 1)';
             var fillcolor = 'rgba(128, 0, 128, 0.7)';
