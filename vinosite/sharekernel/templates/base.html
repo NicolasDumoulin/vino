@@ -14,10 +14,22 @@
     <link href="{% static 'sharekernel/css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{% static 'sharekernel/style.css' %}" />
   {% block head %}{% endblock %}
+<style>
+.vino{
+    color: #800000;
+}
+.navbar-default .navbar-brand:hover{
+    color:red;
+}
+.navbar-default .navbar-brand{
+    color:#800000;
+}
+</style>
+
 </head>
 
 <body>
-     <div class="navbar navbar-inverse" role="navigation">
+     <div class="navbar navbar-default" role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
@@ -26,7 +38,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="{% url 'sharekernel:home' %}">Vino</a>
+          <a class="navbar-brand" href="{% url 'sharekernel:home' %}">ViNO</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
@@ -76,13 +88,23 @@
         </div>
         <div class="modal-body">
             <p>This website is a prototype for sharing computed viability kernels.
-            We think that this project can help to compare viability algorithms.</p>
+            We think that this project can help to compare viability algorithms. Actually, there are several algorithms and even more implementations 
+of these algorithms. The aim of ViNO is to bring together researchers and users to be more effective in the development, evaluation and presentation of numerical solutions to viability problems.
+</p>
+        <p>The interest of this platform is to show the results obtained on different problems, from simple to complex, and 
+            to encourage the comparison of results of the different methods and softwares.</p>
+        <p>The aim is to stimulate trade and allow better selection of methods according to the characteristics of the viability problems under consideration,
+            which will facilitate the application to concrete problems. </p>
+
             <p>Features planned:
               <ul>
                 <li>Storage in database with submission form</li>
                 <li>Comparison of two grids computed</li>
                 <li>Conversion between file formats: raw txt, hdf5, …</li>
                 <li>Bibliographic reference stored in BibTeX with doi link</li>
+                <li>	automated test of ViNOs</li> 
+                <li>	persistent URL</li>
+
               </ul>
             </p>
             <p><a href="https://sourcesup.renater.fr/wiki/vino/index">More information about vino development</a></p>

@@ -1,19 +1,50 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
+  {% block head %}
+<style>
+a.btn{
+    color:#800000;
+}
+</style>
+{% endblock %}
 {% block body %}
 
 <div class="container">
     <div class="jumbotron">
-        <img class="img-responsive pull-left"  src="{% static 'sharekernel/images/noyau.png' %}" /><h1>Share your kernel!</h1>
-        <p>Share Your Kernel is a platform on numerical methods to solve viability problems.<p>
-        <p>The interest of this platform is to show the results obtained on different problems, from simple to complex, and 
-            to encourage the comparison of results of the different methods and softwares.</p>
-        <p>The aim is to stimulate trade and allow better selection of methods according to the characteristics of the viability problems under consideration,
-            which will facilitate the application to concrete problems. </p>
+<h2><font color="#800000">ViNO</font> : <font color="#800000">Vi</font>able <font color="#800000">N</font>umerical <font color="#800000">O</font>bject repository</h2>
+<p>        Viability problems arise in several scientific fields (robotics, economics, environmental sciences). Once the set of constraints to be satisfied is specified
+ and the dynamics described, the viability problem is the study of the compatibility between these constraints and these dynamics; 
+Control strategies governing viable evolutions if any can then be deduced.<p>
+<p> Analytical solutions to sustainability problems are very rare. 
+Approximations can then be calculated, we call them <font color="#800000">Vi</font>able <font color="#800000">N</font>umerical <font color="#800000">O</font>bjects.<p>
+ </div>
+ <div class="row">
+  <div class="col-sm-6"><a href="{% url 'sharekernel:results_tree' %}"><img class="img-responsive"  src="{% static 'sharekernel/images/explore.png' %}" /></a></div>
+  <div class="col-sm-6"><p><a href="{% url 'sharekernel:results_tree' %}" class="btn btn-default" role="button">Click here </a> to visit ViNO repository and experiment on ViNOs thanks to the provided tools :<p> 
+<ul>
+                <li>	ViNO visualisation including the computation of the distance to the boundary</li>
+                <li>	ViNO comparison </li>
+                <li>	ViNO-based viable evolution design </li>
+
+</ul></div>
+</div>
+ <hr>
+ <div class="row">
+  <div class="col-sm-6"><a href="{% url 'sharekernel:results_tree' %}"><img class="img-responsive"  src="{% static 'sharekernel/images/upload.png' %}" /></a></div>
+  <div class="col-sm-6"><p><a href="{% url 'sharekernel:results_tree' %}" class="btn btn-default" role="button">Click here </a> to upload your ViNO, describe new problems addressed and 
+benefit from the platform services to :<p> 
+<ul>
+                <li>	visualise your ViNO</li>
+                <li>	compare your ViNO with already deposited ones</li>
+                <li>	test your software performance </li>
+
+</ul></div>
+</div>
+
     </div>
+<hr>
     <div id="row">
-        <div class="col-sm-8 col-sm-offset-2">
+<!--        <div class="col-sm-8 col-sm-offset-2">
             <a href="{% url 'sharekernel:results_tree' %}">Explore</a> and describe new problems addressed, upload associated kernels and benefit from the platform services : 
             <ul>
                 <li>	visualisation including the computation of the distance to the boundary</li>
@@ -22,7 +53,7 @@
                 <li>	automated test of your results (to do)</li> 
                 <li>	persistent URL (to do)</li>
             </ul>
-        </div>
+        </div> -->
         <div class="col-sm-8 col-sm-offset-2">
             {% if lastproblems %}
                 <h3>Last Viability Problems</h3>
