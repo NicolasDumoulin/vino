@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+  {% block head %}
+<style>
+a.btn{
+    color:#800000;
+}
+  .carousel-inner > .item > img,
+  .carousel-inner > .item > a > img {
+      height: 40%;
+      margin: auto;
+  }
+
+</style>
+{% endblock %}
+{% block body %}
+
+<div class="container">
+  <h3>Search by topics :</h3> 
+ {% if viabilityproblems %}
+
+  <div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <!-- Indicators -->
+    <ol class="carousel-indicators">
+      <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+     {% if viabilityproblemsminusfirstone %}
+
+                    {% for problem in viabilityproblemsminusfirstone %}
+
+      <li data-target="#myCarousel" data-slide-to="{{forloop.counter}}"></li>
+      {% endfor %}
+      {% endif %}
+    </ol>
+
+    <!-- Wrapper for slides -->
+    <div class="carousel-inner" role="listbox">
+
+      <div class="item active">
+<a href="{% url 'sharekernel:visitviabilityproblem' firstviabilityproblem.pk %}">
+{% if firstviabilityproblem.illustration %}
+        <img src="{{firstviabilityproblem.illustration.url}}" alt="{{firstviabilityproblem.title}}">
+{% else %}
+        <img src="{% static 'sharekernel/images/vpimage_default.png' %}" alt="{{firstviabilityproblem.title}}">
+
+{% endif %}
+</a>
+        <div class="carousel-caption">
+          <h3>{{firstviabilityproblem.title}}</h3>
+          <p></p>
+        </div>
+      </div>
+     {% if viabilityproblemsminusfirstone %}
+
+                    {% for problem in viabilityproblemsminusfirstone %}
+    
+      <div class="item">
+<a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">
+{% if problem.illustration %}
+        <img src="{{problem.illustration.url}}" alt="{{problem.title}}" width="460" height="345">
+{% else %}
+        <img src="{% static 'sharekernel/images/vpimage_default.png' %}" alt="{{problem.title}}" width="460" height="345">
+
+{% endif %}
+</a>
+        <div class="carousel-caption">
+          <h3>{{problem.title}}</h3>
+          <p></p>
+        </div>
+      </div>
+
+{% endfor %}  
+{% endif %}  
+
+    </div>
+
+    <!-- Left and right controls -->
+    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+      <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+      <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+      <span class="sr-only">Next</span>
+    </a>
+  </div>
+  {% endif %}
+
+
+<hr>
+    <div id="row">
+<!--        <div class="col-sm-8 col-sm-offset-2">
+            <a href="{% url 'sharekernel:results_tree' %}">Explore</a> and describe new problems addressed, upload associated kernels and benefit from the platform services : 
+            <ul>
+                <li>	visualisation including the computation of the distance to the boundary</li>
+                <li>	comparison with kernels obtained by other softwares (in progress) </li>
+                <li>	viable evolution design (in progress) </li>
+                <li>	automated test of your results (to do)</li> 
+                <li>	persistent URL (to do)</li>
+            </ul>
+        </div> -->
+        <div class="col-sm-8 col-sm-offset-2">
+            {% if viabilityproblemscard %}
+                <h3>Advanced Search (TODO : sort by many different things, enabling to exclude different types, ...)</h3>
+                <div id="row">
+                    {% for problem in viabilityproblemscard %}
+                        {% include 'sharekernel/viabilityproblem_card.html' %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
