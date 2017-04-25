@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^problem/(?P<viabilityproblem_id>([0-9]|N)+)/$', views.visitviabilityproblem, name='visitviabilityproblem'),
     url(r'^problem/(?P<viabilityproblem_id>([0-9]|N)+)/parameters/new/$', views.newparameters, name='newparameters'),
     url(r'^results/$', views.results_tree, name='results_tree'),
+    url(r'^visitviabilityproblems/$', views.visitviabilityproblems, name='visitviabilityproblems'),
     url(r'^result/(?P<result_id>([0-9]|N)+)/edit$', views.editresult, name='editresult'),
     url(r'^result/(?P<result_id>([0-9]|N)+)/$', views.visitresult, name='visitresult'),
     url(r'^software/new/$', views.newsoftware, name='newsoftware'),

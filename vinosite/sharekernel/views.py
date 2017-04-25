@@ -50,6 +50,17 @@ def home(request):
         }
     return render(request, 'sharekernel/home.html', context)            
     
+def visitviabilityproblems(request):
+    context = {
+        'viabilityproblems':ViabilityProblem.objects.all(),
+        'viabilityproblemsminusfirstone':ViabilityProblem.objects.all()[1:],
+        'firstviabilityproblem':ViabilityProblem.objects.all()[0],
+
+        'viabilityproblemscard':[viabilityproblem_carddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')]
+        }
+    return render(request, 'sharekernel/visitviabilityproblems.html', context)            
+
+
 def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
     p = r.parameters
