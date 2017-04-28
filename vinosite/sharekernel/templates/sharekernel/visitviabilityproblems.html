@@ -10,7 +10,15 @@ a.btn{
       height: 40%;
       margin: auto;
   }
+</style>
 
+<style type="text/css">
+.resultscolours { width:100%; }
+.resultscolours tr,.resultscolours td {height:8px;overflow: hidden; padding:0; line-height: 0; }
+{% for software in software_list %}
+
+table .color{{software.id}} { background-color:rgb({{software.id}}00,0,{{software.id}}); }
+{% endfor %}
 </style>
 {% endblock %}
 {% block body %}
@@ -88,19 +96,31 @@ a.btn{
 
 <hr>
     <div id="row">
-<!--        <div class="col-sm-8 col-sm-offset-2">
-            <a href="{% url 'sharekernel:results_tree' %}">Explore</a> and describe new problems addressed, upload associated kernels and benefit from the platform services : 
-            <ul>
-                <li>	visualisation including the computation of the distance to the boundary</li>
-                <li>	comparison with kernels obtained by other softwares (in progress) </li>
-                <li>	viable evolution design (in progress) </li>
-                <li>	automated test of your results (to do)</li> 
-                <li>	persistent URL (to do)</li>
-            </ul>
-        </div> -->
-        <div class="col-sm-8 col-sm-offset-2">
+        <div class="col-sm-4 ">
+            <h3><a href="{% url 'sharekernel:algorithmlist' %}">Softwares</a></h3> used to compute the viability kernels stored in the database : 
+{% if software_list %}
+    <ul>
+    {% for software in software_list %}
+        <li><a href="{% url 'sharekernel:visitsoftware' software.id %}">{{ software.title }}</a></li>
+            <table class="resultscolours"><tr>
+                    <td class="color{{software.id}}" title=" color{{software.id}}">&nbsp;</td>
+            </tr></table>
+
+    {% endfor %}
+    </ul>
+{% endif %}
+        </div> 
+        <div class="col-sm-8 ">
             {% if viabilityproblemscard %}
-                <h3>Advanced Search (TODO : sort by many different things, enabling to exclude different types, ...)</h3>
+                <h3>Advanced Search :</h3>
+               sort viability problems by <SELECT name="sortchoice" size="1">
+                   <OPTION>State dimension
+                   <OPTION>Control dimension
+                   <OPTION>Perturbation dimension
+                   <OPTION>Dynamics type : continuous, discrete, hybrid with time
+                   <OPTION>Number of computed ViNOs
+              </SELECT>(TODO)
+<br><br>
                 <div id="row">
                     {% for problem in viabilityproblemscard %}
                         {% include 'sharekernel/viabilityproblem_card.html' %}

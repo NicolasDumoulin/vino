@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="container">
+    <ol class="breadcrumb">
+        <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+    </ol>
+{% if software.illustration %}
+<img src="{{software.illustration.url}}" alt="{{software.title}}" width="460" height="345">
+{% endif %}
+
+        <h1>{{software.title}}
+        </h1>
+{% if version %} <h2>Version : {{software.version}} </h2>{% endif %}
+        <div id="row">
+            <div class="col-sm-12">
+                        <p>This software was posted by {{software.submitter.id}} on {{software.submissiondate}}.</p>
+
+                <div id="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <h4> This software was implemented by {{software.author}}. {% if software.publication %} It is described in 
+                            <i>{{software.publication}}.</i>{% endif%} {% if software.website %}More information is available at {{software.website}}.{% endif %}
+                           {% if software.contact %} Contact : {{software.contact}}.{% endif %}</h4>
+                        <p>{% if softparval %}Beyond the viability problem definition,  running the software requires the specification of the following parameters :
+                         <ul>{% for i in softparval%}<li> {{i}} </li>{% endfor %}
+                         </ul>{% else %} The software parameters are not specified.{% endif %}</p>
+                        <p>{% if software.description %} Description : {{software.description}}{% endif %}</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+
+
+{% endblock %}

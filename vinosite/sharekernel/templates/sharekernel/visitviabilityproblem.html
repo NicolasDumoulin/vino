@@ -49,7 +49,7 @@
                     <td>TODO</td>
                     <td>TODO</td>
                     <td>TODO</td>
-                    <td>{{ result.value.software.title }}</td>
+                    <td><a href="{% url 'sharekernel:visitsoftware' result.value.software.id %}">{{ result.value.software.title }}</a></td>
                     <td>{{ result.value.author }}</td>
                     <td>{{ result.filesize }}</td>
                     <td>{{ result.value.resultformat.name }}</td>

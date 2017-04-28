@@ -2,32 +2,31 @@
 
 {% block body %}
 
-<div id="container">
-		<div id="topbar"> 
-		</div>
-		<div id="navbar"> <a href="{% url 'sharekernel:home' %}">HOME</a></div>
-		<!-- the main section where all pages will be loaded using URL variables and PHP include() function -->
-		<div id="main">
-Please find below the softwares used to compute the results stored in the database :
+<div class="container">
+    <ol class="breadcrumb">
+        <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
+    </ol>
+
+        <div id="row">
+            <div class="col-sm-12">
+    	
+<h3> Softwares </h3> used to compute the results stored in the database :
 <br><br>
 
 {% if software_list %}
     <ul>
     {% for software in software_list %}
-        <li><a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software.id resultformat_id %}">{{ software.title }}</a></li>
+        <li><a href="{% url 'sharekernel:visitsoftware' software.id %}">{{ software.title }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No softwares are available.</p>
 {% endif %}
-<a href="{% url 'sharekernel:metadatafilespecification' category_id  viabilityproblem_id parameters_id software_id resultformat_id %}">Annuler</a>
 
-			<div class="spacer"></div>
+			
 
-
-		<!-- close #main content -->
-		</div>
-	<!-- close #container -->
+              </div>
 	</div>
+</div>
 
 {% endblock %}

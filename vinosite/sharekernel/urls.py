@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^visitviabilityproblems/$', views.visitviabilityproblems, name='visitviabilityproblems'),
     url(r'^result/(?P<result_id>([0-9]|N)+)/edit$', views.editresult, name='editresult'),
     url(r'^result/(?P<result_id>([0-9]|N)+)/$', views.visitresult, name='visitresult'),
+    url(r'^software/(?P<software_id>([0-9]|N)+)/$', views.visitsoftware, name='visitsoftware'),
     url(r'^software/new/$', views.newsoftware, name='newsoftware'),
     url(r'^upload/p=(?P<parameters_id>([0-9]|N)+)/a=(?P<software_id>([0-9]|N)+)/$', views.kerneluploadpage, name='kerneluploadpage'),
     # Upload feature without parameters selected disabled
@@ -41,6 +42,7 @@ urlpatterns = [
     url(r'^metadatafilecontent/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.metadatafilecontent, name='metadatafilecontent'),
     url(r'^resultformatlist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.resultformatlist, name='resultformatlist'),
     url(r'^softwarelist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.softwarelist, name='softwarelist'),
+    url(r'^algorithmlist/$', views.algorithmlist, name='algorithmlist'),
     url(r'^parameterslist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.parameterslist, name='parameterslist'),
     url(r'^visualizeresult/(?P<result_id>([0-9]|N)+)/$', views.visualizeresult, name='visualizeresult'),
     url(r'^visualizeresulttrajectories/(?P<result_id>([0-9]|N)+)/$', views.visualizeresulttrajectories, name='visualizeresulttrajectories'),

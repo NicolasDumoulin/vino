@@ -35,13 +35,18 @@ def viabilityproblem_carddata(vp):
     Build the view data for displaying an information card about a viability problem.
     '''
     resultsByFormat = {}
+    resultsBySoftware = {}
     nbResults = 0
     for param in vp.parameters_set.all():
         nbResults += len(param.results_set.all())
         for result in param.results_set.all():
             resultsByFormat.setdefault(result.resultformat.title,[]).append(result)
+            resultsBySoftware.setdefault(result.software,[]).append(result)
+
     formatsStats={f:100*float(len(results))/nbResults for f,results in resultsByFormat.iteritems()}
-    return {'value':vp, 'nbResults':nbResults, 'resultsByFormat':resultsByFormat, 'formatsStats':formatsStats}
+    softwaresStats={f:100*float(len(results))/nbResults for f,results in resultsBySoftware.iteritems()}
+
+    return {'value':vp, 'nbResults':nbResults, 'resultsByFormat':resultsByFormat, 'formatsStats':formatsStats, 'resultsBySoftware':resultsBySoftware, 'softwaresStats':softwaresStats}
 
 def home(request):
     context = {
@@ -55,11 +60,23 @@ def visitviabilityproblems(request):
         'viabilityproblems':ViabilityProblem.objects.all(),
         'viabilityproblemsminusfirstone':ViabilityProblem.objects.all()[1:],
         'firstviabilityproblem':ViabilityProblem.objects.all()[0],
+    
+        'software_list' : Software.objects.all(),
 
         'viabilityproblemscard':[viabilityproblem_carddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')]
         }
     return render(request, 'sharekernel/visitviabilityproblems.html', context)            
 
+
+def visitsoftware(request,software_id):
+    a = Software.objects.get(id=software_id)
+    softparval = []
+    if a.parameters.split(",")[0]!="none":
+        for i in range(len(a.parameters.split(","))):
+            softparval.append(a.parameters.split(",")[i])
+
+    context = {'software' : a,'softparval':softparval}
+    return render(request, 'sharekernel/visitsoftware.html', context)            
 
 def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
@@ -809,6 +826,11 @@ def parameterslist(request,viabilityproblem_id,parameters_id,algorithm_id,result
        
     context = {'n' : range(len(p_list)),'N' : len(p_list)+1,'tabvalues': tabvalues,'viabilityproblem' : vp,'parameters_list' : p_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/parameterslist.html', context)            
+
+def algorithmlist(request):
+    a_list = Software.objects.all()
+    context = {'software_list' : a_list}
+    return render(request, 'sharekernel/algorithmlist.html', context)            
 
 def softwarelist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
     a_list = Software.objects.all()

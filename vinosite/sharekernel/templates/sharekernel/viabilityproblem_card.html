@@ -14,9 +14,9 @@ See also about the card layout:
         <div class="panel-heading">
             <h4 class=""><a href="{% url 'sharekernel:visitviabilityproblem' problem.value.id %}">{{ problem.value.title }}</a></h4>
             <table class="resultscolours"><tr>
-                {% for format,results in problem.resultsByFormat.items %}
+                {% for software,results in problem.resultsBySoftware.items %}
                     {% for result in results %}
-                    <td class="{{format}}" title=" Format {{format}}">&nbsp;</td>
+                    <td class="color{{software.id}}" title=" Software {{software.title}}">&nbsp;</td>
                     {% endfor %}
                 {% endfor %}
             </tr></table>
@@ -47,6 +47,7 @@ See also about the card layout:
 <style type="text/css">
 .resultscolours { width:100%; }
 .resultscolours tr,.resultscolours td {height:8px;overflow: hidden; padding:0; line-height: 0; }
-table .bars { background-color:#90C3D4; }
-table .kdtree { background-color:#D4A190; }
-</style>
+{% for software in software_list %}
+
+table .color{{software.id}} { background-color:rgb({{software.id}}00,0,{{software.id}}); }
+{% endfor %}</style>
