@@ -895,7 +895,10 @@ def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={})
                 logging.getLogger(__name__).info("metadata not found: "+cls.__name__.lower()+'.'+f.name)
         # setting additional field (data file)
         for name, value in fields.iteritems():
-            setattr(p, name, value)
+            if isinstance(value, File):
+                getattr(p,name).save(os.path.basename(value.name), value)
+            else:
+                setattr(p, name, value)
         # setting foreign keys
         for fn,fk in foreignkeys.iteritems():
             setattr(p, fn, fk)

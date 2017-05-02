@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from sharekernel.models import ResultFormat, Parameters, ViabilityProblem, Software, Results
 from django.core.files import File
-from django.core.exceptions import ValidationError
 from FileFormatLoader import Loader
 import re
 import METADATA
@@ -26,14 +25,17 @@ def addKernel(kernel, user):
     parameters = findandsaveobject(Parameters, parameters_md, foreignkeys={'viabilityproblem':problem}, fields={'submitter':user})
     software_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("software")}
     software = findandsaveobject(Software, {METADATA.software_title:software_md[METADATA.software_title]}, fields={'submitter':user}, add_metadata=software_md)
+    # obtaining an unique filename
     tmpfile = tempfile.NamedTemporaryFile(prefix=slugify(kernel.metadata[METADATA.title]),suffix=".h5")
-    hdf5manager.writeKernel(kernel, tmpfile.name)
+    filename = tmpfile.name
+    tmpfile.close()
+    hdf5manager.writeKernel(kernel, filename)
     result = findandsaveobject(Results, kernel.metadata, foreignkeys={
             "parameters": parameters,
             "software": software,
             "resultformat": resultformat
         },fields={
-            "datafile": File(tmpfile),
+            "datafile": File(open(filename), name=filename),
             "submissiondate": timezone.now(),
             'submitter':user    
     })
@@ -47,26 +49,27 @@ class Command(BaseCommand):
             action='store_true',
             dest='delete',
             default=False,
-            help='Delete all objects',
+            help='Delete all objects and users',
         )
         parser.add_argument(
             '--sure-delete',
             action='store_true',
             dest='sure-delete',
             default=False,
-            help='Confirm deletion of all objects',
+            help='Confirm deletion of all objects and users',
         )
 
     def handle(self, *args, **options):
         if options['delete']:
             if not options['sure-delete']:
-                self.stdout.write("You want to delete all objects before populating the database with samples. If you know what you are doing, please add the argument 'sure' in the command:\n    python manage.py populate_database --delete --sure-delete")
+                self.stdout.write("You want to delete all objects and users before populating the database with samples. If you know what you are doing, please add the argument 'sure' in the command:\n    python manage.py populate_database --delete --sure-delete")
                 return
             ResultFormat.objects.all().delete()
             ViabilityProblem.objects.all().delete()
             Software.objects.all().delete()
             Parameters.objects.all().delete()
             Results.objects.all().delete()
+            User.objects.all().delete()
         # Adding default users
         for username, email in [['nicolas.dumoulin','nicolas.dumoulin@irstea.fr'],['sophie.martin','sophie.martin@irstea.fr']]:
             User.objects.create_superuser(username=username, email=email, password=None)
