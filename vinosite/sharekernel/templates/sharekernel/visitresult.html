@@ -7,49 +7,7 @@
         <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
         <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
     </ol>
-        <div id="row">
-            <div class="col-sm-6" style="background-color:#800000;color:#ccc">
-                  <h4><center> <a href="" style="background-color:#800000;color:#ccc" data-toggle="modal" data-target="#myModal">ISSUE</a></center></h4>
-            </div>
-            <div class="col-sm-6" style="background-color:#ff3333;color:#ccc">
-                  <h4> <center><a href="#demo" style="color:#ccc" data-toggle="collapse">MODEL</a></center></h4>  
-
-
-
-            </div>
-       </div
-
-
-  <!-- Modal -->
-  <div class="modal fade" id="myModal" role="dialog">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">{{result.parameters.viabilityproblem.title}}</h4>
-        </div>
-        <div class="modal-body">
-          <p>{{result.parameters.viabilityproblem.description}}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-    
-  <div id="demo" class="collapse">
-        <div id="row">
-            <div class="col-sm-12" style="background-color:#ff3333">
-<br>
-        {% include 'sharekernel/viabilityproblem_mathinfo.html' %}
-
-          </div>  
-    </div>  
-
-  </div>  
+        {% include 'sharekernel/result_infobar.html' %}
 <br>
         <div id="row">
             <div class="col-sm-12">
@@ -145,6 +103,7 @@
                 {% endfor %}
             </ul>
         </div>
+
 </div>
 
 <script type="text/javascript">

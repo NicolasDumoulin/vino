@@ -10,13 +10,66 @@
 {% endblock %}
 {% block body %}
 <div id="container">
+      
     <div id="row"><div class="col-sm-12">
             <ol class="breadcrumb">
                 <li><a href="{% url 'sharekernel:home' %}">Home</a></li>
                 <li><a href="{% url 'sharekernel:visitviabilityproblem'  viabilityproblem.id %}">{{viabilityproblem.title}}</a></li>
                 <li><a href="{% url 'sharekernel:visitresult'  result.id %}">{{result.title}}</a></li>
             </ol>
+            {% include 'sharekernel/result_infobar.html' %}
+
+        <h1>{{result.title}} : {{result.parameters.viabilityproblem.statedimension}}D state space</h1>
+        {% if result.parameters.viabilityproblem.statedimension < 4 %}
+
+        <div id="row">
+            <div class="col-sm-10 col-sm-offset-1">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="ppa">{{result.parameters.viabilityproblem.statedimension}}D visualization with
+                        </label>
+                    <input type="text" class="form-control" id="ppa" value="50"> (max : {% if result.parameters.viabilityproblem.statedimension == 2 %}5000{% else %} 300{% endif %}) points per axis
+                </div>
+                <button id="viewPlotlyBW" class="btn btn-primary">Update visualization</button>
+            </div>
+<br>
+            <div class="form-inline">
+                <div class="form-group">
+                  You can try to visualize the original ViNO but it may take a long time ....
+                </div>
+                <button id="viewPlotlyBWOriginal" class="btn btn-primary">Original ViNO</button>
+            </div>
+
+            <div id="viewPanelBW"></div>
+<br><hr><br>        
+            </div>
+
+        </div>
+
+        {% endif%}
+
+        {% if result.parameters.viabilityproblem.statedimension < 3 %}
+
+        <div id="row">
+            <div class="col-sm-10 col-sm-offset-1">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label for="distanceppa">{{result.parameters.viabilityproblem.statedimension}}D visualization of the distance to the boundary with
+                    <input type="text" class="form-control" id="distanceppa" value="50">    (max : 500) points peraxis</label>
+                    
+                </div>
+                <button id="viewPlotlyColor" class="btn btn-primary">View distance</button>
+            </div>
+            <div id="viewPanel"></div>
             
+            </div>
+
+        </div>
+
+        {% endif%}
+
+
+          <hr>
             <h1>Visualization</h1>
             {% if result.parameters.viabilityproblem.statedimension < 4 %}
             <div class="form-inline">
@@ -27,7 +80,6 @@
                 </div>
                 <button id="viewPlotlyBW" class="btn btn-primary">View Vino</button>
             </div>
-            <div id="viewPanelBW"></div>
             <div id='loading' style='display:none'>
                 <img src="{% static 'sharekernel/images/ajax-loader.gif' %}"/>
             </div>
@@ -77,6 +129,23 @@
 </div>
 
 <script type="text/javascript">
+    {% if result.parameters.viabilityproblem.statedimension < 4 %}
+
+var ppainitial;
+    {% if result.parameters.viabilityproblem.statedimension == 3 %}
+ppainitial = 100;
+    {% elif result.parameters.viabilityproblem.statedimension == 2 %}
+
+ppainitial = 1000;
+{% endif %}
+document.getElementById("ppa").value = ppainitial;
+ViNOVisu(ppainitial);
+{% endif %}
+{% if result.parameters.viabilityproblem.statedimension == 2 %}
+
+document.getElementById("distanceppa").value = 50;
+DistanceVinoVisu(50);
+{% endif %}
 
 var twoDsections = [];
 var twoDsectionCoordinates = [];
@@ -125,7 +194,7 @@ function kdtreeRectangle(xmin, xmax, ymin, ymax, colorline, fillcolor){
 }
 
 function bargridPlot(url, x, container, colormarker, colorline, fillcolor){
-    if (isNaN(x) || x == "%20" || x > 1000) {
+    if (isNaN(x) || x == "%20" || x > 5000) {
         text = "Input not valid : " + x;
         container.innerHTML = text;
     } else {
@@ -171,7 +240,7 @@ function bargridPlot(url, x, container, colormarker, colorline, fillcolor){
                     tracebis.push(bargridRectangle(x, y, xstep, ystep, colorline, fillcolor));
                 }
             });
-            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{title : '{{staab|first}}',range : xbounds}, yaxis:{title : '{{staab|last}}',range : ybounds}};
             trace = [items];
             Plotly.newPlot(container, trace, layout);
         })
@@ -188,7 +257,7 @@ function bargridRectangle3D(x, y, z, xstep, ystep, zstep, facecolor){
 
 
 function bargridPlot3D(url, x, container, colormarker, colorline, fillcolor){
-    if (isNaN(x) || x == "%20" || x > 1000) {
+    if (isNaN(x) || x == "%20" || x > 300) {
         text = "Input not valid : " + x;
         container.innerHTML = text;
     } else {
@@ -248,7 +317,11 @@ function bargridPlot3D(url, x, container, colormarker, colorline, fillcolor){
                     items.marker.color.push(items.z[items.z.length - 1]);
                 }
             });
-            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{range : xbounds}, yaxis:{range : ybounds}, zaxis:{range : [0, 1]}}};
+            var titles=[];
+            {% for ab in staab %}
+                titles.push("{{ab}}");  
+            {% endfor %}
+            var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, scene : {xaxis:{title:titles[0],range : xbounds}, yaxis:{title:titles[1],range : ybounds}, zaxis:{title:titles[2],range : [0, 1]}}};
             trace = [items];
             Plotly.newPlot(container, trace, layout);
             var aes = [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 5]];
@@ -329,7 +402,7 @@ function kdtreePlot(url, container, colormarker, colorline, fillcolor){
                 ybounds.push(bar[3]);
             }
         });
-        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+        var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, shapes : tracebis, xaxis:{title : '{{staab|first}}',range : xbounds}, yaxis:{title : '{{staab|last}}',range : ybounds}};
         trace = [items];
         Plotly.newPlot(container, trace, layout);
     })
@@ -397,7 +470,7 @@ $("#viewPlotlyColorSection").click(function(){
         var i = "";
         var ii = {{result.parameters.viabilityproblem.statedimension}} - 2;
         ch = ch + ii + " checkbox(es) must be checked)";
-        {% for statevariable in stanaab %}
+        {% for statevariable in staab %}
             chbis = chbis + "<input type='checkbox' name='dimension' value='{{statevariable}}' id='{{statevariable}}' onchange='ShowAxes()'/>{{statevariable}}";
         {% endfor %}
         document.getElementById('sectionAxes').innerHTML = "";
@@ -531,57 +604,59 @@ $("#z").change(function(){
     ShowSectionCoordinates(tabvalues);
 })
 
-$("#viewPlotlyBW").click(function(){
+function ViNOVisu(x){
+     document.getElementById('viewPanelBW').innerHTML = "";
+     var container = document.getElementById('viewPanelBW');
+     var colormarker = 'rgb(255,0,0,0.4)';
+     var colorline = 'rgba(128, 0, 128, 1)';
+     var fillcolor = 'rgba(128, 0, 128, 0.7)';
+
     {% if result.parameters.viabilityproblem.statedimension == 2 %}
         var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
         {% if resultformat.title == 'bars' %}
-            document.getElementById('viewPanelBW').innerHTML = "";
-            var x = document.getElementById("ppa").value;
-            var container = document.getElementById('viewPanelBW');
-            var colormarker = 'rgb(255,0,0,0.4)';
-            var colorline = 'rgba(128, 0, 128, 1)';
-            var fillcolor = 'rgba(128, 0, 128, 0.7)';
             bargridPlot(url, x, container, colormarker, colorline, fillcolor);
         {% elif resultformat.title == 'kdtree' %}
-            document.getElementById('viewPanelBW').innerHTML = "";
-            var container = document.getElementById('viewPanelBW');
-            var colormarker = 'rgb(255,0,0,0.4)';
-            var colorline = 'rgba(128, 0, 128, 1)';
-            var fillcolor = 'rgba(128, 0, 128, 0.7)';
-            kdtreePlot(url, container, colormarker, colorline, fillcolor);
+            if (x>0){
+                   bargridPlot(url, x, container, colormarker, colorline, fillcolor);
+            }
+            else kdtreePlot(url, container, colormarker, colorline, fillcolor);
         {% endif %}
     {% elif result.parameters.viabilityproblem.statedimension == 3 %}
             var url = "{% url 'sharekernel:ViNOView3D' result.id 0 %}"
         {% if resultformat.title == 'bars' %}
-            document.getElementById('viewPanelBW').innerHTML = "";
-            var x = document.getElementById("ppa").value;
-            var container = document.getElementById('viewPanelBW');
-            var colormarker = 'rgb(255,0,0,0.4)';
-            var colorline = 'rgba(128, 0, 128, 1)';
-            var fillcolor = 'rgba(128, 0, 128, 0.7)';
             bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
         {% elif resultformat.title == 'kdtree' %}
-            document.getElementById('viewPanelBW').innerHTML = "";
-            var x = document.getElementById("ppa").value;
-            var container = document.getElementById('viewPanelBW');
-            var colormarker = 'rgb(255,0,0,0.4)';
-            var colorline = 'rgba(128, 0, 128, 1)';
-            var fillcolor = 'rgba(128, 0, 128, 0.7)';
-            kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor);
+            if (x>0){
+                   bargridPlot3D(url, x, container, colormarker, colorline, fillcolor);
+            }
+            else kdtreePlot3D(url, x, container, colormarker, colorline, fillcolor);
         {% endif %}
     {% endif %}
-});
+};
 
-$("#viewPlotlyColor").click(function(){
-    var maxX = 200;
+$("#viewPlotlyBW").click(function(){
+       {% if result.parameters.viabilityproblem.statedimension == 2 %}
+          var xmax = 5000;
+       {% else %}
+          var xmax = 300;  
+        {% endif %}
+       if (document.getElementById("ppa").value > xmax){
+           document.getElementById("ppa").value = xmax;
+      }  
+      ViNOVisu(document.getElementById("ppa").value);
+     });
+$("#viewPlotlyBWOriginal").click(function(){ViNOVisu(0);});
+
+function DistanceVinoVisu(x){
+
+    var maxX = 500;
     {% if result.parameters.viabilityproblem.statedimension == 3 %}
         maxX = 150;
     {% endif %}
     var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
     document.getElementById('viewPanel').innerHTML = "";
-    x = document.getElementById("distanceppa").value;
     // If x is Not a Number 
-    if (isNaN(x) || x == "%20" || x > 200) {
+    if (isNaN(x) || x == "%20" || x > 500) {
         text = "Input not valid : " + x;
         var container = document.getElementById('viewPanel');
         container.innerHTML = text;
@@ -610,7 +685,7 @@ $("#viewPlotlyColor").click(function(){
                         items.marker.color.push(bar[2]);
                     }
                 });
-                var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{range : xbounds}, yaxis:{range : ybounds}};
+                var layout = {showlegend: false, margin:{t:10}, width: 600, height: 500, xaxis:{title : "{{staab|first}}",range : xbounds}, yaxis:{title : "{{staab|last}}",range : ybounds}};
             {% elif result.parameters.viabilityproblem.statedimension == 3 %}
                 var items = {x:[], y:[], z:[], mode:'markers', type: 'scatter3d', marker: { size : 1, color: [] }, hoverinfo:'none' };
                 var zbounds = [];
@@ -639,6 +714,14 @@ $("#viewPlotlyColor").click(function(){
             Plotly.newPlot(container, [items], layout);
         })
     }
+
+}
+
+$("#viewPlotlyColor").click(function(){
+    if (document.getElementById("distanceppa").value >500){
+         document.getElementById("distanceppa").value = 500;
+    }
+    DistanceVinoVisu(document.getElementById("distanceppa").value);
 });
 
 $("#viewHisto").click(function(){
