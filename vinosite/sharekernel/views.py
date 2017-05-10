@@ -1395,7 +1395,7 @@ def kerneluploadfile(request):
                         # checking if dimensions are the same
                         if l == len(cols):
                             # seems good, now we need to ask some metadata for reading correctly the file
-                            resultFormat = ResultFormat.objects.get(name="kdtree")
+                            resultFormat = ResultFormat.objects.get(title="kdtree")
                             return UploadResponse( request, {
                                     'name' : os.path.basename(tmpfile.name),
                                     "path": tmpfile.name,
@@ -1445,7 +1445,7 @@ def kerneluploadfile(request):
                     warnings.append('Software with id='+software_id+' has disappeared!')
             if not resultFormat:
                 try:
-                    resultFormat = ResultFormat.objects.get(name=metadata[METADATA.resultformat_title])
+                    resultFormat = ResultFormat.objects.get(title=metadata[METADATA.resultformat_title])
                 except ResultFormat.DoesNotExist:
                     # TODO log this error that should be fixed by administrators!
                     warnings.append('The format "'+metadata["resultformat.title"]+'" is unknown!')
