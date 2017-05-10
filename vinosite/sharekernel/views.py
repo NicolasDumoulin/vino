@@ -78,13 +78,13 @@ def visitsoftware(request,software_id):
     context = {'software' : a,'softparval':softparval}
     return render(request, 'sharekernel/visitsoftware.html', context)            
 
-def visitresult(request,result_id):
-    r = Results.objects.get(id=result_id)
+def mathinfo(r):
     p = r.parameters
     if not p or not r.software:
         r=Results.objects.get(id=result_id)    
         return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
     vp = p.viabilityproblem
+
     stanaab = []
     connaab = []
     dynparval = []
@@ -111,17 +111,6 @@ def visitresult(request,result_id):
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
-    a = r.software
-    f = r.resultformat
-    tabvaluesbisbis.append("Parameter Values")
-    tabvaluesbis.append(tabvaluesbisbis)
-    tabvaluesbisbis = []
-    
-    tabvaluesbisbis.append(a.title)
-    tabvaluesbis.append(tabvaluesbisbis)
-    tabvaluesbisbis = []
-    tabvalues.append(tabvaluesbis)
-    tabvaluesbis = []
  
     for i in range(len(vp.dynamicsparameters.split(","))):
         dynparval.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
@@ -129,6 +118,22 @@ def visitresult(request,result_id):
         staconparval.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
     for i in range(len(vp.targetparameters.split(","))):
         tarparval.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
+    #import pdb; pdb.set_trace()
+    context = {'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}
+    return context
+
+def visitresult(request,result_id):
+    r = Results.objects.get(id=result_id)
+    p = r.parameters
+    if not p or not r.software:
+        r=Results.objects.get(id=result_id)    
+        return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
+    vp = p.viabilityproblem
+    a = r.software
+    f = r.resultformat
+    softparval = []
+    formatparval = []
+
     #import pdb; pdb.set_trace()
     if a.parameters.split(",")[0]!="none":
         for i in range(min(len(a.parameters.split(",")),len(r.softwareparametervalues.split("/")))):
@@ -149,7 +154,9 @@ def visitresult(request,result_id):
     if a.contact!="none":
         contact.append(a.contact)
 
-    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
+#    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
+    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a}
+    context.update(mathinfo(r))
     return render(request, 'sharekernel/visitresult.html', context)            
 
 def visitviabilityproblem(request,viabilityproblem_id):
@@ -343,7 +350,7 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
     return HttpResponse("Nothing to do")
 
 
-def ViNOView2D(request,result_id,ppa):
+def ViNOView2Dancien(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
@@ -369,7 +376,89 @@ def ViNOView2D(request,result_id,ppa):
 
     return HttpResponse("Nothing to do")
 
+def ViNOView2D(request,result_id,ppa):
+    import numpy as np
+    if request.method == 'POST':
+        vino = Results.objects.get(id=result_id)
+        if vino.resultformat.title =='bars':
+            hm = HDF5Manager([BarGridKernel])
+        elif vino.resultformat.title =='kdtree':
+            hm = HDF5Manager([KdTree])
+
+        vinopy = hm.readKernel(vino.datafile.path)
+        if (int(ppa) > 0):
+            distancegriddimensions = [int(ppa)]*2
+
+            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+            minbounds = list(vinopy.getMinBounds())
+            maxbounds = list(vinopy.getMaxBounds())
+            newintervalsizes = (np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)
+            neworigin = list(np.array(minbounds)+newintervalsizes/2)
+            newopposite = list(np.array(maxbounds)-newintervalsizes/2)
+
+            resizevinopy = vinopy.toBarGridKernel(neworigin,newopposite, distancegridintervals)
+            data = resizevinopy.getDataToPlot()
+        else :
+            data = vinopy.getDataToPlot()
+        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+        return HttpResponse(out_json)#, mimetype='text/plain')
+
+
+    return HttpResponse("Nothing to do")
+
 def ViNOView3D(request,result_id,ppa):
+    import numpy as np
+    if request.method == 'POST':
+        vino = Results.objects.get(id=result_id)
+        if vino.resultformat.title =='bars':
+            hm = HDF5Manager([BarGridKernel])
+        elif vino.resultformat.title =='kdtree':
+            hm = HDF5Manager([KdTree])
+
+        vinopy = hm.readKernel(vino.datafile.path)
+        if (int(ppa)>0):
+            distancegriddimensions = [int(ppa)]*3
+            distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+            minbounds = list(vinopy.getMinBounds())
+            maxbounds = list(vinopy.getMaxBounds())
+            newintervalsizes = (np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)
+            neworigin = list(np.array(minbounds)+newintervalsizes/2)
+            newopposite = list(np.array(maxbounds)-newintervalsizes/2)
+            resizevinopy = vinopy.toBarGridKernel(neworigin,newopposite, distancegridintervals)
+        elif (vino.resultformat.title =='bars'):
+            resizevinopy = vinopy
+        else :
+            resizevinopy = None
+        if resizevinopy:
+            data = resizevinopy.getDataToPlot()
+
+            permutation = np.eye(3,dtype = int)
+            permutation[0][0] = 0
+            permutation[0][2] = 1
+            permutation[2][0] = 1
+            permutation[2][2] = 0
+            data1 =resizevinopy.permute(permutation).getDataToPlot()
+            permutation = np.eye(3,dtype = int)
+            permutation[1][1] = 0
+            permutation[1][2] = 1
+            permutation[2][1] = 1
+            permutation[2][2] = 0
+            data2 =resizevinopy.permute(permutation).getDataToPlot()
+
+            out_json = json.dumps(list(data+data1+data2), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+#            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
+        else :
+            data = vinopy.getDataToPlot()
+            out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
+
+            return HttpResponse(out_json)#, mimetype='text/plain')
+
+    return HttpResponse("Nothing to do")
+
+def ViNOView3Dancien(request,result_id,ppa):
     import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
@@ -664,7 +753,6 @@ def bargrid2json3(request,hist_maxvalue):
 def visualizeresult(request,result_id):
 #    forms = []
 #    form = TrajForm()
-    stanaab = []
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     rf=r.resultformat
@@ -673,11 +761,14 @@ def visualizeresult(request,result_id):
 #    hm = HDF5Manager([BarGridKernel])
 #    bargrid = hm.readKernel(r.datafile.path)
 
+    staab = []
     for i in vp.statenameandabbreviation.split("/"):
         j = i.split(",")
-        stanaab.append(j[1])
-
-    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab} 
+        if len(j)>1:
+            staab.append(j[1])
+ 
+    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'staab':staab} 
+    context.update(mathinfo(r))
     return render(request, 'sharekernel/visualizeresult.html', context)            
 
 
