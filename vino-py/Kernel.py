@@ -15,7 +15,7 @@ class Kernel(object):
     return self.__metadata
 
   def getStateDimension(self):
-    return self.metadata[METADATA.statedimension]
+    return int(self.metadata[METADATA.statedimension])
 
   @abc.abstractmethod
   def getData(self):
