@@ -9,7 +9,7 @@ class BaseEntity(models.Model):
     publication = models.TextField(max_length=1000,default ='', blank=True)
     website = models.URLField(default='', blank=True)
     submissiondate = models.DateTimeField('date published', default=timezone.now)
-    submitter = models.ForeignKey(settings.AUTH_USER_MODEL)
+    submitter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
     author = models.CharField(max_length=500,default='')
     contact = models.CharField(max_length=500,default='')
     illustration = models.ImageField(upload_to='illustrations', default=None, blank=True)
@@ -164,7 +164,7 @@ class ResultFormat(BaseEntity):
         '''
         Return a representation of the format as a dictionnary.
         '''
-        return {"pk":self.pk, "format":self.title, "description":self.description, "parameters":self.parameterlist.split()}
+        return {"pk":self.pk, "format":self.title, "description":self.description, "parameters":self.parameterlist.split(";")}
             
     
 class Results(BaseEntity):

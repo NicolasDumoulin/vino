@@ -98,7 +98,7 @@ class KdTree(Kernel):
     @classmethod  
     def readViabilitreeFile(cls, f, metadata,origin=None,opposite=None):
         cells = []
-        dim = metadata[METADATA.statedimension]
+        dim = int(metadata[METADATA.statedimension])
         f.readline()
         for line in f:
             row = line.split()

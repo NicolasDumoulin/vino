@@ -10,6 +10,12 @@ class _constants:
         if name in self.__dict__:
             raise self.ConstError("Can't unbind const(%s)" % name)
         raise NameError(name)
+    
+    def keys(self):
+        return self.__dict__.keys()
+               
+    def values(self):
+        return self.__dict__.values()
                
 import sys
 constants = _constants()

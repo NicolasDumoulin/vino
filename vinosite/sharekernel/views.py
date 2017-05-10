@@ -894,7 +894,7 @@ def metadatafilespecification(request,category_id,viabilityproblem_id,parameters
     context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'software' : a,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/metadatafilespecification.html', context)            
 
-def parameterslist(request,viabilityproblem_id,parameters_id,algorithm_id,resultformat_id):
+def parameterslist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
     tabvalues = []
     vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
     p_list = Parameters.objects.filter(viabilityproblem=vp)
@@ -1452,10 +1452,16 @@ def kerneluploadfile(request):
     software_id=request.POST['software_id'] # may be None
     if "metadata" in request.POST:
         # in this case, the file has already been uploaded, and now we get missing metadata
-        metadata = {
-            METADATA.statedimension: int(request.POST['statedimension']),
-            METADATA.resultformat_title: request.POST['format'],
-        }
+        metadata = {METADATA.resultformat_title: request.POST['format']}
+        resultFormat = ResultFormat.objects.get(title=request.POST['format'])
+        parameters = []
+        for formatParameter in resultFormat.parameterlist.split(';'):
+            if formatParameter in METADATA.values():
+                metadata[formatParameter] = request.POST[formatParameter]
+            else:
+                parameters.append(request.POST[formatParameter])
+        if len(parameters)>0:
+            metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
         tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
         hdf5manager.writeKernel(kernel, tmpfilename)
@@ -1498,7 +1504,7 @@ def kerneluploadfile(request):
                                             "metadata": resultFormat.toDict(),
                                             "parameters_id": parameters_id,
                                             "software_id": software_id,
-                                            'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split()),
+                                            'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split(';')),
                                             'head': head,
                                             'format': resultFormat.title,
                                             'callback': request.POST['callback']
