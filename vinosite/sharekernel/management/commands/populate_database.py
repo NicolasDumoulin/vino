@@ -69,10 +69,10 @@ class Command(BaseCommand):
             Software.objects.all().delete()
             Parameters.objects.all().delete()
             Results.objects.all().delete()
-            User.objects.all().delete()
         # Adding default users
         for username, email in [['nicolas.dumoulin','nicolas.dumoulin@irstea.fr'],['sophie.martin','sophie.martin@irstea.fr']]:
-            User.objects.create_superuser(username=username, email=email, password=None)
+            if not User.objects.filter(username=username).exists():
+                User.objects.create_superuser(username=username, email=email, password=None)
         user = User.objects.first()
         # Now populating some kernels
         loader = Loader()
