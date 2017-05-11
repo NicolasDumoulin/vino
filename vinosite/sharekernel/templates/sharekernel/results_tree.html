@@ -28,13 +28,13 @@
                         <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }} ({{problem.statedimension}}-D)</a> :
                     <ul>
                         {% for param in problem.parameters_set.all %}
-                            <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                            <li><span class="label label-default" title="Problem parameters">P</span>
                                {{ param.pk }} -  {{ param.dynamicsparametervalues }}
                             </li>
                             {% regroup param.results_set.all by software as resultsbysoftware %}
                             <ul>
                             {% for resultbysoftware in resultsbysoftware %}
-                                <li><span class="label label-default" title="Algorithm">A</span> {{ resultbysoftware.grouper.name }} v.{{ resultbysoftware.grouper.version }}</li>
+                                <li><span class="label label-default" title="Software">S</span> {{ resultbysoftware.grouper.name }} v.{{ resultbysoftware.grouper.version }}</li>
                                     <ul>
                                     {% for result in resultbysoftware.list %}
                                         <li><span class="label label-default" title="Viability results">R</span>
@@ -50,7 +50,7 @@
                             {% endfor %}
                             </ul>
                         {% endfor %}
-                        <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                        <li><span class="label label-default" title="Problem parameters">P</span>
                             <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' problem.pk %}" role="button">
                                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
                             </a>
@@ -62,13 +62,13 @@
         </div>            
         <div class="tab-pane" id="tree-software-view">
             <ul>
-                <li><span class="label label-default" title="Viability results">A</span>
+                <li><span class="label label-default" title="Viability results">R</span>
                     <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newsoftware' %}" role="button">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new software
                     </a>
                 </li>
                 {% for algo in softwares %}
-                    <li><span class="label label-default" title="Algorithm">A</span> {{ algo.name }} - v.{{ algo.version }} :
+                    <li><span class="label label-default" title="Software">S</span> {{ algo.name }} - v.{{ algo.version }} :
                     {% regroup algo.results_set.all|sort_by:'parameters' by parameters as resultsbyparam %}
                     {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}
                     <ul>{% for resultbyvp in resultsbyvp %}
@@ -80,7 +80,7 @@
                         <ul>
                             {% for resultbyparam in resultsbyparam %}
                             {% ifequal resultbyparam.grouper.viabilityproblem.pk resultbyvp.grouper.pk %}
-                                <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                                <li><span class="label label-default" title="Problem parameters">P</span>
                                     {{ resultbyparam.grouper.pk }} - {{ resultbyparam.grouper.dynamicsparametervalues }}
                                 </li>
                                 <ul>
@@ -94,7 +94,7 @@
                                 </ul>
                             {% endifequal %}
                             {% endfor %}
-                            <li><span class="label label-default" title="Problem parameters (settings)">S</span>
+                            <li><span class="label label-default" title="Problem parameters">P</span>
                                 <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' resultbyvp.grouper.pk %}" role="button">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
                                 </a>
