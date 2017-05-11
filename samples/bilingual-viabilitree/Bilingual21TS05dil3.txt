@@ -7,7 +7,7 @@ parameters.stateconstraintparametervalues:0.2,0.2
 parameters.targetparametervalues:none
 resultformat.description:Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
 resultformat.title:kdtree
-resultformat.parameterlist:viabilityproblem.statedimension,ColumnDescription
+resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
 results.author:Isabelle Alvarez
 results.contact:isabelle.alvarez@irstea.fr
 results.formatparametervalues:x,y,z

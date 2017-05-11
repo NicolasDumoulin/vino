@@ -17,7 +17,7 @@ software.author : Alvarez et Reuillon
 software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
 resultformat.title : kdtree
 resultformat.description: Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
-resultformat.parameterlist:ColumnDescription
+resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
 results.title:2D-lake-KdT-1024ppa
 results.author:Isabelle Alvarez
 results.contact:isabelle.alvarez@irstea.fr
