@@ -10,7 +10,7 @@ resultformat.title:kdtree
 resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
 results.author:Isabelle Alvarez
 results.contact:isabelle.alvarez@irstea.fr
-results.formatparametervalues:x,y,z
+results.formatparametervalues:3;x,y,z
 results.softwareparametervalues:0.2,0.2,0,1,1,1/0.01/21/3/0.05/0.5/new Random(42)
 results.submissiondate:2016-09-28T13:23+00:00
 results.title:3D-language-KdT-1024ppa-dil3
