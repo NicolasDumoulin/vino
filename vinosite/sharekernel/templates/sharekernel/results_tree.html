@@ -13,14 +13,14 @@
 				<a href="#tree-problem-view" class="btn btn-default active" data-toggle="tab">
 					<input type="radio">Viability problems</a>
 				<a href="#tree-software-view" class="btn btn-default" data-toggle="tab">
-					<input type="radio">Algorithms</a>
+					<input type="radio">Softwares</a>
 			</div>
         <div class="tab-content">
         <div class="tab-pane active" id="tree-problem-view">
             <ul>
                 <li><span class="label label-default" title="Viability problem">VP</span>
                     <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new problem
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Describe a new viability problem
                     </a>
                 </li>
                 {% for problem in problems %}
@@ -31,14 +31,14 @@
                             <li><span class="label label-default" title="Problem parameters">P</span>
                                {{ param.pk }} -  {{ param.dynamicsparametervalues }}
                             </li>
-                            {% regroup param.results_set.all by software as resultsbysoftware %}
+                            {% regroup param.results_set.all|sort_by:'software' by software as resultsbysoftware %}
                             <ul>
                             {% for resultbysoftware in resultsbysoftware %}
-                                <li><span class="label label-default" title="Software">S</span> {{ resultbysoftware.grouper.name }} v.{{ resultbysoftware.grouper.version }}</li>
+                                <li><span class="label label-default" title="Software">S</span> {{ resultbysoftware.grouper.title }} v.{{ resultbysoftware.grouper.version }}</li>
                                     <ul>
                                     {% for result in resultbysoftware.list %}
                                         <li><span class="label label-default" title="Viability results">R</span>
-                                            <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.name }})</a>
+                                            <a href="{% url 'sharekernel:visitresult' result.pk %}">{{ result.title }} ({{ result.resultformat.title }})</a>
                                         </li>
                                     {% endfor %}
                                     <li><span class="label label-default" title="Viability results">R</span>
@@ -48,6 +48,12 @@
                                     </li>                    
                                     </ul>
                             {% endfor %}
+                            <li><span class="label label-default" title="Problem parameters">P</span>
+                                <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newsoftware' %}" role="button">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new software
+                                </a>
+                            </li>                    
+
                             </ul>
                         {% endfor %}
                         <li><span class="label label-default" title="Problem parameters">P</span>
@@ -68,7 +74,7 @@
                     </a>
                 </li>
                 {% for algo in softwares %}
-                    <li><span class="label label-default" title="Software">S</span> {{ algo.name }} - v.{{ algo.version }} :
+                    <li><span class="label label-default" title="Software">S</span> {{ algo.title }} - v.{{ algo.version }} :
                     {% regroup algo.results_set.all|sort_by:'parameters' by parameters as resultsbyparam %}
                     {% regroup resultsbyparam by grouper.viabilityproblem as resultsbyvp %}
                     <ul>{% for resultbyvp in resultsbyvp %}
@@ -87,10 +93,16 @@
                                     {% for result in resultbyparam.list %}
                                     <li><span class="label label-default" title="Viability results">R</span>
                                         <a href="{% url 'sharekernel:visitresult' result.pk %}">
-                                            {{ result.title }} ({{ result.resultformat.name }})
+                                            {{ result.title }} ({{ result.resultformat.title }})
                                         </a>
                                     </li>
                                     {% endfor %}
+                                    <li><span class="label label-default" title="Viability results">R</span>
+                                        <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' resultbyparam.grouper.id algo.pk  %}" role="button">
+                                            <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
+                                        </a>
+                                    </li>                    
+
                                 </ul>
                             {% endifequal %}
                             {% endfor %}
@@ -101,6 +113,12 @@
                             </li>                    
                         </ul>
                     {% endfor %}
+                    <li><span class="label label-default" title="Viability problem">VP</span>
+                        <a class="btn btn-default btn-xs btn-new-problem" href="{% url 'sharekernel:newproblem' %}" role="button">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new viability problem
+                        </a>
+                    </li>
+
                     </ul>
                     </li>
                 {% endfor %}

@@ -5,6 +5,7 @@ from sharekernel.forms import DocumentForm, TrajForm
 from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.core.files import File
+from operator import attrgetter
 from BarGridKernel import BarGridKernel
 from KdTree import KdTree
 from hdf5common import HDF5Reader, HDF5Manager
