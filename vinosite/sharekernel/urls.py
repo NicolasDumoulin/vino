@@ -39,12 +39,8 @@ urlpatterns = [
     url(r'^bargrid2json2New/(?P<result_id>([0-9]|N)+)/(?P<hist_maxvalue>([0-9]|N)+)/$', views.bargrid2json2New, name='bargrid2json2New'),
     url(r'^bargrid2json3/(?P<hist_maxvalue>([0-9]|N)+)/$', views.bargrid2json3, name='bargrid2json3'),
     url(r'^kerneluploaded/$', views.kerneluploaded, name='kerneluploaded'),
-    url(r'^metadatafilecontent/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.metadatafilecontent, name='metadatafilecontent'),
-    url(r'^resultformatlist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.resultformatlist, name='resultformatlist'),
     url(r'^softwarelist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.softwarelist, name='softwarelist'),
     url(r'^algorithmlist/$', views.algorithmlist, name='algorithmlist'),
-    url(r'^parameterslist/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.parameterslist, name='parameterslist'),
     url(r'^visualizeresult/(?P<result_id>([0-9]|N)+)/$', views.visualizeresult, name='visualizeresult'),
     url(r'^visualizeresulttrajectories/(?P<result_id>([0-9]|N)+)/$', views.visualizeresulttrajectories, name='visualizeresulttrajectories'),
-    url(r'^metadatafilespecification/(?P<category_id>([0-9]|N)+)/(?P<viabilityproblem_id>([0-9]|N)+)/(?P<parameters_id>([0-9]|N)+)/(?P<software_id>([0-9]|N)+)/(?P<resultformat_id>([0-9]|N)+)/$', views.metadatafilespecification, name='metadatafilespecification'),
 ]

@@ -868,57 +868,6 @@ def kerneluploadpage(request, parameters_id=None, software_id=None):
         }
     return render(request, 'sharekernel/kernelupload.html', context)
 
-def metadatafilespecification(request,category_id,viabilityproblem_id,parameters_id,software_id,resultformat_id):
-    if category_id == 'N':
-        c=False
-        vp=False
-        p=False
-    else:
-        c = get_object_or_404(Category, id=category_id)
-        if viabilityproblem_id == 'N':
-            vp=False
-            p=False
-        else:
-            vp = get_object_or_404(ViabilityProblem, id=viabilityproblem_id)
-            if parameters_id == 'N':
-                p=False
-            else:
-                p = get_object_or_404(Parameters, id=parameters_id)
-    if software_id == 'N':
-        a=False
-    else:
-        a = get_object_or_404(Software, id=software_id)    
-    if resultformat_id == 'N':
-        f=False
-    else:
-        f= get_object_or_404(ResultFormat, id=resultformat_id)
-    context = { 'category' : c, 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'software' : a,'category_id' : category_id,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/metadatafilespecification.html', context)            
-
-def parameterslist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
-    tabvalues = []
-    vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
-    p_list = Parameters.objects.filter(viabilityproblem=vp)
-    if vp.dynamicsparameters.split(",")[0]!="none":
-        for i in range(len(vp.dynamicsparameters.split(","))):
-            tabvalues.append(vp.dynamicsparameters.split(",")[i])
-            for p in p_list:
-                tabvalues.append(p.dynamicsparametervalues.split(",")[i])
-    if vp.stateconstraintparameters.split(",")[0]!="none":
-        for i in range(len(vp.stateconstraintparameters.split(","))):
-            tabvalues.append(vp.stateconstraintparameters.split(",")[i])
-            for p in p_list:
-                tabvalues.append(p.stateconstraintparametervalues.split(",")[i])
-    if vp.targetparameters.split(",")[0]!="none":
-        for i in range(len(vp.targetparameters.split(","))):
-            tabvalues.append(vp.targetparameters.split(",")[i])
-            for p in p_list:
-                tabvalues.append(p.targetparametervalues.split(",")[i])
-
-       
-    context = {'n' : range(len(p_list)),'N' : len(p_list)+1,'tabvalues': tabvalues,'viabilityproblem' : vp,'parameters_list' : p_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/parameterslist.html', context)            
-
 def algorithmlist(request):
     a_list = Software.objects.all()
     context = {'software_list' : a_list}
@@ -928,34 +877,6 @@ def softwarelist(request,viabilityproblem_id,parameters_id,software_id,resultfor
     a_list = Software.objects.all()
     context = {'software_list' : a_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/softwarelist.html', context)            
-
-def resultformatlist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
-    f_list = ResultFormat.objects.all()
-    context = {'resultformat_list' : f_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/resultformatlist.html', context)            
-
-    
-def metadatafilecontent(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
-    c=False
-    if viabilityproblem_id == 'N':
-        vp=False
-    else:
-        vp = get_object_or_404(ViabilityProblem, id=viabilityproblem_id)
-    if parameters_id == 'N':
-        p=False
-    else:
-        p = get_object_or_404(Parameters, id=parameters_id)
-    if software_id == 'N':
-        a=False
-    else:
-        a = get_object_or_404(Software, id=software_id)    
-    if resultformat_id == 'N':
-        f=False
-    else:
-        f= get_object_or_404(ResultFormat, id=resultformat_id)
-    #13/12/1/1/1
-    context = { 'viabilityproblem' : vp ,'parameters' : p,'resultformat' : f, 'software' : a}
-    return render(request, 'sharekernel/content.html', context)            
 
 def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={}):
     '''
