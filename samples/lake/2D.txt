@@ -1,5 +1,5 @@
-#MinimalValues: 0 0
-#MaximalValues: 65536 65536
+#MinimalValues: 0.1 0
+#MaximalValues: 1 1.4
 #PointNumberPerAxis:65536,65536
 #PointSize:1
 #ColumnDescription:empty,empty,x2,x1min,x1max
