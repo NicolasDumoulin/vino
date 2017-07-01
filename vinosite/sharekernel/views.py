@@ -139,9 +139,9 @@ def visitresult(request,result_id):
     if a.parameters.split(",")[0]!="none":
         for i in range(min(len(a.parameters.split(",")),len(r.softwareparametervalues.split("/")))):
             softparval.append(''.join([a.parameters.split(",")[i]," = ",r.softwareparametervalues.split("/")[i]]))
-    if f.parameterlist.split(",")[0]!="none":
-        for i in range(len(f.parameterlist.split(","))):
-            formatparval.append(''.join([f.parameterlist.split(",")[i]," = ",r.formatparametervalues.split("/")[i]]))
+    if f.parameterlist.split(";")[0]!="none":
+        for i in range(len(f.parameterlist.split(";"))):
+            formatparval.append(''.join([f.parameterlist.split(";")[i]," = ",r.formatparametervalues.split(";")[i]]))
     version = []
     if a.version!="none":
         version.append(a.version)
@@ -1460,8 +1460,7 @@ def kerneluploadfile(request):
         for formatParameter in resultFormat.parameterlist.split(';'):
             if formatParameter in METADATA.values():
                 metadata[formatParameter] = request.POST[formatParameter]
-            else:
-                parameters.append(request.POST[formatParameter])
+            parameters.append(request.POST[formatParameter])
         if len(parameters)>0:
             metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
         kernel=KdTree.readViabilitree(request.POST['path'], metadata)
