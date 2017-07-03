@@ -293,6 +293,7 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             else :
                 minbounds = list(bargrid.getMinBounds())
 	        maxbounds = list(bargrid.getMaxBounds())
+
             #To delete to show the original bargrid
             distancegriddimensions = [501,501]#[int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
@@ -322,6 +323,7 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
         if pyvino.getFormatCode() =='bars':
 #            print "bargrid"
             resizebargrids.append(pyvino.toBarGridKernel(neworigin, newopposite, distancegridintervals))
+
 #            data.append(resizebargrids[-1].getDataToPlot())
         elif pyvino.getFormatCode() =='kdtree':
 #            print "kdtree"
@@ -338,7 +340,6 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
         resizebargrids[0] = resizebargrids[0].permute(newpermutation)
       data.append(resizebargrids[0].getDataToPlot())
       data.append(resizebargrids[1].getDataToPlot())
-        
       aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
       bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
       ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
