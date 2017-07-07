@@ -362,8 +362,7 @@ def saveVinoDifference(request, vinoA_id, vinoB_id, ppa):
   obj.save()
   obj.parents.add(vinoA)
   obj.parents.add(vinoB)
-  #TODO return view of stateset
-  return HttpResponse("OK")#, mimetype='text/plain')
+  return HttpResponseRedirect(reverse('sharekernel:viewStateSet', args=[obj.pk]))
 
 
 def ViNOView2Dancien(request,result_id,ppa):
