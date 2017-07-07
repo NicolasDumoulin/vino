@@ -9,6 +9,7 @@ from django.conf.urls import url
 
 from . import views
 
+
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^compare/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/$', views.compareresult, name='compareresult'),
@@ -29,6 +30,8 @@ urlpatterns = [
     #url(r'^upload/$', views.kerneluploadpage, name='kerneluploadpage'),
     url(r'kerneluploadfile/', views.kerneluploadfile, name = 'kerneluploadfile' ),
     url(r'^ViNOComparison2D/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOComparison2D, name='ViNOComparison2D'),
+    url(r'^diff/(?P<vinoA_id>([0-9]|N)+)/(?P<vinoB_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.saveVinoDifference, name='saveVinoDifference'),
+    url(r'^stateset/(?P<stateset_id>([0-9]|N)+)/$', views.viewStateSet, name='viewStateSet'),
     url(r'^ViNOView3D/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOView3D, name='ViNOView3D'),
     url(r'^ViNOView2D/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|N)+)/$', views.ViNOView2D, name='ViNOView2D'),
     url(r'^ViNODistanceView/(?P<result_id>([0-9]|N)+)/(?P<ppa>([0-9]|NN)+)/(?P<permutnumber>([0-9]|NNN)+)/$', views.ViNODistanceView, name='ViNODistanceView'),

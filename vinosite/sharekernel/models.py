@@ -29,13 +29,13 @@ class ViabilityProblem(BaseEntity):
     admissiblecontroldescription = models.CharField(max_length=500,default =0)
     dynamicsparameters = models.CharField(max_length=200,default =0)
     stateconstraintdescription = models.CharField(max_length=500,default =0)
-    stateconstraintparameters = models.CharField(max_length=500,default =0) 
+    stateconstraintparameters = models.CharField(max_length=500,default =0)
     targetdescription = models.CharField(max_length=500,default =0)
-    targetparameters = models.CharField(max_length=500,default =0) 
+    targetparameters = models.CharField(max_length=500,default =0)
     def dynamics(self):
       dyns = []
       for fulldyn in self.dynamicsdescription.split(","):
-          dyns.append(fulldyn.split("=")[1]) 
+          dyns.append(fulldyn.split("=")[1])
       return dyns
 
     def constraints(self):
@@ -70,16 +70,16 @@ class ViabilityProblem(BaseEntity):
       for d in donnees:
           names.append(d.split(",")[0])
       return names
-      
+
     def __str__(self):
         return str(self.pk) + " " + self.title
-        
+
 class Software(BaseEntity):
     version = models.CharField(max_length=20,default='', blank=True)
     parameters = models.CharField(max_length=500,default = '', blank=True)
     def __str__(self):
         return str(self.pk) + " " + self.title + " " + self.version
-    
+
 class Parameters(BaseEntity):
     viabilityproblem = models.ForeignKey(ViabilityProblem)
     dynamicsparametervalues = models.CharField(max_length=200,default='', blank=True)
@@ -93,9 +93,9 @@ class Parameters(BaseEntity):
         for thing in self.viabilityproblem.dynamicsparameters.split(","):
              for i in range(len(desdyn)):
                   desdyn[i] = desdyn[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
-             j = j+1 
+             j = j+1
         params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
-        
+
         for expr in desdyn :
             eqdyns.append(Expression(expr,params))
         return eqdyns
@@ -110,9 +110,9 @@ class Parameters(BaseEntity):
         for thing in self.viabilityproblem.dynamicsparameters.split(","):
              for i in range(len(desadm)):
                   desadm[i] = desadm[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
-             j = j+1 
+             j = j+1
         params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
-        
+
         for expr in desadm :
             eqadms.append(Expression(expr,params))
         return eqadms
@@ -125,9 +125,9 @@ class Parameters(BaseEntity):
         for thing in self.viabilityproblem.stateconstraintparameters.split(","):
              for i in range(len(descon)):
                   descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
-             j = j+1 
+             j = j+1
         params= self.viabilityproblem.stateabbreviation()
-        
+
         for expr in descon :
             eqcons.append(Expression(expr,params))
         return eqcons
@@ -141,7 +141,7 @@ class Parameters(BaseEntity):
         for thing in self.viabilityproblem.stateconstraintparameters.split(","):
              for i in range(len(descon)):
                   descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
-             j = j+1 
+             j = j+1
         params= self.viabilityproblem.stateabbreviation()
 
         for i in range(len(descon)):
@@ -156,17 +156,16 @@ class Parameters(BaseEntity):
 
 class ResultFormat(BaseEntity):
     parameterlist = models.CharField(max_length=500,default = '', blank=True)
-    
+
     def __str__(self):
         return self.title
-    
+
     def toDict(self):
         '''
         Return a representation of the format as a dictionnary.
         '''
         return {"pk":self.pk, "format":self.title, "description":self.description, "parameters":self.parameterlist.split(";")}
-            
-    
+
 class Results(BaseEntity):
     parameters = models.ForeignKey(Parameters, null = True)
     software = models.ForeignKey(Software, null = True)
@@ -177,3 +176,7 @@ class Results(BaseEntity):
     def __str__(self):
         return str(self.pk) + " " + str(self.submissiondate.strftime("%Y%m%d-%H%M"))+ " " + self.title
 
+class StateSet(BaseEntity):
+    resultformat = models.ForeignKey(ResultFormat, null=True)
+    datafile = models.FileField(upload_to='statesets/%Y/%m/%d')
+    parents = models.ManyToManyField(Results, default=None)

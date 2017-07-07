@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import  ensure_csrf_cookie
-from sharekernel.models import Document, ViabilityProblem, Software, Parameters,Results,ResultFormat 
+from sharekernel.models import Document, ViabilityProblem, Software, Parameters,Results,ResultFormat, StateSet
 from sharekernel.forms import DocumentForm, TrajForm
+from django.utils.text import slugify
 from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.core.files import File
@@ -22,6 +23,7 @@ import humanize
 import json
 import tempfile
 import logging
+import numpy as np
 
 # Create your views here.
 
@@ -54,20 +56,23 @@ def home(request):
         'lastkernels':Results.objects.order_by('-submissiondate')[:5],
         'lastproblems':[viabilityproblem_carddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')[:5]]
         }
-    return render(request, 'sharekernel/home.html', context)            
-    
+    return render(request, 'sharekernel/home.html', context)
+
 def visitviabilityproblems(request):
     context = {
         'viabilityproblems':ViabilityProblem.objects.all(),
         'viabilityproblemsminusfirstone':ViabilityProblem.objects.all()[1:],
         'firstviabilityproblem':ViabilityProblem.objects.all()[0],
-    
+
         'software_list' : Software.objects.all(),
 
         'viabilityproblemscard':[viabilityproblem_carddata(vp) for vp in ViabilityProblem.objects.order_by('-pk')]
         }
-    return render(request, 'sharekernel/visitviabilityproblems.html', context)            
+    return render(request, 'sharekernel/visitviabilityproblems.html', context)
 
+def viewStateSet(request, stateset_id):
+    stateset = StateSet.objects.get(id=stateset_id)
+    return render(request, 'sharekernel/viewStateSet.html', {'stateset': stateset})
 
 def visitsoftware(request,software_id):
     a = Software.objects.get(id=software_id)
@@ -77,13 +82,13 @@ def visitsoftware(request,software_id):
             softparval.append(a.parameters.split(",")[i])
 
     context = {'software' : a,'softparval':softparval}
-    return render(request, 'sharekernel/visitsoftware.html', context)            
+    return render(request, 'sharekernel/visitsoftware.html', context)
 
 def mathinfo(r):
     p = r.parameters
     if not p or not r.software:
-        r=Results.objects.get(id=result_id)    
-        return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
+        r=Results.objects.get(id=result_id)
+        return render(request, 'sharekernel/missingmetadata.html', {'result':r})
     vp = p.viabilityproblem
 
     stanaab = []
@@ -106,13 +111,13 @@ def mathinfo(r):
     for i in vp.controlnameandabbreviation.split("/"):
         j = i.split(",")
         connaab.append(''.join([j[0]," : ",j[1]]))
-   
+
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
- 
+
     for i in range(len(vp.dynamicsparameters.split(","))):
         dynparval.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
     for i in range(len(vp.stateconstraintparameters.split(","))):
@@ -127,8 +132,8 @@ def visitresult(request,result_id):
     r = Results.objects.get(id=result_id)
     p = r.parameters
     if not p or not r.software:
-        r=Results.objects.get(id=result_id)    
-        return render(request, 'sharekernel/missingmetadata.html', {'result':r})                    
+        r=Results.objects.get(id=result_id)
+        return render(request, 'sharekernel/missingmetadata.html', {'result':r})
     vp = p.viabilityproblem
     a = r.software
     f = r.resultformat
@@ -158,10 +163,12 @@ def visitresult(request,result_id):
 #    context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a,'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}#,'tabvalues' : tabvalues}
     context = {'formatparval' : formatparval,'softparval': softparval,'contact': contact,'website': website,'publication':publication,'version' : version, 'resultformat' : r.resultformat, 'viabilityproblem' : r.parameters.viabilityproblem,'result':r, 'allkernels':Results.objects.all(), 'viabilityproblem' : vp,'software' : a}
     context.update(mathinfo(r))
-    return render(request, 'sharekernel/visitresult.html', context)            
+    return render(request, 'sharekernel/visitresult.html', context)
+
+
 
 def visitviabilityproblem(request,viabilityproblem_id):
-    vp=ViabilityProblem.objects.get(id=viabilityproblem_id)    
+    vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
     stanaab = []
     connaab = []
     tabvalues = []
@@ -181,7 +188,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
         j = i.split(",")
         if len(j)>1:
             connaab.append(''.join([j[0]," : ",j[1]]))
-   
+
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
@@ -190,7 +197,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
     tabvaluesbisbis.append("Parameter Values")
     tabvaluesbis.append(tabvaluesbisbis)
     tabvaluesbisbis = []
-    for a in a_list:    
+    for a in a_list:
         tabvaluesbisbis.append(a.title)
         tabvaluesbis.append(tabvaluesbisbis)
         tabvaluesbisbis = []
@@ -210,7 +217,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
                     tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
             tabvaluesbis.append(tabvaluesbisbis)
             tabvaluesbisbis = []
-            for a in a_list:    
+            for a in a_list:
                 tabvaluesbis.append(p.results_set.filter(software=a))
             tabvalues.append(tabvaluesbis)
     resultsByParameters = {}
@@ -226,7 +233,7 @@ def visitviabilityproblem(request,viabilityproblem_id):
     'tardes' : tardes,'stanaab' : stanaab,
     'connaab' : connaab,'tabvalues' : tabvalues,
     'resultsByParameters': resultsByParameters}
-    return render(request, 'sharekernel/visitviabilityproblem.html', context)            
+    return render(request, 'sharekernel/visitviabilityproblem.html', context)
 
 def kerneluploaded(request):
     if request.method == 'POST':
@@ -237,7 +244,7 @@ def kerneluploaded(request):
     else:
         form = DocumentForm() # A empty, unbound form
 
-    return HttpResponse("Your file has been successfully uploaded")          
+    return HttpResponse("Your file has been successfully uploaded")
 
 pspModifiedLoader = FileFormatLoader.PspModifiedLoader()
 def bargrid2json(request):
@@ -249,8 +256,8 @@ def bargrid2json(request):
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(False)
             upborders.append(False)
@@ -259,28 +266,26 @@ def bargrid2json(request):
         data = distancegrid.toDataPointDistance()
 
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
         out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
 
-def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
-    import numpy as np
+def compareTwoVinos(vinoA, vinoB, ppa):
     vinos = []
     pyvinos = []
     resizebargrids = []
     minbounds = []
     maxbounds = []
     permutation = []
-    if request.method == 'POST':
-      vinos.append(Results.objects.get(id=vinoA_id))
-      vinos.append(Results.objects.get(id=vinoB_id))
-      data = [[vinos[0].resultformat.title,vinos[1].resultformat.title,'bars','bars','bars','bars','bars']]
-      for vino in vinos:
+    vinos.append(vinoA)
+    vinos.append(vinoB)
+    data = [[vinos[0].resultformat.title, vinos[1].resultformat.title, 'bars','bars','bars','bars','bars']]
+    for vino in vinos:
         if vino.resultformat.title =='bars':
             hm = HDF5Manager([BarGridKernel])
             bargrid = hm.readKernel(vino.datafile.path)
@@ -289,12 +294,10 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             if (len(minbounds) > 0):
                 minbounds = [min(minbounds[i],list(bargrid.getMinBounds())[i]) for i in range(len(minbounds))]
                 maxbounds = [max(maxbounds[i],list(bargrid.getMaxBounds())[i]) for i in range(len(maxbounds))]
-
             else :
                 minbounds = list(bargrid.getMinBounds())
-	        maxbounds = list(bargrid.getMaxBounds())
-
-            #To delete to show the original bargrid
+            maxbounds = list(bargrid.getMaxBounds())
+            # FIXME To delete to show the original bargrid
             distancegriddimensions = [501,501]#[int(ppa),int(ppa)] #[301,301]
             distancegridintervals = map(lambda e: e-1, distancegriddimensions)
             bargridbis = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
@@ -306,50 +309,61 @@ def ViNOComparison2D(request,vinoA_id,vinoB_id,ppa):
             if (len(minbounds) > 0):
                 minbounds = [min(minbounds[i],list(kdt.getMinBounds())[i]) for i in range(len(minbounds))]
                 maxbounds = [max(maxbounds[i],list(kdt.getMaxBounds())[i]) for i in range(len(maxbounds))]
-
-	    else :
-	        minbounds = list(kdt.getMinBounds())
-	        maxbounds = list(kdt.getMaxBounds())
+        else :
+            minbounds = list(kdt.getMinBounds())
+            maxbounds = list(kdt.getMaxBounds())
             data.append(kdt.getDataToPlot())
-           
-      distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
-      distancegridintervals = map(lambda e: e-1, distancegriddimensions)
-      newintervalsizes = (np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)
-      neworigin = list(np.array(minbounds)+newintervalsizes/2)
-      newopposite = list(np.array(maxbounds)-newintervalsizes/2)
-
-
-      for pyvino in pyvinos:
+    distancegriddimensions = [int(ppa),int(ppa)] #[301,301]
+    distancegridintervals = map(lambda e: e-1, distancegriddimensions)
+    newintervalsizes = (np.array(maxbounds)-np.array(minbounds))/np.array(distancegriddimensions)
+    neworigin = list(np.array(minbounds)+newintervalsizes/2)
+    newopposite = list(np.array(maxbounds)-newintervalsizes/2)
+    for pyvino in pyvinos:
         if pyvino.getFormatCode() =='bars':
-#            print "bargrid"
             resizebargrids.append(pyvino.toBarGridKernel(neworigin, newopposite, distancegridintervals))
-
-#            data.append(resizebargrids[-1].getDataToPlot())
         elif pyvino.getFormatCode() =='kdtree':
-#            print "kdtree"
             resizebargrids.append(pyvino.toBarGridKernel(neworigin,newopposite,distancegridintervals))
-#            data.append(resizebargrids[-1].getDataToPlot())
-      bb = True
-      for i1 in  range(len(resizebargrids[0].permutation)):
-        for i2 in  range(len(resizebargrids[0].permutation[i1])):	
-	    if (resizebargrids[0].permutation[i1][i2] != resizebargrids[1].permutation[i1][i2]):
+    bb = True
+    for i1 in  range(len(resizebargrids[0].permutation)):
+        for i2 in  range(len(resizebargrids[0].permutation[i1])):
+            if (resizebargrids[0].permutation[i1][i2] != resizebargrids[1].permutation[i1][i2]):
                 bb = False
-      if (bb == False):
-        newpermutation = np.dot(resizebargrids[0].permutation,np.transpose(resizebargrids[1].permutation))
+    if (bb == False):
+        newpermutation = np.dot(resizebargrids[0].permutation, np.transpose(resizebargrids[1].permutation))
         resizebargrids.append(resizebargrids[0])
         resizebargrids[0] = resizebargrids[0].permute(newpermutation)
-      data.append(resizebargrids[0].getDataToPlot())
-      data.append(resizebargrids[1].getDataToPlot())
-      aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
-      bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
-      ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
-      data.append(aminusb.getDataToPlot())
-      data.append(bminusa.getDataToPlot())
-      data.append(ainterb.getDataToPlot())
+    data.append(resizebargrids[0].getDataToPlot())
+    data.append(resizebargrids[1].getDataToPlot())
+    aminusb = resizebargrids[0].MinusBarGridKernel(resizebargrids[1])
+    bminusa = resizebargrids[1].MinusBarGridKernel(resizebargrids[0])
+    ainterb = resizebargrids[0].intersectionwithBarGridKernel(resizebargrids[1])
+    data.append(aminusb.getDataToPlot())
+    data.append(bminusa.getDataToPlot())
+    data.append(ainterb.getDataToPlot())
+    return data, aminusb
+
+def ViNOComparison2D(request, vinoA_id, vinoB_id, ppa):
+    if request.method == 'POST':
+      data, aminusb = compareTwoVinos(Results.objects.get(id=vinoA_id), Results.objects.get(id=vinoB_id), ppa)
       out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
       return HttpResponse(out_json)#, mimetype='text/plain')
 
     return HttpResponse("Nothing to do")
+
+def saveVinoDifference(request, vinoA_id, vinoB_id, ppa):
+  vinoA = Results.objects.get(id=vinoA_id)
+  vinoB = Results.objects.get(id=vinoB_id)
+  data, aminusb = compareTwoVinos(vinoA, vinoB, ppa)
+  tmpfile = tempfile.NamedTemporaryFile(prefix=slugify(aminusb.metadata[METADATA.title]),suffix=".h5")
+  filename = tmpfile.name
+  tmpfile.close()
+  hdf5manager.writeKernel(aminusb, filename)
+  obj = StateSet(resultformat=ResultFormat.objects.get(title="bars"), datafile=File(open(filename), name=filename))
+  obj.save()
+  obj.parents.add(vinoA)
+  obj.parents.add(vinoB)
+  #TODO return view of stateset
+  return HttpResponse("OK")#, mimetype='text/plain')
 
 
 def ViNOView2Dancien(request,result_id,ppa):
@@ -520,7 +534,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
         resizebargrid = vinokernel.toBarGridKernel(neworigin,newopposite,distancegridintervals)
         if (int(permutnumber) > 0) :
             permutVector = list(map(int, re.findall('[0-9]', permutnumber)))
-#            print permutVector 
+#            print permutVector
             permutation = np.zeros(dimension * dimension,int).reshape(dimension,dimension)
             for i in range(dimension):
                 permutation[i][permutVector[i]-1]=1
@@ -529,8 +543,8 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
             resizebargrid = resizebargrid.permute(np.dot(resizebargrid.permutation,np.transpose(permutation)))
             distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
             norm = EucNorm()
-            lowborders = []    
-            upborders = []    
+            lowborders = []
+            upborders = []
             for i in range(len(distancegrid.dimensions)):
                 lowborders.append(True)
                 upborders.append(True)
@@ -549,8 +563,8 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
         else :
             distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
             norm = EucNorm()
-            lowborders = []    
-            upborders = []    
+            lowborders = []
+            upborders = []
             for i in range(len(distancegrid.dimensions)):
                 lowborders.append(True)
                 upborders.append(True)
@@ -592,8 +606,8 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
 
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(True)
             upborders.append(True)
@@ -603,10 +617,10 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
 	histo = distancegrid.histogram(20,int(hist_maxvalue))
 
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
 #        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
 	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
@@ -624,8 +638,8 @@ def bargrid2jsonNew(request,result_id):
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(False)
             upborders.append(False)
@@ -634,16 +648,16 @@ def bargrid2jsonNew(request,result_id):
         data = distancegrid.toDataPointDistance()
 
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
 #        data = [(0,0,1),(0,1,1),(1,0,1),(1,1,10)]
         out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
         return HttpResponse(out_json)#, mimetype='text/plain')
     return HttpResponse("Nothing to do")
-    
+
 def bargrid2json2(request,hist_maxvalue):
     if request.method == 'POST':
         source=request.FILES['docfile'] # InMemoryUploadedFile instance
@@ -653,8 +667,8 @@ def bargrid2json2(request,hist_maxvalue):
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(False)
             upborders.append(False)
@@ -664,10 +678,10 @@ def bargrid2json2(request,hist_maxvalue):
 	histo = distancegrid.histogram(12,int(hist_maxvalue))
 
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
 #        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
 	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
@@ -684,8 +698,8 @@ def bargrid2json2New(request,result_id,hist_maxvalue):
         resizebargrid = bargrid.toBarGridKernel(bargrid.originCoords, bargrid.oppositeCoords, distancegridintervals)
         distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(False)
             upborders.append(False)
@@ -695,10 +709,10 @@ def bargrid2json2New(request,result_id,hist_maxvalue):
 	histo = distancegrid.histogram(12,int(hist_maxvalue))
 
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
 #        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
 	out_json = json.dumps(histo, sort_keys = True, ensure_ascii=False)
@@ -719,8 +733,8 @@ def bargrid2json3(request,hist_maxvalue):
         minusgrid12 = resizebargrid.MinusBarGridKernel(resizebargrid2)
 	distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
         norm = EucNorm()
-        lowborders = []    
-        upborders = []    
+        lowborders = []
+        upborders = []
         for i in range(len(distancegrid.dimensions)):
             lowborders.append(False)
             upborders.append(False)
@@ -741,10 +755,10 @@ def bargrid2json3(request,hist_maxvalue):
 	histoCompar = {}
 	histoCompar = dict(zip(histo.keys(),zip(limits,occurnumber,occurnumber1)))
 #        insidegrid = grid.getInside()
-#        minusgrid = grid.MinusBarGridKernel(insidegrid)        
-        
+#        minusgrid = grid.MinusBarGridKernel(insidegrid)
+
 #        out_json = json.dumps(list(resizebargrid.bars), sort_keys = True, indent = 4, ensure_ascii=False)
-        
+
 #        out_json = json.dumps(list(data), sort_keys = True, ensure_ascii=False) #si on veut afficher les distances
 
 	out_json = json.dumps(histoCompar, sort_keys = True, ensure_ascii=False)
@@ -768,10 +782,10 @@ def visualizeresult(request,result_id):
         j = i.split(",")
         if len(j)>1:
             staab.append(j[1])
- 
-    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'staab':staab} 
+
+    context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'staab':staab}
     context.update(mathinfo(r))
-    return render(request, 'sharekernel/visualizeresult.html', context)            
+    return render(request, 'sharekernel/visualizeresult.html', context)
 
 
 
@@ -797,8 +811,8 @@ def visualizeresulttrajectories(request,result_id):
 
     desadm = vp.admissibles()
     ldesadm = len(desadm)
-    context = {'ldesadm':ldesadm,'desadm':desadm,'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp} 
-    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
+    context = {'ldesadm':ldesadm,'desadm':desadm,'ldescon':ldescon,'descon' : descon,'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'results':r_list,'viabilityproblem':vp}
+    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)
 
 def visualizeresulttrajectoriesancien(request,result_id):
     from Equation import Expression
@@ -819,8 +833,8 @@ def visualizeresulttrajectoriesancien(request,result_id):
         j = i.split(",")
         stanaab.append(j[1])
 
-    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms} 
-    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)            
+    context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms}
+    return render(request, 'sharekernel/visualizeresulttrajectories.html', context)
 
 
 def compareresult(request, vinoA_id, vinoB_id):
@@ -830,8 +844,8 @@ def compareresult(request, vinoA_id, vinoB_id):
     rfA=vinoA.resultformat
     vpB=vinoB.parameters.viabilityproblem
     rfB=vinoB.resultformat
-    context = {'vinoA':vinoA,'viabilityproblemA':vpA,'resultformatA':rfA,'vinoB':vinoB,'viabilityproblemB':vpB,'resultformatB':rfB} 
-    return render(request, 'sharekernel/compareTwoVinos.html', context)            
+    context = {'vinoA':vinoA,'viabilityproblemA':vpA,'resultformatA':rfA,'vinoB':vinoB,'viabilityproblemB':vpB,'resultformatB':rfB}
+    return render(request, 'sharekernel/compareTwoVinos.html', context)
 
 
 def compareresultbis(request, vinoA_id, vinoB_id):
@@ -856,7 +870,7 @@ def compareresultbis(request, vinoA_id, vinoB_id):
     }
     for key,grid in [['gridA',gridA], ['gridB',gridB], ['minusgridAB', minusgridAB], ['minusgridBA', minusgridBA], ['intersection', intersection]]:
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
-    return render(request, 'sharekernel/compareTwoVinos.html', context)            
+    return render(request, 'sharekernel/compareTwoVinos.html', context)
 
 def kerneluploadpage(request, parameters_id=None, software_id=None):
     '''
@@ -872,12 +886,12 @@ def kerneluploadpage(request, parameters_id=None, software_id=None):
 def algorithmlist(request):
     a_list = Software.objects.all()
     context = {'software_list' : a_list}
-    return render(request, 'sharekernel/algorithmlist.html', context)            
+    return render(request, 'sharekernel/algorithmlist.html', context)
 
 def softwarelist(request,viabilityproblem_id,parameters_id,software_id,resultformat_id):
     a_list = Software.objects.all()
     context = {'software_list' : a_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
-    return render(request, 'sharekernel/softwarelist.html', context)            
+    return render(request, 'sharekernel/softwarelist.html', context)
 
 def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={}):
     '''
@@ -927,7 +941,7 @@ def valcontrol(tabt,tabu,T,i):
     else :
         u =[]
         if (T==tabt[-1]):
-	    u.append(tabu[-1])	
+	    u.append(tabu[-1])
         elif (tabt[i]<=T)&(T<tabt[-1]):
             j = i
             while (T>=tabt[j+1]):
@@ -938,7 +952,7 @@ def valcontrol(tabt,tabu,T,i):
 def next(state,control,dt,method,p):
     import numpy as np
     nextstate = []
-    speed = []    
+    speed = []
     dynamics = p.speed()
     vp = p.viabilityproblem
     stateabbrevs = vp.stateabbreviation()
@@ -956,10 +970,10 @@ def next(state,control,dt,method,p):
         speed.append(dyn())
 #    print speed
 #    print state
-#    print dt   
+#    print dt
     if (method == "Euler"):
         nextstate = list(dt*np.array(speed)+np.array(state))
-#    print nextstate    
+#    print nextstate
     return nextstate
 
 def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
@@ -976,7 +990,7 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
 
         else :
             tmin = Tmax
-            tmax = 0     
+            tmax = 0
     if (tmin<=tmax):
         tcurrent = tmin
         i = 1
@@ -987,7 +1001,7 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
         while (tcurrent <= tmax):
             statetrajectories[0].append(tcurrent)
             valcontrols = []
-            
+
             for ct in controltrajectories:
                 valcontrols = valcontrols+valcontrol(ct[0],ct[1],tcurrent,0)
             laststate = next(laststate,valcontrols,dt,method,p)
@@ -1015,7 +1029,7 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
 
         else :
             tmin = Tmax
-            tmax = 0     
+            tmax = 0
     if (tmin<=tmax):
         tcurrent = tmin
         i = 1
@@ -1028,10 +1042,10 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
         while (tcurrent <= tmax):
             statetrajectories[0].append(tcurrent)
             valcontrols = []
-            
+
             for ct in controltrajectories:
                 valcontrols = valcontrols+valcontrol(ct[0],ct[1],tcurrent,0)
-             
+
             currentlaststate = next(laststate,valcontrols,dt,method,p)
             distance = 1
             if vino.isInSet(currentlaststate)==False:
@@ -1058,7 +1072,7 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
                                     if var in controlabbrevs:
                                         adm[var] = newvalcontrols[controlabbrevs.index(var)]
                                 bb= bb and adm()
-#                                print bb 
+#                                print bb
                             if bb:
                                 bbb = True
                                 currentlaststate = next(laststate,newvalcontrols,dt,method,p)
@@ -1067,7 +1081,7 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
                                     b=False
                                     bbb = False
 #                                    print "youi"
-#                                    print newvalcontrols                               
+#                                    print newvalcontrols
                         j=0
 
                         while j<l:
@@ -1078,7 +1092,7 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
                                 tab[j]=0
                                 if j==(l-1):
                                     b=False
-                                    distance = distance+1 
+                                    distance = distance+1
                                 j=j+1
                     distance = distance +1
             if vino.isInSet(currentlaststate):
@@ -1120,16 +1134,16 @@ def makeEvolutionViable(request,result_id):
             for i in range(vp.controldimension):
                 t = []
 	        u = []
-		
+
                 text = request.POST["controlinput"+str(i+1)]
 #                print text
 #                print 'youpi'
-           
+
                 donnees = text.split(")(")
                 donnees[0] = donnees[0].replace("(","")
                 donnees[-1] = donnees[-1].replace(")","")
                 for d in donnees:
-                    if (d.find(",") >= 0) : 
+                    if (d.find(",") >= 0) :
 		        dd = d.split(",")
                         t.append(float(dd[0]))
                         u.append(float(dd[1]))
@@ -1143,9 +1157,9 @@ def makeEvolutionViable(request,result_id):
             for i in range(vp.statedimension):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
 
-#            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
-            statetrajectories = viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs)           
-            
+#            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
+            statetrajectories = viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs)
+
             colors = np.array([1]*len(statetrajectories[1]))
             constraints = p.constraints()
             for con in constraints:
@@ -1157,7 +1171,7 @@ def makeEvolutionViable(request,result_id):
 #                        print "dedans"
                         con[var] = np.array(statetrajectories[stateabbrevs.index(var)+1])
 #                print(con())
-        
+
                 colors = colors*np.array(con(),dtype=int)
             dimension = vp.statedimension
             for i in range(len(colors)):
@@ -1168,15 +1182,15 @@ def makeEvolutionViable(request,result_id):
 #                    print point
                     if vino.isInSet(point):
                         colors[i] = 2
-            statetrajectories.insert(0,list(colors))      
+            statetrajectories.insert(0,list(colors))
 
 #            print statetrajectories[0]
-            constrainttrajectories=[]    
+            constrainttrajectories=[]
             eqhandconstraints = p.leftandrighthandconstraints()
 #            print eqhandconstraints
             for eqhands in eqhandconstraints:
                 for eqhand in eqhands :
-#                    print eqhand 
+#                    print eqhand
                     b = 0
                     for var in eqhand:
                         b = 1
@@ -1189,9 +1203,9 @@ def makeEvolutionViable(request,result_id):
                     else:
 
                         constrainttrajectories.append(list(eqhand()))
-            
+
             out_json = json.dumps(list(statetrajectories)+constrainttrajectories, sort_keys = True, ensure_ascii=False)
-#        return JsonResponse([1, 2, 3], safe=False)   
+#        return JsonResponse([1, 2, 3], safe=False)
             return HttpResponse(out_json)
         return HttpResponse("Pas POST")
     return HttpResponse("Pas POST")
@@ -1221,16 +1235,16 @@ def controltostate(request,result_id):
             for i in range(vp.controldimension):
                 t = []
 	        u = []
-		
+
                 text = request.POST["controlinput"+str(i+1)]
 #                print text
 #                print 'youpi'
-           
+
                 donnees = text.split(")(")
                 donnees[0] = donnees[0].replace("(","")
                 donnees[-1] = donnees[-1].replace(")","")
                 for d in donnees:
-                    if (d.find(",") >= 0) : 
+                    if (d.find(",") >= 0) :
 		        dd = d.split(",")
                         t.append(float(dd[0]))
                         u.append(float(dd[1]))
@@ -1242,8 +1256,8 @@ def controltostate(request,result_id):
             startingstate = []
             for i in range(vp.statedimension):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
-            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)           
-            
+            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
+
             colors = np.array([1]*len(statetrajectories[1]))
             constraints = p.constraints()
             for con in constraints:
@@ -1255,7 +1269,7 @@ def controltostate(request,result_id):
 #                        print "dedans"
                         con[var] = np.array(statetrajectories[stateabbrevs.index(var)+1])
 #                print(con())
-        
+
                 colors = colors*np.array(con(),dtype=int)
             dimension = vp.statedimension
             for i in range(len(colors)):
@@ -1266,15 +1280,15 @@ def controltostate(request,result_id):
 #                    print point
                     if vino.isInSet(point):
                         colors[i] = 2
-            statetrajectories.insert(0,list(colors))      
+            statetrajectories.insert(0,list(colors))
 
 #            print statetrajectories[0]
-            constrainttrajectories=[]    
+            constrainttrajectories=[]
             eqhandconstraints = p.leftandrighthandconstraints()
 #            print eqhandconstraints
             for eqhands in eqhandconstraints:
                 for eqhand in eqhands :
-#                    print eqhand 
+#                    print eqhand
                     b = 0
                     for var in eqhand:
                         b = 1
@@ -1287,13 +1301,13 @@ def controltostate(request,result_id):
                     else:
 
                         constrainttrajectories.append(list(eqhand()))
-            
+
             out_json = json.dumps(list(statetrajectories)+constrainttrajectories, sort_keys = True, ensure_ascii=False)
-#        return JsonResponse([1, 2, 3], safe=False)   
+#        return JsonResponse([1, 2, 3], safe=False)
             return HttpResponse(out_json)
         return HttpResponse("Pas POST")
     return HttpResponse("Pas POST")
-    
+
 def results_tree(request):
     return render(request, 'sharekernel/results_tree.html', {
         'problems':ViabilityProblem.objects.all(),
@@ -1301,7 +1315,7 @@ def results_tree(request):
         'softwares':Software.objects.all(),
         'results':Results.objects.all(),
         'problemform': ViabilityProblemForm()
-        })            
+        })
 
 def newproblem(request, viabilityproblem_id=None):
     page_title = 'Create a new viability problem'
@@ -1316,8 +1330,8 @@ def newproblem(request, viabilityproblem_id=None):
             form = ViabilityProblemForm(instance=ViabilityProblem.objects.get(id=viabilityproblem_id))
         else:
             form = ViabilityProblemForm()
-    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
-     
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})
+
 def newsoftware(request):
     if request.method == 'POST':
         form = SoftwareForm(request.POST)
@@ -1327,8 +1341,8 @@ def newsoftware(request):
             return HttpResponseRedirect(reverse('sharekernel:home'))
     else:
         form = SoftwareForm()
-    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new software','form': form})            
-    
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': 'Create a new software','form': form})
+
 def newparameters(request, viabilityproblem_id):
     vp = ViabilityProblem.objects.get(id=viabilityproblem_id)
     page_title = 'Add new parameters for the viability problem "'+vp.title+'"'
@@ -1339,7 +1353,7 @@ def newparameters(request, viabilityproblem_id):
             return HttpResponseRedirect(reverse('sharekernel:visitviabilityproblem', args=[parameters.viabilityproblem.pk]))
     else:
         form = ParametersForm(initial={'viabilityproblem':vp})
-    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})            
+    return render(request, 'sharekernel/formTemplate.html', {'page_title': page_title,'form': form})
 
 def editresult(request, result_id):
     if request.method == 'GET':
@@ -1352,8 +1366,8 @@ def editresult(request, result_id):
             form.save()
             # TODO save and redirect
             return HttpResponse("OK")
-    return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})            
-    
+    return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})
+
 from jfu.http import upload_receive, UploadResponse
 
 @require_POST
@@ -1407,7 +1421,7 @@ def kerneluploadfile(request):
                         line = f.readline().split()
                         l = len(line)
                         head.append(line)
-                        # reading first line of data, and checking if it is 
+                        # reading first line of data, and checking if it is
                         line = f.readline().split()
                         cols = map(float,line)
                         head.append(line)
@@ -1433,14 +1447,14 @@ def kerneluploadfile(request):
                                         }).content
                                 })
                         #else:
-                        #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})                       
+                        #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})
                 except Exception as e:
                     # unable to detect a valid format so displaying the doc TODO
-                    return UploadResponse( request, {"error": "No valid format.", "exception":e})                    
+                    return UploadResponse( request, {"error": "No valid format.", "exception":e})
                 return UploadResponse( request, {"error": "No valid format"})
         except Exception as e:
             return UploadResponse( request, {'error':str(e)})
-    if kernel:    
+    if kernel:
             if not file:
                 file = open(tmpfilename,'r')
             # kernel loaded, we bring the metadata to the user
@@ -1476,6 +1490,5 @@ def kerneluploadfile(request):
                 # TODO displays warnings
                 'warnings': warnings,
                 'pk': result.pk
-            })            
+            })
     return UploadResponse( request, {'error':'No file provided'})
- 
