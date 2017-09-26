@@ -24,6 +24,7 @@ import json
 import tempfile
 import logging
 import numpy as np
+import re
 
 # Create your views here.
 
@@ -366,7 +367,6 @@ def saveVinoDifference(request, vinoA_id, vinoB_id, ppa):
 
 
 def ViNOView2Dancien(request,result_id,ppa):
-    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -392,7 +392,6 @@ def ViNOView2Dancien(request,result_id,ppa):
     return HttpResponse("Nothing to do")
 
 def ViNOView2D(request,result_id,ppa):
-    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -423,7 +422,6 @@ def ViNOView2D(request,result_id,ppa):
     return HttpResponse("Nothing to do")
 
 def ViNOView3D(request,result_id,ppa):
-    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -474,7 +472,6 @@ def ViNOView3D(request,result_id,ppa):
     return HttpResponse("Nothing to do")
 
 def ViNOView3Dancien(request,result_id,ppa):
-    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -514,8 +511,6 @@ def ViNOView3Dancien(request,result_id,ppa):
 def ViNODistanceView(request,result_id,ppa,permutnumber):
     ''' from the coding of permutnumber the state dimension must be strictly smaller than 10
     '''
-    import numpy as np
-    import re
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -586,7 +581,6 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
 
 
 def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
-    import numpy as np
     if request.method == 'POST':
         vino = Results.objects.get(id=result_id)
         if vino.resultformat.title =='bars':
@@ -949,7 +943,6 @@ def valcontrol(tabt,tabu,T,i):
 	return u
 
 def next(state,control,dt,method,p):
-    import numpy as np
     nextstate = []
     speed = []
     dynamics = p.speed()
@@ -1013,7 +1006,6 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
     return statetrajectories
 
 def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs):
-    import numpy as np
     npcontrolsteps = np.array(controlsteps)
     statetrajectories = []
     for i in range(vp.statedimension+1):
@@ -1124,7 +1116,6 @@ def makeEvolutionViable(request,result_id):
             p=r.parameters
 #            print "ohoh"
             vp=r.parameters.viabilityproblem
-            import numpy as np
             stateabbrevs = vp.stateabbreviation()
             controlabbrevs = vp.controlabbreviation()
 
@@ -1225,7 +1216,6 @@ def controltostate(request,result_id):
             p=r.parameters
 #            print "ohoh"
             vp=r.parameters.viabilityproblem
-            import numpy as np
             stateabbrevs = vp.stateabbreviation()
             controlabbrevs = vp.controlabbreviation()
 
