@@ -177,6 +177,12 @@ class Results(BaseEntity):
         return str(self.pk) + " " + str(self.submissiondate.strftime("%Y%m%d-%H%M"))+ " " + self.title
 
 class StateSet(BaseEntity):
+    '''
+    Representation of a set of system states, independent of any dynamics or viability problem.
+    This intends to be used for:
+     - storing the result of an operation between two "Results" (for example a difference)
+     - describing a complex constraint set of viability problem
+    '''
     resultformat = models.ForeignKey(ResultFormat, null=True)
     datafile = models.FileField(upload_to='statesets/%Y/%m/%d')
     parents = models.ManyToManyField(Results, default=None)
