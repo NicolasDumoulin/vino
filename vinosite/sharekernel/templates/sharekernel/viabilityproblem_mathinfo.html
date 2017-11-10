@@ -8,13 +8,13 @@ its parameters values if provided
         <div class="panel panel-default">
             <div class="panel-heading">Model</div>
             <div class="panel-body">
-                Dimension of the state space : {{viabilityproblem.statedimension}}
+                Dimension of the state space : {{viabilityproblem.statevariables.count}}
                 <ul>
                     {% for i in stanaab%}
                     <li>  {{i}}</li>
                     {% endfor %}
                 </ul>
-                Dimension of the control space :  {{viabilityproblem.controldimension}}<br>
+                Dimension of the control space :  {{viabilityproblem.controlvariables.count}}<br>
                 <ul>
                     {% for i in connaab%}
                     <li>  {{i}}</li>
@@ -35,7 +35,7 @@ its parameters values if provided
                 {{ i }}<br>
                 {% endfor %}
                 <br><br>
-                Parameters : 
+                Parameters :
                 {% if dynparval %}
                 <ul>
                     {% for i in dynparval %}
@@ -43,7 +43,10 @@ its parameters values if provided
                     {% endfor %}
                 </ul>
                 {% else %}
-                {{viabilityproblem.dynamicsparameters}}<br>
+                    {% for v in viabilityproblem.dynamicsparameters.all %}
+                      {{v.shortname}}
+                      {% if not forloop.last %} , {% endif %}
+                    {% endfor %}
                 {% endif %}
             </div></div>
     </div>
@@ -55,7 +58,7 @@ its parameters values if provided
                 {{ i }}<br>
                 {% endfor %}
                 <br><br>
-                Parameters : 
+                Parameters :
                 {% if staconparval %}
                 <ul>
                     {% for i in staconparval %}
@@ -63,7 +66,10 @@ its parameters values if provided
                     {% endfor %}
                 </ul>
                 {% else %}
-                {{viabilityproblem.stateconstraintparameters}}<br>
+                  {% for v in viabilityproblem.stateconstraintparameters.all %}
+                    {{v.shortname}}
+                    {% if not forloop.last %} , {% endif %}
+                  {% endfor %}
                 {% endif %}
             </div></div></div>
     {% if tardes%}
@@ -88,4 +94,3 @@ its parameters values if provided
             </div></div></div>
     {% endif %}
 </div>
-

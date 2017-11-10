@@ -25,7 +25,7 @@
                 </li>
                 {% for problem in problems %}
                     <li><span class="label label-default" title="Viability problem">VP</span>
-                        <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }} ({{problem.statedimension}}-D)</a> :
+                        <a href="{% url 'sharekernel:visitviabilityproblem' problem.pk %}">{{ problem.pk }} - {{ problem.title }} ({{problem.statevariables.count}}-D)</a> :
                     <ul>
                         {% for param in problem.parameters_set.all %}
                             <li><span class="label label-default" title="Problem parameters">P</span>
@@ -45,14 +45,14 @@
                                         <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' param.pk resultbysoftware.grouper.id %}" role="button">
                                             <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
                                         </a>
-                                    </li>                    
+                                    </li>
                                     </ul>
                             {% endfor %}
                             <li><span class="label label-default" title="Problem parameters">P</span>
                                 <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:newsoftware' %}" role="button">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new software
                                 </a>
-                            </li>                    
+                            </li>
 
                             </ul>
                         {% endfor %}
@@ -60,12 +60,12 @@
                             <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' problem.pk %}" role="button">
                                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
                             </a>
-                        </li>                    
+                        </li>
                     </ul>
                     </li>
                 {% endfor %}
             </ul>
-        </div>            
+        </div>
         <div class="tab-pane" id="tree-software-view">
             <ul>
                 <li><span class="label label-default" title="Viability results">R</span>
@@ -80,7 +80,7 @@
                     <ul>{% for resultbyvp in resultsbyvp %}
                         <li><span class="label label-default" title="Viability problem">VP</span>
                             <a href="{% url 'sharekernel:visitviabilityproblem' resultbyvp.grouper.pk %}">
-                                {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}
+                                {{ resultbyvp.grouper.pk }} - {{ resultbyvp.grouper.title }}  ({{resultbyvp.grouper.statevariables.count}}-D)
                             </a>
                         </li>
                         <ul>
@@ -101,7 +101,7 @@
                                         <a class="btn btn-default btn-xs btn-new-results" href="{% url 'sharekernel:kerneluploadpage' resultbyparam.grouper.id algo.pk  %}" role="button">
                                             <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload a result
                                         </a>
-                                    </li>                    
+                                    </li>
 
                                 </ul>
                             {% endifequal %}
@@ -110,7 +110,7 @@
                                 <a class="btn btn-default btn-xs btn-new-parameters" href="{% url 'sharekernel:newparameters' resultbyvp.grouper.pk %}" role="button">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a new set of parameters
                                 </a>
-                            </li>                    
+                            </li>
                         </ul>
                     {% endfor %}
                     <li><span class="label label-default" title="Viability problem">VP</span>
@@ -123,7 +123,7 @@
                     </li>
                 {% endfor %}
             </ul>
-        </div>            
+        </div>
     </div>
 </div>
 

@@ -34,8 +34,8 @@ See also about the card layout:
             {% endcomment %}
             <p>{{ problem.value.issue|truncatesmart:80 }}</p>
             <ul class="list-unstyled">
-                <li><strong>{{ problem.value.statedimension }}D</strong> space</li>
-                <li><strong>{{ problem.value.controldimension }}D</strong> control</li>
+                <li><strong>{{ problem.value.statevariables.count }}D</strong> space</li>
+                <li><strong>{{ problem.value.controlvariables.count }}D</strong> control</li>
                 <li><strong>?D</strong> perturbation</li>
                 <li>continuous or discrete time ?</li>
             </ul>

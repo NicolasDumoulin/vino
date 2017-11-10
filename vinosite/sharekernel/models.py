@@ -10,8 +10,8 @@ class BaseEntity(models.Model):
     website = models.URLField(default='', blank=True)
     submissiondate = models.DateTimeField('date published', default=timezone.now)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
-    author = models.CharField(max_length=500,default='')
-    contact = models.CharField(max_length=500,default='')
+    author = models.CharField(max_length=500,default='', blank=True)
+    contact = models.CharField(max_length=500,default='', blank=True)
     illustration = models.ImageField(upload_to='illustrations', default=None, blank=True)
 
     class Meta:
@@ -21,58 +21,54 @@ class Document(models.Model):
     docfile = models.FileField(upload_to='documents/%Y/%m/%d')
 
 class ViabilityProblem(BaseEntity):
-    statedimension = models.IntegerField(default=0)
-    statenameandabbreviation = models.CharField(max_length=500,default =0)
-    controldimension = models.IntegerField(default =0)
-    controlnameandabbreviation = models.CharField(max_length=500,default =0)
     dynamicsdescription = models.CharField(max_length=500,default =0)
     admissiblecontroldescription = models.CharField(max_length=500,default =0)
-    dynamicsparameters = models.CharField(max_length=200,default =0)
     stateconstraintdescription = models.CharField(max_length=500,default =0)
-    stateconstraintparameters = models.CharField(max_length=500,default =0)
     targetdescription = models.CharField(max_length=500,default =0)
-    targetparameters = models.CharField(max_length=500,default =0)
     def dynamics(self):
-      dyns = []
-      for fulldyn in self.dynamicsdescription.split(","):
-          dyns.append(fulldyn.split("=")[1])
-      return dyns
-
+      return [fulldyn.split("=")[1] for fulldyn in self.dynamicsdescription.split(",")]
     def constraints(self):
-      dyns = self.stateconstraintdescription.split(",")
-      return dyns
-
+      return self.stateconstraintdescription.split(",")
     def admissibles(self):
-      dyns = self.admissiblecontroldescription.split(",")
-      return dyns
-
+      return self.admissiblecontroldescription.split(",")
     def stateabbreviation(self):
-      abbrevs = []
-      donnees = self.statenameandabbreviation.split("/")
-      for d in donnees:
-          abbrevs.append((d.split(",")[1]))
-      return abbrevs
+      return [v[0] for v in self.statevariables]
     def statename(self):
-      names = []
-      donnees = self.statenameandabbreviation.split("/")
-      for d in donnees:
-          names.append(d.split(",")[0])
-      return names
+      return [v[1] for v in self.statevariables]
     def controlabbreviation(self):
-      abbrevs = []
-      donnees = self.controlnameandabbreviation.split("/")
-      for d in donnees:
-          abbrevs.append(d.split(",")[1])
-      return abbrevs
+      return [v[0] for v in self.controlvariables]
     def controlname(self):
-      names = []
-      donnees = self.controlnameandabbreviation.split("/")
-      for d in donnees:
-          names.append(d.split(",")[0])
-      return names
+      return [v[1] for v in self.controlvariables]
 
     def __str__(self):
         return str(self.pk) + " " + self.title
+
+class Variable(models.Model):
+    shortname = models.CharField(max_length=500)
+    name = models.CharField(max_length=500,default ='', blank=True)
+    unit = models.CharField(max_length=500,default ='', blank=True)
+    class Meta:
+        abstract = True
+    def __str__(self):
+        name = ""
+        if len(self.name) > 1:
+            name = " (" + self.name+")"
+        return str(self.shortname) + name
+
+class StateVariable(Variable):
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='statevariables', on_delete=models.PROTECT)
+
+class ControlVariable(Variable):
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='controlvariables', on_delete=models.PROTECT)
+
+class DynamicsParameter(Variable):
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='dynamicsparameters', on_delete=models.PROTECT)
+
+class StateConstraintParameter(Variable):
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='stateconstraintparameters', on_delete=models.PROTECT)
+
+class TargetParameter(Variable):
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='targetparameters', on_delete=models.PROTECT)
 
 class Software(BaseEntity):
     version = models.CharField(max_length=20,default='', blank=True)
@@ -90,9 +86,9 @@ class Parameters(BaseEntity):
         desstateandcontrol = []
         desdyn = self.viabilityproblem.dynamics()
         j=0
-        for thing in self.viabilityproblem.dynamicsparameters.split(","):
+        for thing in self.viabilityproblem.dynamicsparameters.all():
              for i in range(len(desdyn)):
-                  desdyn[i] = desdyn[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
+                  desdyn[i] = desdyn[i].replace(thing.shortname,self.dynamicsparametervalues.split(",")[j])
              j = j+1
         params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
 
@@ -107,9 +103,9 @@ class Parameters(BaseEntity):
         desstateandcontrol = []
         desadm = self.viabilityproblem.admissibles()
         j=0
-        for thing in self.viabilityproblem.dynamicsparameters.split(","):
+        for thing in self.viabilityproblem.dynamicsparameters.all():
              for i in range(len(desadm)):
-                  desadm[i] = desadm[i].replace(thing,self.dynamicsparametervalues.split(",")[j])
+                  desadm[i] = desadm[i].replace(thing.shortname,self.dynamicsparametervalues.split(",")[j])
              j = j+1
         params= self.viabilityproblem.stateabbreviation()+self.viabilityproblem.controlabbreviation()
 

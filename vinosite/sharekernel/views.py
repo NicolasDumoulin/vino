@@ -85,13 +85,11 @@ def visitsoftware(request,software_id):
     context = {'software' : a,'softparval':softparval}
     return render(request, 'sharekernel/visitsoftware.html', context)
 
-def mathinfo(r):
-    p = r.parameters
-    if not p or not r.software:
-        r=Results.objects.get(id=result_id)
-        return render(request, 'sharekernel/missingmetadata.html', {'result':r})
-    vp = p.viabilityproblem
-
+def mathinfo(o):
+    '''
+    Prepare data context for the template viabilityproblem_mathinfo from an object
+    of type ViabilityProblem or Results
+    '''
     stanaab = []
     connaab = []
     dynparval = []
@@ -102,31 +100,33 @@ def mathinfo(r):
     tabvalues = []
     tabvaluesbis = []
     tabvaluesbisbis = []
+    if isinstance(o, Results):
+        p = o.parameters
+        if not p or not o.software:
+            return render(request, 'sharekernel/missingmetadata.html', {'result':o})
+        vp = p.viabilityproblem
+        for i,v in enumerate(vp.dynamicsparameters.all()):
+            dynparval.append(''.join([v.shortname," = ",p.dynamicsparametervalues.split(",")[i]]))
+        for i,v in enumerate(vp.stateconstraintparameters.all()):
+            staconparval.append(''.join([v.shortname," = ",p.stateconstraintparametervalues.split(",")[i]]))
+        for i,v in enumerate(vp.targetparameters.all()):
+            tarparval.append(''.join([v.shortname," = ",p.targetparametervalues.split(",")[i]]))
+    else:
+        vp = o
     dyndes = vp.dynamicsdescription.split(",")
-    index = 0
-    for i in vp.statenameandabbreviation.split("/"):
-        j = i.split(",")
-        stanaab.append(''.join([j[0]," : ",j[1]]))
-    #    dyndes[index] = j[1]+"' = "+dyndes[index]
-        index = index+1
-    for i in vp.controlnameandabbreviation.split("/"):
-        j = i.split(",")
-        connaab.append(''.join([j[0]," : ",j[1]]))
+    for i in vp.statevariables.all():
+        stanaab.append(''.join([i.shortname," : ",i.name]))
+    for i in vp.controlvariables.all():
+        connaab.append(''.join([i.shortname," : ",i.name]))
 
     adcondes = vp.admissiblecontroldescription.split(",")
     stacondes = vp.stateconstraintdescription.split(",")
     tardes = vp.targetdescription.split(",")
     if tardes[0]=="none":
         tardes = []
-
-    for i in range(len(vp.dynamicsparameters.split(","))):
-        dynparval.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
-    for i in range(len(vp.stateconstraintparameters.split(","))):
-        staconparval.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
-    for i in range(len(vp.targetparameters.split(","))):
-        tarparval.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
-    #import pdb; pdb.set_trace()
-    context = {'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval, 'tarparval' : tarparval}
+    context = {'dyndes' : dyndes, 'adcondes' : adcondes, 'stacondes' : stacondes, 'tardes' : tardes,
+        'stanaab' : stanaab, 'connaab' : connaab, 'dynparval' : dynparval, 'staconparval' : staconparval,
+        'tarparval' : tarparval}
     return context
 
 def visitresult(request,result_id):
@@ -170,29 +170,11 @@ def visitresult(request,result_id):
 
 def visitviabilityproblem(request,viabilityproblem_id):
     vp=ViabilityProblem.objects.get(id=viabilityproblem_id)
-    stanaab = []
-    connaab = []
     tabvalues = []
     tabvaluesbis = []
     tabvaluesbisbis = []
 
     r_list = []
-    dyndes = vp.dynamicsdescription.split(",")
-    index = 0
-    for i in vp.statenameandabbreviation.split("/"):
-        j = i.split(",")
-        if len(j)>1:
-            stanaab.append(''.join([j[0]," : ",j[1]]))
- #           dyndes[index] = j[1]+"' = "+dyndes[index]
-            index = index+1
-    for i in vp.controlnameandabbreviation.split("/"):
-        j = i.split(",")
-        if len(j)>1:
-            connaab.append(''.join([j[0]," : ",j[1]]))
-
-    tardes = vp.targetdescription.split(",")
-    if tardes[0]=="none":
-        tardes = []
     p_list = vp.parameters_set.all()
     a_list = Software.objects.all()
     tabvaluesbisbis.append("Parameter Values")
@@ -209,13 +191,12 @@ def visitviabilityproblem(request,viabilityproblem_id):
         if p.results_set.count(): # if at least one result
             tabvaluesbisbis = []
             tabvaluesbis = []
-            for i in range(len(vp.dynamicsparameters.split(","))):
-                tabvaluesbisbis.append(''.join([vp.dynamicsparameters.split(",")[i]," = ",p.dynamicsparametervalues.split(",")[i]]))
-            for i in range(len(vp.stateconstraintparameters.split(","))):
-                tabvaluesbisbis.append(''.join([vp.stateconstraintparameters.split(",")[i]," = ",p.stateconstraintparametervalues.split(",")[i]]))
-            if vp.targetparameters.split(",")[0]!="none":
-                for i in range(len(vp.targetparameters.split(","))):
-                    tabvaluesbisbis.append(''.join([vp.targetparameters.split(",")[i]," = ",p.targetparametervalues.split(",")[i]]))
+            for i,v in enumerate(vp.dynamicsparameters.all()):
+                tabvaluesbisbis.append(''.join([v.shortname," = ",p.dynamicsparametervalues.split(",")[i]]))
+            for i,v in enumerate(vp.stateconstraintparameters.all()):
+                tabvaluesbisbis.append(''.join([v.shortname," = ",p.stateconstraintparametervalues.split(",")[i]]))
+            for i,v in enumerate(vp.targetparameters.all()):
+                tabvaluesbisbis.append(''.join([v.shortname," = ",p.targetparametervalues.split(",")[i]]))
             tabvaluesbis.append(tabvaluesbisbis)
             tabvaluesbisbis = []
             for a in a_list:
@@ -228,12 +209,10 @@ def visitviabilityproblem(request,viabilityproblem_id):
             resultData = {'value' : result, 'filesize': humanize.naturalsize(result.datafile.size)}
             results.append(resultData)
         resultsByParameters[parameter] = results
-    context = {'viabilityproblem' : vp,'dyndes' : dyndes,
-    'adcondes' : vp.admissiblecontroldescription.split(","),
-    'stacondes' : vp.stateconstraintdescription.split(","),
-    'tardes' : tardes,'stanaab' : stanaab,
-    'connaab' : connaab,'tabvalues' : tabvalues,
+    context = {'viabilityproblem' : vp,
+    'tabvalues' : tabvalues,
     'resultsByParameters': resultsByParameters}
+    context.update(mathinfo(vp))
     return render(request, 'sharekernel/visitviabilityproblem.html', context)
 
 def kerneluploaded(request):
@@ -519,7 +498,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-        dimension = vino.parameters.viabilityproblem.statedimension
+        dimension = vino.parameters.viabilityproblem.statevariables.count
         distancegriddimensions = [int(ppa)]*dimension
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
@@ -589,7 +568,7 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statedimension
+        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statevariables.count
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
         neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
@@ -765,16 +744,14 @@ def visualizeresult(request,result_id):
     r=Results.objects.get(id=result_id)
     vp=r.parameters.viabilityproblem
     rf=r.resultformat
-#    for i in range(vp.statedimension):
+#    for i in range(vp.statevariables.count):
 #        forms.append(TrajForm())
 #    hm = HDF5Manager([BarGridKernel])
 #    bargrid = hm.readKernel(r.datafile.path)
 
     staab = []
-    for i in vp.statenameandabbreviation.split("/"):
-        j = i.split(",")
-        if len(j)>1:
-            staab.append(j[1])
+    for i in vp.statevariables.all():
+        staab.append(i.shortname)
 
     context = {'result':r,'viabilityproblem':vp,'resultformat':rf,'staab':staab}
     context.update(mathinfo(r))
@@ -817,13 +794,12 @@ def visualizeresulttrajectoriesancien(request,result_id):
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
     rf=r.resultformat
-    for i in range(vp.statedimension):
+    for i in range(vp.statevariables.count):
         forms.append(TrajForm())
     hm = HDF5Manager([BarGridKernel])
     bargrid = hm.readKernel(r.datafile.path)
 
-    for i in vp.statenameandabbreviation.split("/"):
-        j = i.split(",")
+    for i in vp.statevariables:
         stanaab.append(j[1])
 
     context = {'controlabbrevs' : controlabbrevs,'stateabbrevs' : stateabbrevs,'result':r,'viabilityproblem':vp,'resultformat':rf,'stanaab':stanaab,'fn': fn,'bargrid' : bargrid,'forms' : forms}
@@ -845,7 +821,7 @@ def compareresultbis(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)
     # TODO configurable new dimensions
-    distancegriddimensions = [31]*vinoA.parameters.viabilityproblem.statedimension
+    distancegriddimensions = [31]*vinoA.parameters.viabilityproblem.statevariables.count
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     gridA = hdf5manager.readKernel(vinoA.datafile.path)
     gridA = gridA.toBarGridKernel(gridA.originCoords, gridA.oppositeCoords, distancegridintervals)
@@ -970,8 +946,8 @@ def next(state,control,dt,method,p):
 
 def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
     statetrajectories = []
-    for i in range(vp.statedimension+1):
-	statetrajectories.append([])
+    for i in range(vp.statevariables.count+1):
+	       statetrajectories.append([])
 #    print statetrajectories
     tmin = 0
     tmax = Tmax
@@ -1008,8 +984,8 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
 def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs):
     npcontrolsteps = np.array(controlsteps)
     statetrajectories = []
-    for i in range(vp.statedimension+1):
-	statetrajectories.append([])
+    for i in range(vp.statevariables.count+1):
+	       statetrajectories.append([])
 #    print statetrajectories
     tmin = 0
     tmax = Tmax
@@ -1046,7 +1022,7 @@ def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,c
                     bbb = False
                     base = 2*distance +1
                     baseminus1 = base-1
-                    tab=[0]*vp.controldimension
+                    tab=[0]*vp.controlvariables.count()
                     b=True
                     l=len(tab)
                     while b==True :
@@ -1121,7 +1097,7 @@ def makeEvolutionViable(request,result_id):
 
             controltrajectories = [];
             controlsteps = [];
-            for i in range(vp.controldimension):
+            for i in range(vp.controlvariables.count()):
                 t = []
 	        u = []
 
@@ -1144,7 +1120,7 @@ def makeEvolutionViable(request,result_id):
             dt = float(request.POST["dt"])
             method = request.POST["method"]
             startingstate = []
-            for i in range(vp.statedimension):
+            for i in range(vp.statevariables.count):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
 
 #            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
@@ -1163,7 +1139,7 @@ def makeEvolutionViable(request,result_id):
 #                print(con())
 
                 colors = colors*np.array(con(),dtype=int)
-            dimension = vp.statedimension
+            dimension = vp.statevariables.count
             for i in range(len(colors)):
                 if (colors[i] == 1):
                     point = []
@@ -1221,7 +1197,7 @@ def controltostate(request,result_id):
 
             controltrajectories = [];
             controlsteps = [];
-            for i in range(vp.controldimension):
+            for i in range(vp.controlvariables.count()):
                 t = []
 	        u = []
 
@@ -1243,7 +1219,7 @@ def controltostate(request,result_id):
             dt = float(request.POST["dt"])
             method = request.POST["method"]
             startingstate = []
-            for i in range(vp.statedimension):
+            for i in range(vp.statevariables.count):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
             statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
 
@@ -1260,7 +1236,7 @@ def controltostate(request,result_id):
 #                print(con())
 
                 colors = colors*np.array(con(),dtype=int)
-            dimension = vp.statedimension
+            dimension = vp.statevariables.count
             for i in range(len(colors)):
                 if (colors[i] == 1):
                     point = []

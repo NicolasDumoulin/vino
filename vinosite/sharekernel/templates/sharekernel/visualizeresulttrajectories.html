@@ -27,8 +27,8 @@
 
 
   <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#home">		<h2>Evolution design</h2>   
-		<button type="button" class="btn btn-default btn-sm " id="newev" onclick="addEvolution()">Add an evolution </button>  
+    <li class="active"><a data-toggle="tab" href="#home">		<h2>Evolution design</h2>
+		<button type="button" class="btn btn-default btn-sm " id="newev" onclick="addEvolution()">Add an evolution </button>
 			<button type="button" class="btn btn-default btn-sm disabled">Copy active evolution </button>
 			<button type="button" class="btn btn-default btn-sm " onclick="deleteEvolution()">Delete active evolution </button>
 </a></li>
@@ -71,12 +71,12 @@
                 		Time Horizon :  <input type="text" name="horizon" id="horizon" size = "5%" value="10" onKeyUp="return updateTrajectoriesHorizon()"/>
 
 			</li>
-			<li class="list-group-item">                  		Initial point : 
+			<li class="list-group-item">                  		Initial point :
               			{% for ab in stateabbrevs%}
                    		{{ab}}  : <input type="text" name="startingstate{{forloop.counter}}" id="startingstate{{forloop.counter}}" onKeyUp="return updatestateTrajectories()"/>
 				{% endfor %}
 			</li>
-			<li class="list-group-item">       				 Piecewise linear control functions -- <br>              
+			<li class="list-group-item">       				 Piecewise linear control functions -- <br>
 	      			{% for ab in controlabbrevs%}
                    		{{ab}} : <input type="text" size = "70%" value="" name="controlinput{{forloop.counter}}" id="controlinput{{forloop.counter}}"  onKeyUp="return updateTrajectories({{forloop.counter}})"/><br>
 				{% endfor %}
@@ -84,14 +84,14 @@
 			</li>
 			<li class="list-group-item">
     <div class="row">
-  <div id="infonew">Click on graph below to draw piecewise linear control functions : </div>        
+  <div id="infonew">Click on graph below to draw piecewise linear control functions : </div>
     <div id="infobisnew">Clik on a graph point to remove it : </div>
             {% for ab in controlabbrevs%}
                 <div class="col-sm-4"><div name="allcontroltrajectories" id="controltrajectories{{forloop.counter}}" onmouseout= "erasepinkNew(this);" onmousemove = "positioncurseurNew(this,event);" onclick = "addcursorpointNew(this);"></div></div>
              {% endfor %}
     </div>
 			</li>
-			<li class="list-group-item">Associated ViNO: <SELECT name="hiddenvino" size="1"><OPTION>TODO</SELECT>Norm : <SELECT name="hiddennorm" id="hiddennorm" size="1"><OPTION>Sup Norm</SELECT>	      		
+			<li class="list-group-item">Associated ViNO: <SELECT name="hiddenvino" size="1"><OPTION>TODO</SELECT>Norm : <SELECT name="hiddennorm" id="hiddennorm" size="1"><OPTION>Sup Norm</SELECT>
 	{% for ab in controlabbrevs%}
                    		{{ab}} step: <input type="text" size = "10%" value="" name="hiddencontrolstep{{forloop.counter}}" id="hiddencontrolstep{{forloop.counter}}"/><br>
 				{% endfor %}
@@ -114,9 +114,9 @@
 		    </div>
 		    <div id="collapse2" class="panel-collapse collapse">
 		      <ul class="list-group">
-			<li class="list-group-item"> 	
+			<li class="list-group-item">
      <div class="row">
-  
+
              {% for ab in stateabbrevs%}
                 <div class="col-sm-4"><div id="statetrajectories{{forloop.counter}}"></div></div>
              {% endfor %}
@@ -150,7 +150,7 @@
     </div>
     <div id="collapse4" class="panel-collapse collapse">
       <div class="panel-body">     <div class="row">
-  
+
              {% for ab in descon%}
                 <div class="col-sm-4"><div id="checkstatetrajectories{{forloop.counter}}"></div></div>
              {% endfor %}
@@ -170,9 +170,9 @@
     </div>
     <div id="collapse6" class="panel-collapse collapse">
       <ul class="list-group">
-        <li class="list-group-item">  
+        <li class="list-group-item">
     <div class="row">
-  
+
              {% for ab in stateabbrevs%}
              {% for ab in stateabbrevs%}
              {% if  forloop.counter != forloop.parentloop.counter %}
@@ -184,8 +184,8 @@
              {% endfor %}
 </div>
 </li>
-        <li class="list-group-item">  
-{% if viabilityproblem.statedimension == 2%}
+        <li class="list-group-item">
+{% if viabilityproblem.statevariables.count == 2%}
 <button id="viewPlotlyBW" class="btn btn-primary">View Vino</button> with <input type="text"  id="ppa" value="50"> ppa
 <button id="deletePlotlyBW" class="btn btn-primary">Delete Vino</button>
 {% endif %}
@@ -193,12 +193,12 @@
 </li>
 </ul>
 
-      <div class="panel-footer"><a href="javascript:void(0);" onclick="$('#collapse6').collapse('hide')"><span class="glyphicon glyphicon-collapse-up" >Close</span></a>          
+      <div class="panel-footer"><a href="javascript:void(0);" onclick="$('#collapse6').collapse('hide')"><span class="glyphicon glyphicon-collapse-up" >Close</span></a>
 </div>
     </div>
   </div>
 </div>
-{% if viabilityproblem.statedimension >= 3%}
+{% if viabilityproblem.statevariables.count >= 3%}
 
 <div class="panel-group">
   <div class="panel panel-default">
@@ -209,7 +209,7 @@
     </div>
     <div id="collapse6bis" class="panel-collapse collapse">
       <ul class="list-group">
-        <li class="list-group-item">  
+        <li class="list-group-item">
     <div class="row">
              {% for ab in stateabbrevs%}
              {% for ab in stateabbrevs%}
@@ -228,8 +228,8 @@
              {% endfor %}
 </div>
 </li>
-        <li class="list-group-item">  
-{% if viabilityproblem.statedimension == 3%}
+        <li class="list-group-item">
+{% if viabilityproblem.statevariables.count == 3%}
 <button id="viewPlotlyBW3D" class="btn btn-primary">View Vino</button> with <input type="text"  id="ppa" value="50"> ppa
 <button id="deletePlotlyBW3D" class="btn btn-primary">Delete Vino</button>
 {% endif %}
@@ -237,7 +237,7 @@
 </li>
 </ul>
 
-      <div class="panel-footer"><a href="javascript:void(0);" onclick="$('#collapse6').collapse('hide')"><span class="glyphicon glyphicon-collapse-up" >Close</span></a>          
+      <div class="panel-footer"><a href="javascript:void(0);" onclick="$('#collapse6').collapse('hide')"><span class="glyphicon glyphicon-collapse-up" >Close</span></a>
 </div>
     </div>
   </div>
@@ -252,8 +252,8 @@
     </div>
     <div id="collapse5" class="panel-collapse collapse">
       <ul class="list-group">
-        <li class="list-group-item">  
-      Using : 
+        <li class="list-group-item">
+      Using :
   <div class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">ViNO
     <span class="caret"></span></button>
@@ -263,18 +263,18 @@
 		{% endfor %}
     </ul>
   </div>
-      
+
   </li>
         <li class="list-group-item"> <button type="button" class="btn btn-default btn-sm disabled">Complete evolution </button>
- <p class="small">by a viable one with caution threshold equal to :</p>   
+ <p class="small">by a viable one with caution threshold equal to :</p>
       <label class="control-label " for="pwd"><p class="small">Caution threshold : </p></label>
-                
+
         <input type="text"  id="caution" placeholder="caution">
-      
-    
+
+
 </li>
         <li class="list-group-item">  <button type="button" class="btn btn-default btn-sm" onclick="makeViableTrajectories();">Complete evolution </button> <p class="small">by the closest viable one in terms of control values</p> 
-Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>	      		
+Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
 	{% for ab in controlabbrevs%}
                    		{{ab}} step: <input type="text" size = "10%" value="" name="controlstep{{forloop.counter}}" id="controlstep{{forloop.counter}}" onKeyUp="return hiddencopy(this,{{forloop.counter}})"/><br>
 				{% endfor %}
@@ -291,24 +291,24 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
 
 
     <div id="menu1" class="tab-pane fade">
-<div id="info">Click on graph below to draw piecewise linear control functions : </div>        
-    <div id="infobis">Clik on a graph point to remove it : </div>        
+<div id="info">Click on graph below to draw piecewise linear control functions : </div>
+    <div id="infobis">Clik on a graph point to remove it : </div>
     <div id="controltrajectories" onmouseout= "erasepink();" onmousemove = "positioncurseur(event);" onclick = "addcursorpoint();"></div>
 <div id="viewPanel"><div id="statetrajectories"></div><div id="checkstatetrajectories"></div>
 </div>
 
     </div>
   </div>
-</div>			            
+</div>
 
 
 <script type="text/javascript">
 
 
-  
+
       function hiddencopy(me,n){
           document.getElementById("hiddennorm").selectedIndex;
-          document.getElementById("norm").selectedIndex; 
+          document.getElementById("norm").selectedIndex;
 
           document.getElementById("hiddencontrolstep"+n).value = me.value;
 	}
@@ -332,7 +332,7 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
              {% endfor %}
 
 	}
-{% if viabilityproblem.statedimension >= 3%}
+{% if viabilityproblem.statevariables.count >= 3%}
 
       init3DstateTrajPlotNew(40);
 {% endif %}
@@ -378,12 +378,12 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
     var evolutionactive = 0;
 
     var tabcolors = [        ['red','pink','lightgrey'],
-                             ['rgba(255, 102, 51,1)','rgba(255, 204, 153,1)','lightgrey'], 
-                             ['rgba(255, 255, 0,1)','rgba(255, 255, 153,1)','lightgrey'], 
-                             ['rgba(51, 153, 51,1)','rgba(51, 204, 102,1)','lightgrey'], 
-                             ['rgba(0, 102,255,1)','rgba(51, 204, 255,1)','lightgrey'] , 
-                             ['rgba(153, 0,153,1)','rgba(204, 0, 204,1)','lightgrey'] , 
-                             ['rgba(255, 51, 153,1)', 'rgba(255, 153, 255,1)','lightgrey'], 
+                             ['rgba(255, 102, 51,1)','rgba(255, 204, 153,1)','lightgrey'],
+                             ['rgba(255, 255, 0,1)','rgba(255, 255, 153,1)','lightgrey'],
+                             ['rgba(51, 153, 51,1)','rgba(51, 204, 102,1)','lightgrey'],
+                             ['rgba(0, 102,255,1)','rgba(51, 204, 255,1)','lightgrey'] ,
+                             ['rgba(153, 0,153,1)','rgba(204, 0, 204,1)','lightgrey'] ,
+                             ['rgba(255, 51, 153,1)', 'rgba(255, 153, 255,1)','lightgrey'],
                              ['rgba(153, 51, 0,1)','rgba(153, 102, 51,1)','lightgrey']
     ];
 
@@ -399,7 +399,7 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
     }}
        evolutionactive = indice;
       var container = document.getElementById("controltrajectories");
-      var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+      var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
       var controltraces =[];
       var ii=0;
 	      {% for ab in controlabbrevs%}
@@ -407,7 +407,7 @@ Norm : <SELECT name="norm" id ="norm" size="1"><OPTION>Sup Norm</SELECT>
                 ii = ii+1;
 		{% endfor %}
 container = document.getElementById("statetrajectories");
-       rang = {{viabilityproblem.statedimension}}*evolutionactive; 
+       rang = {{viabilityproblem.statevariables.count}}*evolutionactive;
       var statetraces =[];
 
        ii=0;
@@ -416,7 +416,7 @@ container = document.getElementById("statetrajectories");
                 ii = ii+1;
 		{% endfor %}
 container = document.getElementById("checkstatetrajectories");
-       rang = 2*{{ldescon}}*evolutionactive; 
+       rang = 2*{{ldescon}}*evolutionactive;
       var checkstatetraces =[];
 
        ii=0;
@@ -436,7 +436,7 @@ container = document.getElementById("controltrajectories");
      update = {
         hoverinfo: 'x+y'
      };
-      rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+      rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
      var traceindices = [];
      ii = 0;
      	      {% for ab in controlabbrevs%}
@@ -456,7 +456,7 @@ container = document.getElementById("controltrajectories");
       ( /(?:^|\s)active(?!\S)/g , '' )
     }
     var entry = document.getElementById('lignetype').cloneNode(false);
-    entry.className += "active" 
+    entry.className += "active"
     var entrychild = document.getElementById('menutype').cloneNode(true);
     evolutionnumber = evolutionnumber +1;
     entrychild.innerHTML = "Evolution "+evolutionnumber;
@@ -527,7 +527,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
     }}
     x.removeChild(x.children[indice]);
     x.children[0].className += "active";
-    var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+    var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 
     var traceindices = [];
     var ii = 0;
@@ -539,7 +539,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
       var container = document.getElementById("controltrajectories");
     Plotly.deleteTraces(container,traceindices);
 
-    rang = {{viabilityproblem.statedimension}}*evolutionactive;
+    rang = {{viabilityproblem.statevariables.count}}*evolutionactive;
     traceindices = [];
     ii = 0;
      	      {% for ab in stateabbrevs%}
@@ -599,9 +599,9 @@ container = document.getElementById("controltrajectories");
                        var str = '';
                        for (j = 0; j < trace.x.length; j++) {
                           str= str+'('+trace.x[j]+','+trace.y[j]+')';
-                    
+
                        }
-                         
+
                        document.getElementById("controlinput{{forloop.counter}}").value = str;
 
 //                  update = {x:[[container.data[0].x[0]]],y:[[container.data[0].y[0]]]}
@@ -611,14 +611,14 @@ container = document.getElementById("controltrajectories");
                      else{
                       Plotly.restyle(document.getElementById("controltrajectories{{forloop.counter}}"),{x:[[],[]],y:[[],[]]},[1,0]);
 
-} 
+}
                        i=i+1;
 		{% endfor %}
-                        if (statetraces[0].y.length>0){ 
+                        if (statetraces[0].y.length>0){
               i=0;
 
 	      {% for ab in stateabbrevs%}
-                       document.getElementById("startingstate{{forloop.counter}}").value = statetraces[i].y[0];  
+                       document.getElementById("startingstate{{forloop.counter}}").value = statetraces[i].y[0];
              	       Plotly.restyle(document.getElementById("statetrajectories{{forloop.counter}}"),{x:[statetraces[i].x],y:[statetraces[i].y]},[0]);
 
                        i=i+1;
@@ -630,8 +630,8 @@ container = document.getElementById("controltrajectories");
                        i=i+1;
 		{% endfor %}
 
-                        if (statetraces[0].x.length>1){ 
-                 
+                        if (statetraces[0].x.length>1){
+
                        var r = statetraces[0].x[1]-statetraces[0].x[0];
                        document.getElementById("dt").value=r.toFixed(2);}
                        else{
@@ -669,8 +669,8 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
       var margin = 40;
       var graphwidth=500;
       var totalcontrolgraphwidth = graphwidth-2*margin;
-      var totalcontrolgraphheight = graphheight*{{viabilityproblem.controldimension}}-2*margin;
-      var plotheigh = (1-({{viabilityproblem.controldimension}}-1)*gap)/{{viabilityproblem.controldimension}};
+      var totalcontrolgraphheight = graphheight*{{viabilityproblem.controlvariables.count}}-2*margin;
+      var plotheigh = (1-({{viabilityproblem.controlvariables.count}}-1)*gap)/{{viabilityproblem.controlvariables.count}};
       var plotheighplusgap = plotheigh+gap;
       initControlTrajPlot(10,gap,margin,graphheight,graphwidth,controltrajectories);
       initStateTrajPlot(10,gap,margin,graphheight,statetrajectories);
@@ -689,7 +689,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
            document.getElementById("infobisnew").innerHTML = 'Point ('+lx+','+ly+') removed from plot'+n;
 
          var control = document.getElementById('controlinput'+n);
-         control.value = control.value.replace('('+lx+','+ly+')',''); 
+         control.value = control.value.replace('('+lx+','+ly+')','');
 
          updateTrajectories(n);
 
@@ -720,7 +720,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
            document.getElementById("infobisnew").innerHTML = 'Point ('+lx+','+ly+') removed from plot'+n;
 
          var control = document.getElementById('controlinput'+n);
-         control.value = control.value.replace('('+lx+','+ly+')',''); 
+         control.value = control.value.replace('('+lx+','+ly+')','');
 
          updateTrajectories(n);
 
@@ -729,7 +729,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
       document.getElementById("controltrajectories").on('plotly_hover', function(data){
               var lx = data.points[0].x;
               var ly = data.points[0].y;
-             var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+             var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 
               var number = data.points[0].curveNumber-rang;
               var n= (number-1)/2+1;
@@ -745,9 +745,9 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
 
 
       function initControlTrajPlot(maxtime,gap,margin,graphheight,graphwidth,container){
-              var plotheighinpx = graphheight*{{viabilityproblem.controldimension}};
+              var plotheighinpx = graphheight*{{viabilityproblem.controlvariables.count}};
 	      var layout = {paper_bgcolor: "#7f7f7f",plot_bgcolor: "#c7c7c7",autosize:false,showlegend: false,margin:{t:margin,l:margin,r:margin,b:margin,pad:0},width: graphwidth,height: plotheighinpx,xaxis:{title : 't',range:[0,maxtime],domain: [0,1]},hovermode:'closest'};
-              var plotheigh = (1-({{viabilityproblem.controldimension}}-1)*gap)/{{viabilityproblem.controldimension}};
+              var plotheigh = (1-({{viabilityproblem.controlvariables.count}}-1)*gap)/{{viabilityproblem.controlvariables.count}};
               var i = 0;
 	      var traces = [];
              {% for ab in controlabbrevs%}
@@ -761,9 +761,9 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
 //           document.getElementById("info").innerHTML =layout.yaxis1.title;
 	}
       function initStateTrajPlot(maxtime,gap,margin,graphheight,container){
-              var plotheighinpx = graphheight*{{viabilityproblem.statedimension}};
+              var plotheighinpx = graphheight*{{viabilityproblem.statevariables.count}};
 	      var layout = {showlegend: false,margin:{t:10,l:margin,r:10,b:margin},width: 500,height: plotheighinpx,xaxis:{title : 't',range:[0,maxtime]},hovermode:'closest'};
-              var plotheigh = (1-({{viabilityproblem.statedimension}}-1)*gap)/{{viabilityproblem.statedimension}};
+              var plotheigh = (1-({{viabilityproblem.statevariables.count}}-1)*gap)/{{viabilityproblem.statevariables.count}};
               var i = 0;
 	      var traces = [];
              {% for ab in stateabbrevs%}
@@ -778,7 +778,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
 
       function createAnnotation(){
               var annot = {x: 0.5,    xanchor: 'right',    y: 0,    yanchor: 'bottom',text:'yop',xref : 'paper',yref:'paper',showarrow : false};
-     
+
         return annot;
      }
       function initCheckStateTrajPlot(maxtime,gap,margin,graphheight,container){
@@ -813,7 +813,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
 //document.getElementById("info").innerHTML = r;
          if (r<= 1){
              newy[0] = r;
-             newy.push({{viabilityproblem.controldimension}}-parseInt(ystar));
+             newy.push({{viabilityproblem.controlvariables.count}}-parseInt(ystar));
           }
         return newy;
       }
@@ -838,7 +838,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
          var n = parseInt(str.split("plotcontroltrajectories")[1]);
 
          var lastt = 0;
-         if (container.data[1].x.length>0){ lastt = container.data[1].x[container.data[1].x.length-1];} 
+         if (container.data[1].x.length>0){ lastt = container.data[1].x[container.data[1].x.length-1];}
          if ((isNaN(lx)== false)&&(isNaN(ly)== false)&&(isNaN(n)== false)&&(lx>=lastt)){
            xnewpink = [lx];
            ynewpink = [ly];
@@ -849,7 +849,7 @@ document.getElementById("startingstate{{forloop.counter}}").value = "";
            document.getElementById("infonew").innerHTML = 'Point ('+lx+','+ly+') added to plotcontroltrajectories'+n;
 
          var control = document.getElementById('controlinput'+n);
-         control.value = control.value+'('+lx+','+ly+')'; 
+         control.value = control.value+'('+lx+','+ly+')';
          updateTrajectories(n);
 
        }
@@ -866,11 +866,11 @@ else{
          var lx = parseFloat(str.split("(")[1]);
          var ly = parseFloat(str.split(",")[1]);
          var n = parseInt(str.split("plot")[1]);
-         var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+         var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 
          var number = 2*(n-1)+rang;
          var lastt = 0;
-         if (container.data[number+1].x.length>0){ lastt = container.data[number+1].x[container.data[number+1].x.length-1];} 
+         if (container.data[number+1].x.length>0){ lastt = container.data[number+1].x[container.data[number+1].x.length-1];}
          if ((isNaN(lx)== false)&&(isNaN(ly)== false)&&(isNaN(n)== false)&&(lx>=lastt)){
            xnewpink = [lx];
            ynewpink = [ly];
@@ -881,7 +881,7 @@ else{
            document.getElementById("infonew").innerHTML = 'Point ('+lx+','+ly+') added to plot'+n;
 
          var control = document.getElementById('controlinput'+n);
-         control.value = control.value+'('+lx+','+ly+')'; 
+         control.value = control.value+'('+lx+','+ly+')';
          updateTrajectories(n);
 
        }
@@ -903,14 +903,14 @@ else{
 
 		Plotly.restyle(container,update,[0]);
                 }
-             
+
      }
 
       function erasepink(){
          var container = document.getElementById("controltrajectories");
-         var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+         var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 
-               for(i = 0;i<{{viabilityproblem.controldimension}};i++){
+               for(i = 0;i<{{viabilityproblem.controlvariables.count}};i++){
                  if (container.data[rang+2*i].x.length >1 ){
 
                   update = {x:[[container.data[rang+2*i].x[0]]],y:[[container.data[rang+2*i].y[0]]]}
@@ -928,7 +928,7 @@ else{
 
          if ((py>=0)&&(px>=0)&&(px<=400-40-40)&&(py<=300-40-40)){
              var range = container.layout['yaxis'].range;
-             var ly = py/(300-40-40); 
+             var ly = py/(300-40-40);
              ly = range[1]-ly*(range[1]-range[0]);
              range = container.layout['xaxis'].range;
              var lx = px/(400-40-40);
@@ -954,7 +954,7 @@ else{
              document.getElementById("info").innerHTML = 'Click on graph below to draw piecewise linear control functions : ';
              document.getElementById("infonew").innerHTML = 'Click on graph below to draw piecewise linear control functions : ';
 
-       } 
+       }
      }
 
      function positioncurseur(event){
@@ -967,7 +967,7 @@ else{
 
          if ((py>=0)&&(px>=0)&&(px<=totalcontrolgraphwidth)){
             var ny = sition[1];
-            var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+            var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 
             var number = 2*(ny-1)+rang;
 
@@ -1003,14 +1003,14 @@ else{
              document.getElementById("info").innerHTML = 'Click on graph below to draw piecewise linear control functions : ';
              document.getElementById("infonew").innerHTML = 'Click on graph below to draw piecewise linear control functions : ';
 
-       } 
+       }
      }
 
       function arecorrects(){
-        var b = true;      
+        var b = true;
         if ((isNaN(parseFloat(document.getElementById('horizon').value))) || (isNaN(parseFloat(document.getElementById('dt').value))) ||(parseFloat(document.getElementById('horizon').value) <=0)||(parseFloat(document.getElementById('dt').value) <=0)){ b = false;}
         if (b == true){
-        for (var i = 1;i<={{viabilityproblem.statedimension}};i++) {
+        for (var i = 1;i<={{viabilityproblem.statevariables.count}};i++) {
            if (isNaN(parseFloat(document.getElementById('startingstate'+i).value))) {b = false;}
         }
         }
@@ -1021,7 +1021,7 @@ else{
       function iscorrect(str){
         var tab = [];
         var t = [];
-        var u = [];  
+        var u = [];
         var b = true;
         if (str != ""){
           if (str[0] != '('){
@@ -1032,7 +1032,7 @@ else{
  	      b = false;
 //              document.getElementById("essai").innerHTML = "error2"+str[str.length-1];
 }
-          else { 
+          else {
                donnees = str.split(")(");
                donnees[0] = donnees[0].replace("(","");
                donnees[donnees.length-1] = donnees[donnees.length-1].replace(")","");
@@ -1051,9 +1051,9 @@ else{
                      lasttimevalue = parseFloat(dd[0]);
 		     t.push(dd[0]);
 		     u.push(dd[1]);
-	
+
                 }
-	   } 
+	   }
 	 }
        }
        tab.push(b);
@@ -1098,9 +1098,9 @@ else{
 		xnew = [];
                 ynew = [];
 
-	      } 	
+	      }
              var update = {x: [xnew,tab[1]],y:[ynew,tab[2]]};
-             var rang = {{viabilityproblem.controldimension}}*2*evolutionactive;
+             var rang = {{viabilityproblem.controlvariables.count}}*2*evolutionactive;
 //document.getElementById("info").innerHTML = "popo";
              Plotly.restyle(containerTraj, update, [rang+(number-1)*2,rang+(number-1)*2+1])
              Plotly.restyle(containerTrajbis, update, [0,1])
@@ -1130,7 +1130,7 @@ else{
 
       function updatestateTrajectories(){
           var b = true;
-          for (var i=1;i<={{viabilityproblem.controldimension}};i++){b = b && iscorrect(document.getElementById("controlinput"+i+"").value)[0];}
+          for (var i=1;i<={{viabilityproblem.controlvariables.count}};i++){b = b && iscorrect(document.getElementById("controlinput"+i+"").value)[0];}
           if (b == true) {
               if (arecorrects()){
                 var form = document.getElementById('controlinputform');
@@ -1144,7 +1144,7 @@ else{
                 var containerquad;
 		var container = document.getElementById('controltrajectories');
 		var containerbis = document.getElementById('checkstatetrajectories');
-                var rang = {{viabilityproblem.statedimension}}*evolutionactive;
+                var rang = {{viabilityproblem.statevariables.count}}*evolutionactive;
                 var colori = container.data[rang+1].marker.color;
                 for (i=0;i<tabcolors.length;i++){
                  if( tabcolors[i].indexOf(colori)!=-1){
@@ -1166,8 +1166,8 @@ else{
                         }
                         else if(index == 1){
 			    times = bar;
-                        } 
-                        else if (index<{{viabilityproblem.statedimension}}+2){
+                        }
+                        else if (index<{{viabilityproblem.statevariables.count}}+2){
 			    container.data[rang+index-2].x = times;
 			    container.data[rang+index-2].y = bar;
 			    container.data[rang+index-2].marker.color = color;
@@ -1176,8 +1176,8 @@ else{
 			    containerter.data[0].y = bar;
 			    containerter.data[0].marker.color = color;
          		    Plotly.redraw(containerter);
-                            for (j=0;j<{{viabilityproblem.statedimension}};j++){
-				if ((j+1)!=(index-1)){		            	
+                            for (j=0;j<{{viabilityproblem.statevariables.count}};j++){
+				if ((j+1)!=(index-1)){
 					str='2Dstatetrajectories'+(j+1);
 	                            	containerfive = document.getElementById(str+(index-1));
 					containerfive.data[0].y = bar;
@@ -1186,10 +1186,10 @@ else{
 	                            	containerfivebis = document.getElementById(str+(j+1));
 
 					containerfivebis.data[0].x = bar;
-{% if viabilityproblem.statedimension >= 3%}
+{% if viabilityproblem.statevariables.count >= 3%}
 
-                            		for (j3D=0;j3D<{{viabilityproblem.statedimension}};j3D++){
-				             if (((j+1)!=(j3D+1))&&((j3D+1)!=(index-1))){		            	
+                            		for (j3D=0;j3D<{{viabilityproblem.statevariables.count}};j3D++){
+				             if (((j+1)!=(j3D+1))&&((j3D+1)!=(index-1))){
 					            str='3Dstatetrajectories'+(j+1);
                                                     str = str+(j3D+1);
              		                            containerfive = document.getElementById(str+(index-1));
@@ -1225,13 +1225,13 @@ else{
                     		}
 
 			}
-                            
+
 
                         }
                         else {
                             rang = {{ldescon}}*2*evolutionactive;
- 			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].x = times;
-			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].y = bar;
+ 			    containerbis.data[rang+index-2-{{viabilityproblem.statevariables.count}}].x = times;
+			    containerbis.data[rang+index-2-{{viabilityproblem.statevariables.count}}].y = bar;
 		            containerquad = document.getElementById('checkstatetrajectories'+checkstateindex);
  			    containerquad.data[checkdatanumber].x = times;
 			    containerquad.data[checkdatanumber].y = bar;
@@ -1240,7 +1240,7 @@ else{
 			}
                             else{
 				checkdatanumber = 0;
-				checkstateindex = checkstateindex+1; 
+				checkstateindex = checkstateindex+1;
 			}
          		    Plotly.redraw(containerquad);
 
@@ -1248,13 +1248,13 @@ else{
 
 
 
-			})	
+			})
 
 			Plotly.redraw(container);
 			Plotly.redraw(containerbis);
-                        for (j=0;j<{{viabilityproblem.statedimension}};j++){
-                        for (i=0;i<{{viabilityproblem.statedimension}};i++){
-				if (i!=j){		            	
+                        for (j=0;j<{{viabilityproblem.statevariables.count}};j++){
+                        for (i=0;i<{{viabilityproblem.statevariables.count}};i++){
+				if (i!=j){
 					str='2Dstatetrajectories'+(j+1);
                     			containerfive.data[0].marker.color = color;
 
@@ -1263,12 +1263,12 @@ else{
                 	      		Plotly.redraw(containerfive);
 
                     		}}}
-{% if viabilityproblem.statedimension >= 3%}
+{% if viabilityproblem.statevariables.count >= 3%}
 
-                        for (k=0;k<{{viabilityproblem.statedimension}};k++){
-                        for (j=0;j<{{viabilityproblem.statedimension}};j++){
-                        for (i=0;i<{{viabilityproblem.statedimension}};i++){
-				if ((i!=j)&&(j!=k)&&(i!=k)){		            	
+                        for (k=0;k<{{viabilityproblem.statevariables.count}};k++){
+                        for (j=0;j<{{viabilityproblem.statevariables.count}};j++){
+                        for (i=0;i<{{viabilityproblem.statevariables.count}};i++){
+				if ((i!=j)&&(j!=k)&&(i!=k)){
 					str='3Dstatetrajectories'+(k+1);
                                         str = str +(j+1);
                     			containerfive.data[0].marker.color = color;
@@ -1288,8 +1288,8 @@ else{
 
       function makeViableTrajectories(){
           var b = true;
-          for (var i=1;i<={{viabilityproblem.controldimension}};i++){b = b && iscorrect(document.getElementById("controlinput"+i+"").value)[0];}
-          for (var i=1;i<={{viabilityproblem.controldimension}};i++){b = b && (isNaN(parseFloat(document.getElementById("controlstep"+i+"").value)) == false);}
+          for (var i=1;i<={{viabilityproblem.controlvariables.count}};i++){b = b && iscorrect(document.getElementById("controlinput"+i+"").value)[0];}
+          for (var i=1;i<={{viabilityproblem.controlvariables.count}};i++){b = b && (isNaN(parseFloat(document.getElementById("controlstep"+i+"").value)) == false);}
 
           if (b == true) {
 //              console.log("coucou")
@@ -1305,7 +1305,7 @@ else{
                 var containerquad;
 		var container = document.getElementById('controltrajectories');
 		var containerbis = document.getElementById('checkstatetrajectories');
-                var rang = {{viabilityproblem.statedimension}}*evolutionactive;
+                var rang = {{viabilityproblem.statevariables.count}}*evolutionactive;
                 var colori = container.data[rang+1].marker.color;
                 for (i=0;i<tabcolors.length;i++){
                  if( tabcolors[i].indexOf(colori)!=-1){
@@ -1327,8 +1327,8 @@ else{
                         }
                         else if(index == 1){
 			    times = bar;
-                        } 
-                        else if (index<{{viabilityproblem.statedimension}}+2){
+                        }
+                        else if (index<{{viabilityproblem.statevariables.count}}+2){
 			    container.data[rang+index-2].x = times;
 			    container.data[rang+index-2].y = bar;
 			    container.data[rang+index-2].marker.color = color;
@@ -1337,8 +1337,8 @@ else{
 			    containerter.data[0].y = bar;
 			    containerter.data[0].marker.color = color;
          		    Plotly.redraw(containerter);
-                            for (j=0;j<{{viabilityproblem.statedimension}};j++){
-				if ((j+1)!=(index-1)){		            	
+                            for (j=0;j<{{viabilityproblem.statevariables.count}};j++){
+				if ((j+1)!=(index-1)){
 					str='2Dstatetrajectories'+(j+1);
 	                            	containerfive = document.getElementById(str+(index-1));
 					containerfive.data[0].y = bar;
@@ -1352,13 +1352,13 @@ else{
                     		}
 
 			}
-                            
+
 
                         }
                         else {
                             rang = {{ldescon}}*2*evolutionactive;
- 			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].x = times;
-			    containerbis.data[rang+index-2-{{viabilityproblem.statedimension}}].y = bar;
+ 			    containerbis.data[rang+index-2-{{viabilityproblem.statevariables.count}}].x = times;
+			    containerbis.data[rang+index-2-{{viabilityproblem.statevariables.count}}].y = bar;
 		            containerquad = document.getElementById('checkstatetrajectories'+checkstateindex);
  			    containerquad.data[checkdatanumber].x = times;
 			    containerquad.data[checkdatanumber].y = bar;
@@ -1367,7 +1367,7 @@ else{
 			}
                             else{
 				checkdatanumber = 0;
-				checkstateindex = checkstateindex+1; 
+				checkstateindex = checkstateindex+1;
 			}
          		    Plotly.redraw(containerquad);
 
@@ -1375,13 +1375,13 @@ else{
 
 
 
-			})	
+			})
 
 			Plotly.redraw(container);
 			Plotly.redraw(containerbis);
-                        for (j=0;j<{{viabilityproblem.statedimension}};j++){
-                        for (i=0;i<{{viabilityproblem.statedimension}};i++){
-				if (i!=j){		            	
+                        for (j=0;j<{{viabilityproblem.statevariables.count}};j++){
+                        for (i=0;i<{{viabilityproblem.statevariables.count}};i++){
+				if (i!=j){
 					str='2Dstatetrajectories'+(j+1);
 	                            	containerfive = document.getElementById(str+(i+1));
 
@@ -1510,7 +1510,7 @@ function kdtreePlot(url, container, colormarker, colorline, fillcolor){
 }
 
 $("#deletePlotlyBW").click(function(){
-     
+
             var container = document.getElementById('2Dstatetrajectories12');
 
             update = {shapes:[]};
@@ -1520,7 +1520,7 @@ $("#deletePlotlyBW").click(function(){
 })
 
 $("#viewPlotlyBW").click(function(){
-    {% if result.parameters.viabilityproblem.statedimension == 2 %}
+    {% if result.parameters.viabilityproblem.statevariables.count == 2 %}
         var url = "{% url 'sharekernel:ViNOView2D' result.id 0 %}"
 //            console.log("coucoubis")
 //            console.log('{{result.resultformat.title}}')
@@ -1543,5 +1543,5 @@ $("#viewPlotlyBW").click(function(){
     {% endif %}
 });
 
-</script>    
+</script>
 {% endblock %}

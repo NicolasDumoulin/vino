@@ -10,23 +10,21 @@ class _constants:
         if name in self.__dict__:
             raise self.ConstError("Can't unbind const(%s)" % name)
         raise NameError(name)
-    
+
     def keys(self):
         return self.__dict__.keys()
-               
+
     def values(self):
         return self.__dict__.values()
-               
+
 import sys
 constants = _constants()
 
 constants.category = 'category.text'
 constants.title = 'viabilityproblem.title'
 constants.description = 'viabilityproblem.description'
-constants.statedimension = 'viabilityproblem.statedimension'
-constants.statenameandabbreviation = 'viabilityproblem.statenameandabbreviation'
-constants.controldimension = 'viabilityproblem.controldimension'
-constants.controlnameandabbreviation = 'viabilityproblem.controlnameandabbreviation'
+constants.statevariables = 'viabilityproblem.statevariables'
+constants.controlvariables = 'viabilityproblem.controlvariables'
 constants.dynamicsdescription = 'viabilityproblem.dynamicsdescription'
 constants.admissiblecontroldescription = 'viabilityproblem.admissiblecontroldescription'
 constants.dynamicsparameters = 'viabilityproblem.dynamicsparameters'
@@ -62,4 +60,3 @@ def gen_list(cls):
     '''
     for f in [f for f in cls._meta.fields if not f.primary_key and not f.is_relation]:
         print('constants.' + cls.__name__.lower() + '.' + f.name + " = '" + cls.__name__.lower() + '.' + f.name + "'")
-        
