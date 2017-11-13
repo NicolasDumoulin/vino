@@ -23,6 +23,7 @@ constants = _constants()
 constants.category = 'category.text'
 constants.title = 'viabilityproblem.title'
 constants.description = 'viabilityproblem.description'
+constants.statedimension = 'viabilityproblem.statedimension'
 constants.statevariables = 'viabilityproblem.statevariables'
 constants.controlvariables = 'viabilityproblem.controlvariables'
 constants.dynamicsdescription = 'viabilityproblem.dynamicsdescription'

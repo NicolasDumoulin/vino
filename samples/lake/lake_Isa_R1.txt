@@ -1,25 +1,31 @@
-viabilityproblem.title: Lake eutrophication
-viabilityproblem.description: Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
-viabilityproblem.statedimension: 2
-viabilityproblem.statenameandabbreviation:Phosphorus Inputs,L/Phosphorus Concentration,P
-viabilityproblem.controldimension:1
-viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation, u
-viabilityproblem.dynamicsdescription:x'=u, y'=-by+x+r+y^q/(m^q+y^q)
-viabilityproblem.admissiblecontroldescription:u in [umin;umax]
-viabilityproblem.dynamicsparameters:b,r,q,m,umin,umax
-viabilityproblem.stateconstraintdescription:x in [Lmin; Lmax],y in [0;Pmax]
-viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax 
-parameters.dynamicsparametervalues: 0.8,1,8,1,-0.09,0.09
-parameters.stateconstraintparametervalues : 0.1,1,1.4
-software.title: Viabilitree
-software.website: https://github.com/ISCPIF/viabilitree
-software.author : Alvarez et Reuillon 
-software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
-resultformat.title : kdtree
-resultformat.description: Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
-resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
-results.title:2D-lake-KdT-1024ppa
-results.author:Isabelle Alvarez
-results.contact:isabelle.alvarez@irstea.fr
-results.softwareparametervalues:0.0,0.0,1.0,1.5/0.01/20/0/0.02/0.1/new Random(42)
-results.formatparametervalues:2;L,P
+#viabilityproblem.title: Lake eutrophication
+#viabilityproblem.description: Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
+#viabilityproblem.statedimension: 2
+#viabilityproblem.statevariables:[["L","Phosphorus Inputs",""],["P","Phosphorus Concentration",""]]
+#viabilityproblem.controlvariables:[["u","Phosphorus Inputs Variation",""]]
+#viabilityproblem.dynamicsdescription:L'=u,P'=-b*P+L+r*P^q/(m^q+P^q)
+#viabilityproblem.admissiblecontroldescription:u>=unin,u<=unax
+#viabilityproblem.dynamicsparameters:[["b"],["r"],["q"],["m"],["unin"],["unax"]]
+#viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P>=0,P<=Pmax
+#viabilityproblem.stateconstraintparameters:[["Lmin"],["Lmax"],["Pmax"]]
+#viabilityproblem.targetdescription:none
+#viabilityproblem.targetparameters:[]
+
+
+#parameters.dynamicsparametervalues: 0.8,1,8,1,-0.09,0.09
+#parameters.stateconstraintparametervalues : 0.1,1,1.4
+
+#software.title: Viabilitree
+#software.website: https://github.com/ISCPIF/viabilitree
+#software.author : Alvarez et Reuillon 
+#software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
+
+#resultformat.title : kdtree
+#resultformat.description: Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
+#resultformat.parameterlist:statedimension,ColumnDescription
+
+#results.title:2D-lake-KdT-1024ppa
+#results.author:Isabelle Alvarez
+#results.contact:isabelle.alvarez@irstea.fr
+#results.softwareparametervalues:0.0,0.0,1.0,1.5/0.01/20/0/0.02/0.1/new Random(42)
+#results.formatparametervalues:2/L,P

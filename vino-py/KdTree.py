@@ -18,6 +18,7 @@ class KdTree(Kernel):
             self.originCoords = np.array(origin,float)
         else:
             self.originCoords = self.getMinBounds()
+
         if np.any(opposite):
             self.oppositeCoords = np.array(opposite,float)
         else:
@@ -99,10 +100,11 @@ class KdTree(Kernel):
     def readViabilitreeFile(cls, f, metadata,origin=None,opposite=None):
         cells = []
         dim = int(metadata[METADATA.statedimension])
+
         f.readline()
         for line in f:
             row = line.split()
-            cells.append(map(float, row[:3 * dim]))        
+            cells.append(map(float, row[:3 * dim]))  
         return cls(cells, metadata,origin,opposite)
     
     @classmethod  

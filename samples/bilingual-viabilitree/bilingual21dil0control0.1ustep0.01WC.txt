@@ -1,30 +1,34 @@
-software.author:Isabelle Alvarez and Romain Reuillon
-software.title:Viabilitree
-software.website: https://github.com/ISCPIF/viabilitree
-software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
-parameters.dynamicsparametervalues:1.31,-0.1,0.1
-parameters.stateconstraintparametervalues:0.2,0.2
-parameters.targetparametervalues:none
-resultformat.description:Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
-resultformat.title:kdtree
-resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
-results.author:Isabelle Alvarez
-results.contact:isabelle.alvarez@irstea.fr
-results.formatparametervalues:3;x,y,z
-results.softwareparametervalues:0.2,0.2,0,1,1,1/0.01/21/0/0.05/0.5/new Random(42)
-results.submissiondate:2016-09-28T13:23+00:00
-results.title:3D-language-KdT-1024ppa
-viabilityproblem.admissiblecontroldescription:u>=umin,u<=umax
-viabilityproblem.controldimension:1
-viabilityproblem.controlnameandabbreviation:Prestige Variation,u
-viabilityproblem.dynamicsdescription:a'=(1-a-b)*(1-b)^c*s-a*b^c*(1-s),b'=(1-a-b)*(1-a)^c*(1-s)-b*a^c*s,s'=u
-viabilityproblem.dynamicsparameters:c,umin,umax
-viabilityproblem.description:Many languages might become extinct. It is, therefore, an important challenge to understand language dynamics, and to recognise whether there are measures that can help us preserve some of them.
-viabilityproblem.stateconstraintdescription:a>=amin,a<=1,b>=bmin,b<=1,s>=0,s<=1,a+b<=1
-viabilityproblem.stateconstraintparameters:amin,bmin
-viabilityproblem.statedimension:3
-viabilityproblem.statenameandabbreviation:Proportion of speakers of language A,a/Proportion of speakers of language B,b/Relative prestige,s
-viabilityproblem.targetdescription:none
-viabilityproblem.targetparameters:none
-viabilityproblem.title:Language competition
+#viabilityproblem.admissiblecontroldescription:u>=umin,u<=umax
+#viabilityproblem.controlvariables:[["Prestige Variation","u",""]]
+#viabilityproblem.dynamicsdescription:a'=(1-a-b)*(1-b)^c*s-a*b^c*(1-s),b'=(1-a-b)*(1-a)^c*(1-s)-b*a^c*s,s'=u
+#viabilityproblem.dynamicsparameters:[["c"],["umin"],["umax"]]
+#viabilityproblem.description:Many languages might become extinct. It is, therefore, an important challenge to understand language dynamics, and to recognise whether there are measures that can help us preserve some of them.
+#viabilityproblem.stateconstraintdescription:a>=amin,a<=1,b>=bmin,b<=1,s>=0,s<=1,a+b<=1
+#viabilityproblem.stateconstraintparameters:[["amin"],["bmin"]]
+#viabilityproblem.statedimension:3
+#viabilityproblem.statevariables:[["Proportion of speakers of language A","a",""],["Proportion of speakers of language B","b",""],["Relative prestige","s",""]]
+#viabilityproblem.targetdescription:none
+#viabilityproblem.targetparameters:[]
+#viabilityproblem.title:Language competition
 
+
+#parameters.dynamicsparametervalues:1.31,-0.1,0.1
+#parameters.stateconstraintparametervalues:0.2,0.2
+#parameters.targetparametervalues:none
+
+#software.title: Viabilitree
+#software.website: https://github.com/ISCPIF/viabilitree
+#software.author : Alvarez et Reuillon 
+#software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
+
+#resultformat.title : kdtree
+#resultformat.description: Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
+#resultformat.parameterlist:statedimension,ColumnDescription
+
+
+#results.author:Isabelle Alvarez
+#results.contact:isabelle.alvarez@irstea.fr
+#results.formatparametervalues:3/x,y,z
+#results.softwareparametervalues:0.2,0.2,0,1,1,1/0.01/21/0/0.05/0.5/new Random(42)
+#results.submissiondate:2016-09-28T13:23+00:00
+#results.title:3D-language-KdT-1024ppa

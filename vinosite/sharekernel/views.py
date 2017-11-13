@@ -105,7 +105,9 @@ def mathinfo(o):
         if not p or not o.software:
             return render(request, 'sharekernel/missingmetadata.html', {'result':o})
         vp = p.viabilityproblem
+        print vp.dynamicsparameters.all()
         for i,v in enumerate(vp.dynamicsparameters.all()):
+            print dynparval
             dynparval.append(''.join([v.shortname," = ",p.dynamicsparametervalues.split(",")[i]]))
         for i,v in enumerate(vp.stateconstraintparameters.all()):
             staconparval.append(''.join([v.shortname," = ",p.stateconstraintparametervalues.split(",")[i]]))

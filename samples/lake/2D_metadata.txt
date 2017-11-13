@@ -1,18 +1,16 @@
 //Metadata describing the viability problem
-
 #viabilityproblem.title:Lake eutrophication
 #viabilityproblem.description:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
 #viabilityproblem.statedimension:2
-#viabilityproblem.statenameandabbreviation:Phosphorus Inputs,L/Phosphorus Concentration,P
-#viabilityproblem.controldimension:1
-#viabilityproblem.controlnameandabbreviation:Phosphorus Inputs Variation,u
+#viabilityproblem.statevariables:[["L","Phosphorus Inputs",""],["P","Phosphorus Concentration",""]]
+#viabilityproblem.controlvariables:[["u","Phosphorus Inputs Variation",""]]
 #viabilityproblem.dynamicsdescription:L'=u,P'=-b*P+L+r*P^q/(m^q+P^q)
 #viabilityproblem.admissiblecontroldescription:u>=unin,u<=unax
-#viabilityproblem.dynamicsparameters:b,r,q,m,unin,unax
+#viabilityproblem.dynamicsparameters:[["b"],["r"],["q"],["m"],["unin"],["unax"]]
 #viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P>=0,P<=Pmax
-#viabilityproblem.stateconstraintparameters:Lmin,Lmax,Pmax
+#viabilityproblem.stateconstraintparameters:[["Lmin"],["Lmax"],["Pmax"]]
 #viabilityproblem.targetdescription:none
-#viabilityproblem.targetparameters:none
+#viabilityproblem.targetparameters:[]
 
 //Metadata describing the parameter values
 #parameters.dynamicsparametervalues:0.8,1,8,1,-0.09,0.09

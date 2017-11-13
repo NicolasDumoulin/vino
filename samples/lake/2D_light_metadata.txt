@@ -2,7 +2,7 @@
 #viabilityproblem.title:Lake eutrophication
 #viabilityproblem.description:Many lake have experienced sudden shift from oligotrophic to eutrophic state. This phenomenon is due to excess phosphorus in lake. The model describes the dynamics of phosphorus concentration and the phophorus inputs.The issue is to determine wether it is possible to maintain the lake in an oligotrophic state while preserving agricultural activities in its watershed.
 #viabilityproblem.statedimension:2
-#viabilityproblem.statevariables:[["L","Phosphorus Inputs",""],["P","Phosphorus Concentration"]]
+#viabilityproblem.statevariables:[["L","Phosphorus Inputs",""],["P","Phosphorus Concentration",""]]
 #viabilityproblem.controlvariables:[["u","Phosphorus Inputs Variation",""]]
 #viabilityproblem.dynamicsdescription:L'=u,P'=-b*P+L+r*P^q/(m^q+P^q)
 #viabilityproblem.admissiblecontroldescription:u>=unin,u<=unax

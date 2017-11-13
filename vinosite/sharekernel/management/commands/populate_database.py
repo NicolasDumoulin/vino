@@ -95,16 +95,19 @@ class Command(BaseCommand):
             metadata = {}
             with open('../samples/'+prefix+'_metadata.txt') as f:
                 for line in f:
+#                    print line
                     if line.startswith('#'):
                         k, v = myre.match(line).groups()
                         metadata[k.strip()] = v.strip()
             f = '../samples/'+prefix+'.txt'
             print(f)
+#            print metadata
             kernel = loader.load(f)
             kernel.metadata.update(metadata)
             addKernel(kernel, user)
 
+
         for f in ['../samples/lake/lake_Isa_R1.dat', '../samples/bilingual-viabilitree/Bilingual21TS05dil3.dat', '../samples/bilingual-viabilitree/bilingual21dil0control0.1ustep0.01WC.dat']:
-            #print(f)
+            print(f)
             kernel = loader.load(f)
             addKernel(kernel, user)
