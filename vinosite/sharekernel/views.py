@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.core.files import File
+from django.core.exceptions import MultipleObjectsReturned
 from operator import attrgetter
 from BarGridKernel import BarGridKernel
 from KdTree import KdTree
@@ -105,9 +106,7 @@ def mathinfo(o):
         if not p or not o.software:
             return render(request, 'sharekernel/missingmetadata.html', {'result':o})
         vp = p.viabilityproblem
-        print vp.dynamicsparameters.all()
         for i,v in enumerate(vp.dynamicsparameters.all()):
-            print dynparval
             dynparval.append(''.join([v.shortname," = ",p.dynamicsparametervalues.split(",")[i]]))
         for i,v in enumerate(vp.stateconstraintparameters.all()):
             staconparval.append(''.join([v.shortname," = ",p.stateconstraintparametervalues.split(",")[i]]))
@@ -864,11 +863,14 @@ def softwarelist(request,viabilityproblem_id,parameters_id,software_id,resultfor
     context = {'software_list' : a_list,'viabilityproblem_id' : viabilityproblem_id,'parameters_id' : parameters_id,'software_id' : software_id,'resultformat_id' : resultformat_id}
     return render(request, 'sharekernel/softwarelist.html', context)
 
-def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={}):
+def findandsaveobject(cls, metadata, foreignkeys={}, relatedforeignkeys={}, fields={}, add_metadata={}):
     '''
     Try to find object with same metadata (excluding pk and foreign keys), or return a new object.
     If foreignkeys are given as a dict (class field name, key value), they will be used for the comparison.
-    If additional fields are given as a dict (field name, field value).
+    If relatedforeignkeys (foreign key from another object to the current one) are given as a dict
+     (object type, object instance without references and unsaved), and if a new object is created
+     the reference of these foreign keys will be setted to the new object.
+    If additional fields are given as a dict (field name, field value), they will be used if a new object is created.
     If add_metadata provided, these metadata will be added if a new object is created but won't be used for the search.
     '''
     # find objects with same metadata and foreign keys
@@ -902,6 +904,17 @@ def findandsaveobject(cls, metadata, foreignkeys={}, fields={}, add_metadata={})
         for fn,fk in foreignkeys.iteritems():
             setattr(p, fn, fk)
         p.save()
+        # creating related foreign keys
+        for varType,variables in relatedforeignkeys.iteritems():
+            foreignkeysdeclared = filter(lambda f:f.is_relation, varType._meta.fields)
+            if len(foreignkeysdeclared) != 1:
+                # only one foreignkey should be declared in the given type
+                # FIXME detect the type of the target of the foreignkey for
+                #  comparing with cls to avoid this limitation to 1 fk
+                raise MultipleObjectsReturned
+            for variable in variables:
+                setattr(variable,foreignkeysdeclared[0].name,p)
+                variable.save()
     else :
         p=p[0]
     return p

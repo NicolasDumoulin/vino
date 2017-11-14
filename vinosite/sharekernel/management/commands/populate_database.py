@@ -16,23 +16,29 @@ hdf5manager = HDF5Manager([BarGridKernel])
 
 def addKernel(kernel, user):
     resultformat_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("resultformat")}
-    resultformat = findandsaveobject(ResultFormat, {METADATA.resultformat_title:resultformat_md[METADATA.resultformat_title]},
-        fields={'submitter':user},
-        add_metadata=resultformat_md)
+    resultformat = findandsaveobject(ResultFormat,
+        metadata={METADATA.resultformat_title:resultformat_md[METADATA.resultformat_title]},
+        fields={'submitter':user}, add_metadata=resultformat_md)
     problem_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("viabilityproblem")}
-    problem = findandsaveobject(ViabilityProblem, {METADATA.title:problem_md[METADATA.title]}, fields={'submitter':user}, add_metadata=problem_md)
-    parameters_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("parameters")}
-    parameters = findandsaveobject(Parameters, parameters_md, foreignkeys={'viabilityproblem':problem}, fields={'submitter':user})
-    software_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("software")}
-    software = findandsaveobject(Software, {METADATA.software_title:software_md[METADATA.software_title]}, fields={'submitter':user}, add_metadata=software_md)
-    # storing variables
+    relatedforeignkeys={}
     for varType in [StateVariable, ControlVariable, DynamicsParameter, StateConstraintParameter, TargetParameter]:
-        key = varType.__name__.lower()+"s"
-        for v in eval(kernel.metadata[getattr(METADATA,key)]):
+        variables=[]
+        relatedforeignkeys[varType] = variables
+        for v in eval(problem_md[getattr(METADATA,varType.__name__.lower()+"s")]):
             # put default values to ensure to have 3 elements
             v = v + [""]*(3-len(v))
-            sv = varType(shortname=v[0], name=v[1], unit=v[2], viabilityproblem=problem)
-            sv.save()
+            variables.append(varType(shortname=v[0], name=v[1], unit=v[2]))
+    problem = findandsaveobject(ViabilityProblem,
+        metadata={METADATA.title:problem_md[METADATA.title]},
+        relatedforeignkeys=relatedforeignkeys,
+        fields={'submitter':user}, add_metadata=problem_md)
+    parameters_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("parameters")}
+    parameters = findandsaveobject(Parameters, parameters_md,
+        foreignkeys={'viabilityproblem':problem}, fields={'submitter':user})
+    software_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("software")}
+    software = findandsaveobject(Software,
+        metadata={METADATA.software_title:software_md[METADATA.software_title]},
+        fields={'submitter':user}, add_metadata=software_md)
     # obtaining an unique filename
     tmpfile = tempfile.NamedTemporaryFile(prefix=slugify(kernel.metadata[METADATA.title]),suffix=".h5")
     filename = tmpfile.name
@@ -95,17 +101,14 @@ class Command(BaseCommand):
             metadata = {}
             with open('../samples/'+prefix+'_metadata.txt') as f:
                 for line in f:
-#                    print line
                     if line.startswith('#'):
                         k, v = myre.match(line).groups()
                         metadata[k.strip()] = v.strip()
             f = '../samples/'+prefix+'.txt'
             print(f)
-#            print metadata
             kernel = loader.load(f)
             kernel.metadata.update(metadata)
             addKernel(kernel, user)
-
 
         for f in ['../samples/lake/lake_Isa_R1.dat', '../samples/bilingual-viabilitree/Bilingual21TS05dil3.dat', '../samples/bilingual-viabilitree/bilingual21dil0control0.1ustep0.01WC.dat']:
             print(f)
