@@ -37,6 +37,11 @@ class StateSetAdmin(admin.ModelAdmin):
         return str(map(lambda x:x['id'],obj.parents.values()))
 
 admin.site.register(Software)
+admin.site.register(StateVariable)
+admin.site.register(ControlVariable)
+admin.site.register(DynamicsParameter)
+admin.site.register(StateConstraintParameter)
+admin.site.register(TargetParameter)
 admin.site.register(ViabilityProblem,ViabilityProblemAdmin)
 admin.site.register(Parameters, ParametersAdmin)
 admin.site.register(Results, ResultsAdmin)
