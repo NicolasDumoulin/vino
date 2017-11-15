@@ -49,6 +49,10 @@ class Variable(models.Model):
     unit = models.CharField(max_length=500,default ='', blank=True)
     class Meta:
         abstract = True
+    def __repr__(self):
+        return '["{}","{}","{}"]'.format(self.shortname, self.name, self.unit)
+    def testrepr(self):
+        return '["{}","{}","{}"]'.format(shortname, name, unit)
     def __str__(self):
         name = ""
         if len(self.name) > 1:
@@ -56,19 +60,19 @@ class Variable(models.Model):
         return str(self.shortname) + name
 
 class StateVariable(Variable):
-    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='statevariables', on_delete=models.PROTECT)
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='statevariables', on_delete=models.CASCADE)
 
 class ControlVariable(Variable):
-    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='controlvariables', on_delete=models.PROTECT)
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='controlvariables', on_delete=models.CASCADE)
 
 class DynamicsParameter(Variable):
-    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='dynamicsparameters', on_delete=models.PROTECT)
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='dynamicsparameters', on_delete=models.CASCADE)
 
 class StateConstraintParameter(Variable):
-    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='stateconstraintparameters', on_delete=models.PROTECT)
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='stateconstraintparameters', on_delete=models.CASCADE)
 
 class TargetParameter(Variable):
-    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='targetparameters', on_delete=models.PROTECT)
+    viabilityproblem = models.ForeignKey(ViabilityProblem, related_name='targetparameters', on_delete=models.CASCADE)
 
 class Software(BaseEntity):
     version = models.CharField(max_length=20,default='', blank=True)
