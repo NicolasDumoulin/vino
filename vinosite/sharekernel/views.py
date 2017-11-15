@@ -499,8 +499,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
         elif vino.resultformat.title =='kdtree':
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
-
-        dimension = vino.parameters.viabilityproblem.statevariables.count
+        dimension = vino.parameters.viabilityproblem.statevariables.count()
         distancegriddimensions = [int(ppa)]*dimension
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
@@ -570,7 +569,7 @@ def ViNOHistogramDistance(request,result_id,ppa,hist_maxvalue):
             hm = HDF5Manager([KdTree])
         vinokernel = hm.readKernel(vino.datafile.path)
 
-        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statevariables.count
+        distancegriddimensions = [int(ppa)]*vino.parameters.viabilityproblem.statevariables.count()
         distancegridintervals = map(lambda e: e-1, distancegriddimensions)
         newintervalsizes = (np.array(vinokernel.getMaxFrameworkBounds())-np.array(vinokernel.getMinFrameworkBounds()))/np.array(distancegriddimensions)
         neworigin = list(np.array(vinokernel.getMinFrameworkBounds())+newintervalsizes/2)
@@ -796,7 +795,7 @@ def visualizeresulttrajectoriesancien(request,result_id):
     stateabbrevs = vp.stateabbreviation()
     controlabbrevs = vp.controlabbreviation()
     rf=r.resultformat
-    for i in range(vp.statevariables.count):
+    for i in range(vp.statevariables.count()):
         forms.append(TrajForm())
     hm = HDF5Manager([BarGridKernel])
     bargrid = hm.readKernel(r.datafile.path)
@@ -823,7 +822,7 @@ def compareresultbis(request, vinoA_id, vinoB_id):
     vinoA = Results.objects.get(id=vinoA_id)
     vinoB = Results.objects.get(id=vinoB_id)
     # TODO configurable new dimensions
-    distancegriddimensions = [31]*vinoA.parameters.viabilityproblem.statevariables.count
+    distancegriddimensions = [31]*vinoA.parameters.viabilityproblem.statevariables.count()
     distancegridintervals = map(lambda e: e-1, distancegriddimensions)
     gridA = hdf5manager.readKernel(vinoA.datafile.path)
     gridA = gridA.toBarGridKernel(gridA.originCoords, gridA.oppositeCoords, distancegridintervals)
@@ -948,7 +947,7 @@ def next(state,control,dt,method,p):
 
 def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
     statetrajectories = []
-    for i in range(vp.statevariables.count+1):
+    for i in range(vp.statevariables.count()+1):
 	       statetrajectories.append([])
 #    print statetrajectories
     tmin = 0
@@ -986,7 +985,7 @@ def evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p):
 def viableEvolution(Tmax,dt,method,controltrajectories,startingstate,vp,p,vino,controlsteps,stateabbrevs,controlabbrevs):
     npcontrolsteps = np.array(controlsteps)
     statetrajectories = []
-    for i in range(vp.statevariables.count+1):
+    for i in range(vp.statevariables.count()+1):
 	       statetrajectories.append([])
 #    print statetrajectories
     tmin = 0
@@ -1122,7 +1121,7 @@ def makeEvolutionViable(request,result_id):
             dt = float(request.POST["dt"])
             method = request.POST["method"]
             startingstate = []
-            for i in range(vp.statevariables.count):
+            for i in range(vp.statevariables.count()):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
 
 #            statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
@@ -1141,7 +1140,7 @@ def makeEvolutionViable(request,result_id):
 #                print(con())
 
                 colors = colors*np.array(con(),dtype=int)
-            dimension = vp.statevariables.count
+            dimension = vp.statevariables.count()
             for i in range(len(colors)):
                 if (colors[i] == 1):
                     point = []
@@ -1221,7 +1220,7 @@ def controltostate(request,result_id):
             dt = float(request.POST["dt"])
             method = request.POST["method"]
             startingstate = []
-            for i in range(vp.statevariables.count):
+            for i in range(vp.statevariables.count()):
                 startingstate.append(float(request.POST["startingstate"+str(i+1)]))
             statetrajectories = evolution(Tmax,dt,method,controltrajectories,startingstate,vp,p)
 
@@ -1238,7 +1237,7 @@ def controltostate(request,result_id):
 #                print(con())
 
                 colors = colors*np.array(con(),dtype=int)
-            dimension = vp.statevariables.count
+            dimension = vp.statevariables.count()
             for i in range(len(colors)):
                 if (colors[i] == 1):
                     point = []
