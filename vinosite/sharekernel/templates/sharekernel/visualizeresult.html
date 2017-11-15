@@ -493,11 +493,13 @@ function ShowAccurateSection(){
     }
     ch = tabtab.join([separator = ',']);
     index = twoDsectionCoordinates.indexOf(ch);
+
     if (container.data.length - 1 >= 1){Plotly.deleteTraces(container, [container.data.length - 1]); }
     if (index == - 1){
         item = [];
     } else{
         item = twoDsections[index];
+
         item.marker.cmax = twoDsectionCmax;
         Plotly.addTraces(container, [item]);
     }
@@ -613,7 +615,7 @@ function ShowSection(transpose){
     twoDsections = [];
     twoDsectionMins = [];
     twoDsectionMaxs = [];
-
+    twoDsectionCoordinates = [];
     var currentIndex = '-1';
     var xbounds = [];
     var ybounds = [];
