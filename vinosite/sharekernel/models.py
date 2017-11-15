@@ -32,13 +32,16 @@ class ViabilityProblem(BaseEntity):
     def admissibles(self):
       return self.admissiblecontroldescription.split(",")
     def stateabbreviation(self):
-      return [v[0] for v in self.statevariables]
+      return [v.shortname for v in self.statevariables.all()]
     def statename(self):
-      return [v[1] for v in self.statevariables]
+      return [v.name for v in self.statevariables.all()]
     def controlabbreviation(self):
-      return [v[0] for v in self.controlvariables]
+      return [v.shortname for v in self.controlvariables.all()]
     def controlname(self):
-      return [v[1] for v in self.controlvariables]
+      return [v.name for v in self.controlvariables.all()]
+    def stateconstraintparameterabbreviation(self):
+      return [v.shortname for v in self.stateconstraintparameters.all()]
+
 
     def __str__(self):
         return str(self.pk) + " " + self.title
@@ -122,7 +125,8 @@ class Parameters(BaseEntity):
         desstateandcontrol = []
         descon = self.viabilityproblem.constraints()
         j=0
-        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+#        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+        for thing in self.viabilityproblem.stateconstraintparameterabbreviation():
              for i in range(len(descon)):
                   descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
              j = j+1
@@ -138,7 +142,7 @@ class Parameters(BaseEntity):
         desstateandcontrol = []
         descon = self.viabilityproblem.constraints()
         j=0
-        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+        for thing in self.viabilityproblem.stateconstraintparameterabbreviation():
              for i in range(len(descon)):
                   descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
              j = j+1
