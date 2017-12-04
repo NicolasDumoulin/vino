@@ -5,8 +5,8 @@ import METADATA
 
 class Kernel(object):
   def __init__(self, metadata={}):
-    self.__metadata = metadata    
-  
+    self.__metadata = metadata
+
   @property
   def metadata(self):
     return self.__metadata

@@ -6,7 +6,8 @@
 #viabilityproblem.dynamicsdescription:L'=u,P'=-b*P+L+r*P^q/(m^q+P^q)
 #viabilityproblem.admissiblecontroldescription:u>=unin,u<=unax
 #viabilityproblem.dynamicsparameters:[["b"],["r"],["q"],["m"],["unin"],["unax"]]
-#viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P>=0,P<=Pmax
+#viabilityproblem.stateconstraintdescription:L>=Lmin,L<=Lmax,P<=Pmax
+#viabilityproblem.statedefinitiondomain:P>=0
 #viabilityproblem.stateconstraintparameters:[["Lmin"],["Lmax"],["Pmax"]]
 #viabilityproblem.targetdescription:none
 #viabilityproblem.targetparameters:[]
@@ -17,7 +18,7 @@
 
 #software.title: Viabilitree
 #software.website: https://github.com/ISCPIF/viabilitree
-#software.author : Alvarez et Reuillon 
+#software.author : Alvarez et Reuillon
 #software.parameters:Exploration domain, control step, maximal division deepness, dilatation parameter, Runge-Kutta integration step, Runge-Kutta time step, random seed
 
 #resultformat.title : kdtree

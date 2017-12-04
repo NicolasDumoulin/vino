@@ -22,14 +22,16 @@ def addKernel(kernel, user):
     problem_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("viabilityproblem")}
     relatedforeignkeys={}
     for varType in [StateVariable, ControlVariable, DynamicsParameter, StateConstraintParameter, TargetParameter]:
+        metadatakey = getattr(METADATA, varType.__name__.lower()+"s")
         variables=[]
         relatedforeignkeys[varType] = variables
-        for v in eval(problem_md[getattr(METADATA,varType.__name__.lower()+"s")]):
+        for v in eval(problem_md[metadatakey]):
             # put default values to ensure to have 3 elements
             v = v + [""]*(3-len(v))
             variables.append(varType(shortname=v[0], name=v[1], unit=v[2]))
+        del problem_md[metadatakey]
     problem = findandsaveobject(ViabilityProblem,
-        metadata={METADATA.title:problem_md[METADATA.title]},
+        metadata=problem_md,
         relatedforeignkeys=relatedforeignkeys,
         fields={'submitter':user}, add_metadata=problem_md)
     parameters_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("parameters")}
@@ -97,7 +99,7 @@ class Command(BaseCommand):
         # Now populating some kernels
         loader = Loader()
         myre = re.compile('^#(.*):(.*)$')
-        for prefix in ['lake/2D_light','lake/2D','rangeland/3D_rangeland']:
+        for prefix in ['lake/2D','lake/2D_light','rangeland/3D_rangeland']:
             metadata = {}
             with open('../samples/'+prefix+'_metadata.txt') as f:
                 for line in f:

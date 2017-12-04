@@ -21,10 +21,12 @@ class Document(models.Model):
     docfile = models.FileField(upload_to='documents/%Y/%m/%d')
 
 class ViabilityProblem(BaseEntity):
-    dynamicsdescription = models.CharField(max_length=500,default =0)
-    admissiblecontroldescription = models.CharField(max_length=500,default =0)
-    stateconstraintdescription = models.CharField(max_length=500,default =0)
-    targetdescription = models.CharField(max_length=500,default =0)
+    dynamicsdescription = models.CharField(max_length=500,default = '')
+    admissiblecontroldescription = models.CharField(max_length=500,default = '')
+    stateconstraintdescription = models.CharField(max_length=500,default = '')
+    statedefinitiondomain = models.CharField(max_length=500,default = '', blank=True)
+    admissiblecontrolbbox = models.CharField(max_length=500,default = '', blank=True)
+    targetdescription = models.CharField(max_length=500,default = '')
     def dynamics(self):
       return [fulldyn.split("=")[1] for fulldyn in self.dynamicsdescription.split(",")]
     def constraints(self):
@@ -170,6 +172,7 @@ class Results(BaseEntity):
     parameters = models.ForeignKey(Parameters, null = True)
     software = models.ForeignKey(Software, null = True)
     resultformat = models.ForeignKey(ResultFormat, null=True)
+    explorationdomain = models.CharField(max_length=500,default = '', blank=True)
     softwareparametervalues = models.CharField(max_length=500,default = '', blank=True)
     formatparametervalues = models.CharField(max_length=500,default = '', blank=True)
     datafile = models.FileField(upload_to='results/%Y/%m/%d')

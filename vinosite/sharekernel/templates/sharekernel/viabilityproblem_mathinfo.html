@@ -57,7 +57,11 @@ its parameters values if provided
                 {% for i in stacondes%}
                 {{ i }}<br>
                 {% endfor %}
-                <br><br>
+                <br>
+                {% if viabilityproblem.statedefinitiondomain|length > 0 %}
+                plop - {{viabilityproblem.statedefinitiondomain}}
+                {% endif %}
+                <br>
                 Parameters :
                 {% if staconparval %}
                 <ul>
