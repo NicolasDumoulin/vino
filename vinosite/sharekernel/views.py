@@ -879,7 +879,7 @@ def findandsaveobject(cls, metadata, foreignkeys={}, relatedforeignkeys={}, fiel
 #                str(metadata.get(cls.__name__.lower()+'.'+f.name)) == str(getattr(o, f.name))
                 # list all model attributes except db keys
 #                for f in filter(lambda f:not f.is_relation, cls._meta.fields)
-                hasattr(o, k[len(cls.__name__)+1:]) and getattr(o, k[len(cls.__name__)+1:]) == v
+                not hasattr(o, k[len(cls.__name__)+1:]) or getattr(o, k[len(cls.__name__)+1:]) == v
                 for k,v in metadata.iteritems()
             ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
         ]
