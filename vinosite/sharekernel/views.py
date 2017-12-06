@@ -216,17 +216,6 @@ def visitviabilityproblem(request,viabilityproblem_id):
     context.update(mathinfo(vp))
     return render(request, 'sharekernel/visitviabilityproblem.html', context)
 
-def kerneluploaded(request):
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            newdoc = Document(docfile = request.FILES['docfile'])
-            newdoc.save()
-    else:
-        form = DocumentForm() # A empty, unbound form
-
-    return HttpResponse("Your file has been successfully uploaded")
-
 pspModifiedLoader = FileFormatLoader.PspModifiedLoader()
 def bargrid2json(request):
     if request.method == 'POST':
@@ -841,17 +830,6 @@ def compareresultbis(request, vinoA_id, vinoB_id):
         context[key] = json.dumps(list(grid.bars), sort_keys = True, ensure_ascii=False)
     return render(request, 'sharekernel/compareTwoVinos.html', context)
 
-def kerneluploadpage(request, parameters_id=None, software_id=None):
-    '''
-    Returns a form for uploading a kernel file, using jfu form plugin (through kerneluploadfile.htm template) that will give file to views.kerneluploadfile method.
-    '''
-    form = DocumentForm()
-    context = { 'form': form,
-        'parameters_id' : parameters_id,
-        'software_id' : software_id,
-        }
-    return render(request, 'sharekernel/kernelupload.html', context)
-
 def algorithmlist(request):
     a_list = Software.objects.all()
     context = {'software_list' : a_list}
@@ -1348,6 +1326,28 @@ def editresult(request, result_id):
     return render(request, 'sharekernel/formTemplate.html', {'page-title':'Editing result '+str(result), 'form': form})
 
 from jfu.http import upload_receive, UploadResponse
+
+def kerneluploadpage(request, parameters_id=None, software_id=None):
+    '''
+    Returns a form for uploading a kernel file, using jfu form plugin (through kerneluploadfile.htm template) that will give file to views.kerneluploadfile method.
+    '''
+    form = DocumentForm()
+    context = { 'form': form,
+        'parameters_id' : parameters_id,
+        'software_id' : software_id,
+        }
+    return render(request, 'sharekernel/kernelupload.html', context)
+
+def kerneluploaded(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    return HttpResponse("Your file has been successfully uploaded")
 
 @require_POST
 def kerneluploadfile(request):
