@@ -860,7 +860,8 @@ def findandsaveobject(cls, metadata, foreignkeys={}, relatedforeignkeys={}, fiel
                 for k,v in metadata.iteritems()
             ) and all(getattr(o,f)==fk for f,fk in foreignkeys.iteritems())
         ]
-    if not p:
+    # Results object will never be reused as a new file should give a new Result
+    if cls==Results or not p:
         # no object found, creating a new one
         p = cls()
         # setting metadata
@@ -1364,8 +1365,9 @@ def kerneluploadfile(request):
     # 'file' may be a list of files.
     file = upload_receive(request)
     resultFormat = None
-    parameters_id=request.POST['parameters_id'] # may be None
-    software_id=request.POST['software_id'] # may be None
+    kernel = None
+    parameters_id=request.POST.get('parameters_id', 'None') # may be None
+    software_id=request.POST.get('software_id', 'None') # may be None
     if "metadata" in request.POST:
         # in this case, the file has already been uploaded, and now we get missing metadata
         metadata = {METADATA.resultformat_title: request.POST['format']}
@@ -1462,7 +1464,7 @@ def kerneluploadfile(request):
                     # TODO log this error that should be fixed by administrators!
                     warnings.append('The format "'+metadata["resultformat.title"]+'" is unknown!')
             fields["resultformat"] = resultFormat
-            result = findandsaveobject(Results, metadata, fields=fields)
+            result = findandsaveobject(Results, metadata={}, add_metadata=metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
                 'status': 'success',
