@@ -23,10 +23,10 @@
 
 #resultformat.title : kdtree
 #resultformat.description: Each file line contains a given number of real numbers separated by a blank describing the coordinates of one point in the cube, then the minimum and maximum values on each axis describing the cube belonging to the approximated kernel.
-#resultformat.parameterlist:statedimension,ColumnDescription
+#resultformat.parameterlist:viabilityproblem.statedimension;ColumnDescription
 
 #results.title:2D-lake-KdT-1024ppa
 #results.author:Isabelle Alvarez
 #results.contact:isabelle.alvarez@irstea.fr
 #results.softwareparametervalues:0.0,0.0,1.0,1.5/0.01/20/0/0.02/0.1/new Random(42)
-#results.formatparametervalues:2/L,P
+#results.formatparametervalues:2;L,P
