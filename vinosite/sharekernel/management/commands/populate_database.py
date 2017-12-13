@@ -11,6 +11,7 @@ from BarGridKernel import BarGridKernel
 from django.utils.text import slugify
 from sharekernel.views import findandsaveobject
 from django.contrib.auth.models import User
+from init_database import clear_database, create_defaultusers, create_defaultformats
 
 hdf5manager = HDF5Manager([BarGridKernel])
 
@@ -80,21 +81,10 @@ class Command(BaseCommand):
             if not options['sure-delete']:
                 self.stdout.write("You want to delete all objects and users before populating the database with samples. If you know what you are doing, please add the argument 'sure' in the command:\n    python manage.py populate_database --delete --sure-delete")
                 return
-            ResultFormat.objects.all().delete()
-            ViabilityProblem.objects.all().delete()
-            Software.objects.all().delete()
-            Parameters.objects.all().delete()
-            Results.objects.all().delete()
-            Document.objects.all().delete()
-            StateVariable.objects.all().delete()
-            ControlVariable.objects.all().delete()
-            DynamicsParameter.objects.all().delete()
-            StateConstraintParameter.objects.all().delete()
-            TargetParameter.objects.all().delete()
+            clear_database()
+            create_defaultformats()
         # Adding default users
-        for username, email in [['nicolas.dumoulin','nicolas.dumoulin@irstea.fr'],['sophie.martin','sophie.martin@irstea.fr']]:
-            if not User.objects.filter(username=username).exists():
-                User.objects.create_superuser(username=username, email=email, password=None)
+        create_defaultusers()
         user = User.objects.first()
         # Now populating some kernels
         loader = Loader()
