@@ -1369,19 +1369,36 @@ def kerneluploadfile(request):
     parameters_id=request.POST.get('parameters_id', 'None') # may be None
     software_id=request.POST.get('software_id', 'None') # may be None
     if "metadata" in request.POST:
-        # in this case, the file has already been uploaded, and now we get missing metadata
-        metadata = {METADATA.resultformat_title: request.POST['format']}
-        resultFormat = ResultFormat.objects.get(title=request.POST['format'])
-        parameters = []
-        for formatParameter in resultFormat.parameterlist.split(';'):
-            if formatParameter in METADATA.values():
-                metadata[formatParameter] = request.POST[formatParameter]
-            parameters.append(request.POST[formatParameter])
-        if len(parameters)>0:
-            metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
-        kernel=KdTree.readViabilitree(request.POST['path'], metadata)
-        tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
-        hdf5manager.writeKernel(kernel, tmpfilename)
+        metadata = json.loads(request.POST['metadata'])
+        if file:
+            # a file has been submitted with its metadata in POST parameters at the same time
+            tmpfile = tempfile.NamedTemporaryFile(delete=False)
+            tmpfilename = tmpfile.name
+            for chunk in file.chunks():
+                tmpfile.write(chunk)
+            tmpfile.close()
+            if metadata[METADATA.resultformat_title]=='kdtree':
+                kernel=KdTree.readViabilitree(tmpfile.name, metadata)
+            else:
+                kernel = loader.load(tmpfile.name)
+            tmpfilename = os.path.splitext(file.name)[0]+u'.h5'
+        else:
+            # in this case, the file has already been uploaded, and now we're
+            # looking for parameters needed by the format
+            resultFormat = ResultFormat.objects.get(title=request.POST['format'])
+            if METADATA.results_formatparametervalues not in metadata:
+                # format parameters values requested are not present in metadata received, so
+                # they should be in form data
+                parameters = []
+                for formatParameter in resultFormat.parameterlist.split(';'):
+                    if formatParameter in METADATA.values():
+                        metadata[formatParameter] = request.POST[formatParameter]
+                    parameters.append(request.POST[formatParameter])
+                if len(parameters)>0:
+                    metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
+            kernel=KdTree.readViabilitree(request.POST['path'], metadata)
+            tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
+            hdf5manager.writeKernel(kernel, tmpfilename)
     elif file:
         # in this case, we receive a file that we try to read
         try:
@@ -1410,23 +1427,24 @@ def kerneluploadfile(request):
                         if l == len(cols):
                             # seems good, now we need to ask some metadata for reading correctly the file
                             resultFormat = ResultFormat.objects.get(title="kdtree")
-                            return UploadResponse( request, {
-                                    'name' : os.path.basename(tmpfile.name),
-                                    "path": tmpfile.name,
-                                    "metadata": resultFormat.toDict(),
-                                    'head': head,
-                                    'metadataForm': render(request,'sharekernel/formatDetected.html',context = {
-                                            'userFilename' : file.name,
-                                            "path": tmpfile.name,
-                                            "metadata": resultFormat.toDict(),
-                                            "parameters_id": parameters_id,
-                                            "software_id": software_id,
-                                            'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split(';')),
-                                            'head': head,
-                                            'format': resultFormat.title,
-                                            'callback': request.POST['callback']
-                                        }).content
-                                })
+                            context = {'userFilename' : file.name,
+                                "path": tmpfile.name,
+                                "metadata":  {}, #resultFormat.toDict(),
+                                "parameters_id": parameters_id,
+                                "software_id": software_id,
+                                "parameterlist":resultFormat.parameterlist.split(';'),
+                                'metadataForm': MetadataFromListForm(resultFormat.parameterlist.split(';')),
+                                'head': head,
+                                'format': resultFormat.title,
+                                'callback': request.POST['callback']}
+                            data = {
+                                'name' : os.path.basename(tmpfile.name),
+                                'metadataForm': render(request,'sharekernel/formatDetected.html',context =context).content
+                                }
+                            # context variables are returned as data, except metadataForm
+                            data.update(context)
+                            del data['metadataForm']
+                            return UploadResponse( request, data)
                         #else:
                         #    return UploadResponse( request, {'error':"Numbers of columns doesn't match with 2 first lines"})
                 except Exception as e:
