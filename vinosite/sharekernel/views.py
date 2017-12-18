@@ -866,12 +866,13 @@ def findandsaveobject(cls, metadata, foreignkeys={}, relatedforeignkeys={}, fiel
         p = cls()
         # setting metadata
         for f in filter(lambda f:not f.is_relation, cls._meta.fields):
-            if cls.__name__.lower()+'.'+f.name in metadata:
-                setattr(p, f.name, metadata[cls.__name__.lower()+'.'+f.name])
-            elif cls.__name__.lower()+'.'+f.name in add_metadata:
-                setattr(p, f.name, add_metadata[cls.__name__.lower()+'.'+f.name])
+            key = cls.__name__.lower()+'.'+f.name
+            if key in metadata:
+                setattr(p, f.name, metadata[key])
+            elif key in add_metadata:
+                setattr(p, f.name, add_metadata[key])
             else:
-                logging.getLogger(__name__).info("metadata not found: "+cls.__name__.lower()+'.'+f.name)
+                logging.getLogger(__name__).info("metadata not found: "+key)
         # setting additional field (data file)
         for name, value in fields.iteritems():
             if isinstance(value, File):
@@ -1470,11 +1471,32 @@ def kerneluploadfile(request):
                     fields["parameters"] = Parameters.objects.get(id=parameters_id)
                 except Parameters.DoesNotExist:
                     warnings.append('Parameters set with id='+parameters_id+' has disappeared!')
+            else:
+                # Result has been submitted without reference to existing problem and parameters
+                # Trying to find or create them with given metadata
+                metadataProblem = {k:v for k,v in metadata.iteritems() if k.startswith('viabilityproblem')}
+                problem = None
+                if metadataProblem:
+                    # metadata are given for creating viability problem
+                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem)
+                metadataParameters = {k:v for k,v in metadata.iteritems() if k.startswith('parameters')}
+                if metadataParameters:
+                    # metadata are given for creating parameters
+                    fields['parameters'] = findandsaveobject(Parameters,
+                        metadata=metadataParameters,
+                        foreignkeys={'viabilityproblem': problem})
             if software_id and software_id!="None":
                 try:
                     fields["software"] = Software.objects.get(id=software_id)
                 except Software.DoesNotExist:
                     warnings.append('Software with id='+software_id+' has disappeared!')
+            else:
+                # Result has been submitted without reference to existing software
+                # Trying to find or create them with given metadata
+                metadataSoftware = {k:v for k,v in metadata.iteritems() if k.startswith('software')}
+                if metadataSoftware:
+                    # metadata are given for creating parameters
+                    fields['software'] = findandsaveobject(Software, metadata=metadataSoftware)
             if not resultFormat:
                 try:
                     resultFormat = ResultFormat.objects.get(title=metadata[METADATA.resultformat_title])
