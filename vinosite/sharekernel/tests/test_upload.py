@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from sharekernel.models import Results
+from sharekernel.models import Results, ViabilityProblem
 from django.core.management import call_command
 import re
 import METADATA
@@ -22,6 +22,7 @@ class SimpleTest(TestCase):
         Upload a viabilitree file within its metadata in a single POST request.
         '''
         count = Results.objects.count()
+        countVP = ViabilityProblem.objects.count()
         with open('../samples/bilingual-viabilitree/Bilingual21TS05dil3.dat') as f:
             data = {'callback':'fileSubmitted', 'files[]':f, 'metadata':{}}
             with open('../samples/bilingual-viabilitree/Bilingual21TS05dil3.txt') as f:
@@ -38,6 +39,7 @@ class SimpleTest(TestCase):
             self.assertTrue('pk' in content['files'][0])
             self.assertEqual(content['files'][0]['status'], 'success')
             self.assertEqual(Results.objects.count(), count + 1)
+            self.assertEqual(ViabilityProblem.objects.count(), countVP + 1)
 
     def test_uploadkdtree_withform(self):
         '''
