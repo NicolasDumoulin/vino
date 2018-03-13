@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from BarGridKernel import BarGridKernel
-
+from Equation import Expression
+import numpy as np
 
 class Line(object):
     '''
@@ -13,6 +14,23 @@ class Line(object):
     def getLineFromMatrix(self,matrix,positions):
         for i in range(len(positions)):
             self.data[i] = matrix.data[positions[i]]    
+
+
+    def firstpassWithDefDom(self,arethey):
+        lendata = len(self.data)        
+        if arethey[0]:
+            self.data[0] = min(self.data[0],1)
+        for i in range(1,lendata):
+	    if (self.data[i-1] >=0):
+                self.data[i] = min(self.data[i],self.data[i-1]+1)
+        if arethey[1]:
+            self.data[lendata-1] = min(self.data[lendata-1],1)
+        for i in range(1,lendata):
+	    if (self.data[lendata-i] >=0):
+                self.data[lendata-1-i] = min(self.data[lendata-1-i],self.data[lendata-i]+1)
+        for i in range(lendata):
+	    if (self.data[i] >=0):
+                self.data[i] = self.data[i]*self.data[i]
 
 
     def firstpass(self,lowborder,upborder):
@@ -29,6 +47,91 @@ class Line(object):
             self.data[i] = self.data[i]*self.data[i]
         
         
+    def updateWithDefDom(self,norm,arethey):
+#     print self.data
+     if (max(self.data) >0):
+      tabindices = []
+      tab = list(self.data)
+      if arethey[0] == True:
+            tab.insert(0,0)
+      if arethey[1] == True:
+            tab.append(0)
+      lentab = len(tab)
+      j=0
+      while tab[j]==-1:
+            j=j+1
+      for i in range(lentab):
+            tabindices.append(j)
+      minrange = 0
+      if j<lentab:        
+        for j in range(j+1,lentab):
+          maxrange = lentab-1            
+	  if (tab[j]>=0):
+ #           print "new j %d" %j
+ #           print tabindices
+            i = tabindices[-1]
+            while (i>=0):
+#                print i
+#                print j
+#                print tab[i]
+#                print tab[j]
+                intersect = norm.intersectindex(i,j,tab[i],tab[j])
+#                print "intersect %d" %intersect
+                if (intersect > maxrange):
+                    i = -1
+#                    print "sortie 1"
+                elif (intersect < minrange):
+                    k = maxrange
+                    while (k>=minrange) and (tabindices[k] == i) :
+                        tabindices[k] = j
+                        k = k-1
+                    if k >=minrange:
+                        i = tabindices[k]
+                        maxrange = k
+#                        print "sortie 2"
+                    else :
+                        i = -1
+#                        print "sortie 3"
+                elif (tabindices[intersect] == i) :
+                    for k in range(intersect,maxrange+1):
+                        tabindices[k] = j
+                    i = - 1
+#                    print "sortie 4"
+                else : 
+                    k = maxrange
+#                    print tabindices
+                    while (k>=minrange) and (tabindices[k] == i) :
+                        tabindices[k] = j
+                        k = k-1
+#                    print tabindices
+                    if k >=minrange:
+                        i = tabindices[k]
+                        maxrange = k
+#                        print i
+#                        print "sortie 5"
+                    else :
+                        i = -1
+#                        print "sortie 6"
+          else:
+	    minrange = j
+            k=j
+            while (k<=maxrange):
+              tabindices[k] = j+1
+              k=k+1  
+ #       print tabindices
+#        print self.data
+        if arethey[0] == True:
+            indexadd = 1
+        else : 
+            indexadd = 0
+        for k in range(len(self.data)):
+#            print k
+            kbis = k+indexadd
+            index = tabindices[kbis]
+            if self.data[k]>0:
+                 self.data[k] = norm.newdistance(tab[index],kbis-index)            
+#        print self.data
+
     def update(self,norm,lowborder,upborder):
         tabindices = []
         tab = list(self.data)
@@ -156,6 +259,136 @@ class Matrix(object):
 	newmatrix.maximum = max(newmatrix.data)
         return newmatrix
 
+    def boundsAreInDefDom(self,direction,positions,bargrid,stateabbrevs,eqs):
+        dimensions = list(bargrid.intervalNumberperaxis)
+        dimensions = map(lambda e: e+1, dimensions)
+        nbdim = len(dimensions)
+        spacesizes = [1]*nbdim
+#        print newmatrix.dimensions
+#        print total
+        for i in range(1,nbdim):
+            spacesizes[nbdim-1-i] = spacesizes[nbdim-i]*dimensions[nbdim-i]
+
+	arethey = []
+	arethey.append(False)
+	if (self.data[positions[0]] > 0):
+		icurrent = positions[0]
+                point = []
+		for j in range(nbdim):
+		    point.append(icurrent//spacesizes[j])
+		    icurrent = icurrent % spacesizes[j]
+		point[direction-1] = point[direction-1]-1
+	        if (point[direction-1]>0):
+		    print "ouille"
+#                print positions[0]
+#                print self.data[positions[0]]
+#		print point
+
+                pas =  (bargrid.oppositeCoords - bargrid.originCoords)/bargrid.intervalNumberperaxis
+		realpoint = bargrid.originCoords+np.dot(np.transpose(bargrid.permutation),np.array(point,float))*pas
+		b = True
+                for con in eqs:
+#                print con
+#                print statetrajectories[0]
+                    for var in con:
+#                    print var
+                        if var in stateabbrevs:
+#                        print "dedans"
+                            con[var] = np.array(realpoint[stateabbrevs.index(var)])
+#                    print(con())
+		    if con() == False:
+			b = False
+			break 
+#		print point
+		if b==True:
+		    arethey[0] = True
+#                    print "true"
+	arethey.append(False)
+	if (self.data[positions[-1]] > 0):
+		icurrent = positions[-1]
+                point = []
+		for j in range(nbdim):
+		    point.append(icurrent//spacesizes[j])
+		    icurrent = icurrent % spacesizes[j]
+		point[direction-1] = point[direction-1]+1
+                pas =  (bargrid.oppositeCoords - bargrid.originCoords)/bargrid.intervalNumberperaxis
+		realpoint = bargrid.originCoords+np.dot(np.transpose(bargrid.permutation),np.array(point,float))*pas
+		b = True
+                for con in eqs:
+#                print con
+#                print statetrajectories[0]
+                    for var in con:
+#                    print var
+                        if var in stateabbrevs:
+#                        print "dedans"
+                            con[var] = np.array(realpoint[stateabbrevs.index(var)])
+#                    print(con())
+		    if con() == False:
+			b = False
+			break 
+#		print point
+		if b==True:
+		    arethey[-1] = True
+#                    print "true"
+        return arethey
+
+    @classmethod 
+    def initFromBarGridKernelAndDefDom(cls,bargrid,stateabbrevs,eqs):
+	'''
+	Initialize from a BarGridKernel a Matrix with the same underlying grid. The value of the Matrix cell is set at 0 if this cell does'nt belong to the BarGridKernel 
+	and to +infty otherwise.
+	''' 
+        newmatrix = None
+        dimensions = list(bargrid.intervalNumberperaxis)
+        dimensions = map(lambda e: e+1, dimensions)
+        maxdim = int(max(dimensions))
+        nbdim = len(dimensions)
+#        print dimensions
+        total = 1
+        for i in range(nbdim):
+            total = total*dimensions[i]
+        data = [0]*total
+        newmatrix = cls(dimensions,data)
+
+        spacesizes = [1]*nbdim
+#        print newmatrix.dimensions
+#        print total
+        for i in range(1,nbdim):
+            spacesizes[nbdim-1-i] = spacesizes[nbdim-i]*dimensions[nbdim-i]
+#        print spacesizes
+        for bar in bargrid.bars:
+            position = 0
+            for i in range(nbdim-1):
+                position = position + spacesizes[i]*bar[i]         
+            for i in range(int(bar[-2]),int(bar[-1]+1)):
+                newmatrix.data[int(position) + i] = maxdim
+	newmatrix.maximum = max(newmatrix.data)
+        pas =  (bargrid.oppositeCoords - bargrid.originCoords)/bargrid.intervalNumberperaxis
+        for i in range(total):
+	    if newmatrix.data[i] == 0:
+		icurrent = i
+                point = []
+		for j in range(nbdim):
+		    point.append(icurrent//spacesizes[j])
+		    icurrent = icurrent % spacesizes[j]
+		realpoint = bargrid.originCoords+np.dot(np.transpose(bargrid.permutation),np.array(point,float))*pas
+                for con in eqs:
+#                print con
+#                print statetrajectories[0]
+                    for var in con:
+#                    print var
+                        if var in stateabbrevs:
+#                        print "dedans"
+                            con[var] = np.array(realpoint[stateabbrevs.index(var)])
+#                    print(con())
+		    if con() == False:
+#			print "dehors"
+#			print realpoint
+			newmatrix.data[i] = -1
+			break 
+        return newmatrix
+
+
     def toDataPointDistance(self):
 	'''
 	Return the list of points coordinates concatenated with their associated non null distance value
@@ -242,6 +475,47 @@ class Matrix(object):
             self.data[positions[i]] = line.data[i]
         
         
+    def distanceWithDefDom(self,norm,bargrid,stateabbrevs,eqs):
+        for direction in range(1,len(self.dimensions)+1):
+#            print "new direction"
+            spacesize = self.spaceSize(direction)    
+            positions = self.initPosition(direction)
+            line = self.initLine(direction)
+#            print line.data
+            i = 0
+            toto=1
+            if direction ==1:
+                for i in range(spacesize):
+#                    print i                    
+                    line.getLineFromMatrix(self,positions)
+#                    print positions
+#                    print line.data
+		    arethey = self.boundsAreInDefDom(direction,positions,bargrid,stateabbrevs,eqs)
+#                    print positions
+                    line.firstpassWithDefDom(arethey)
+                    self.writeFromLine(line,positions)
+#                    print line.data
+#                    print positions
+                    positions = map(lambda e: e+1, positions)
+
+	    else:
+#            elif toto == 1:
+#		toto=2
+                spacesizeup = self.spaceSize(direction-1)    
+                for i in range(self.totalpointNumber()/spacesizeup):
+#                    print i                    
+                    for j in range(spacesize): 
+                        line.getLineFromMatrix(self,positions)
+#                        print positions
+#                        print "line"
+#                        print line.data
+    		        arethey = self.boundsAreInDefDom(direction,positions,bargrid,stateabbrevs,eqs)
+                        line.updateWithDefDom(norm,arethey)
+                        self.writeFromLine(line,positions)
+                        positions = map(lambda e: e+1, positions)
+                    positions = map(lambda e: e-spacesize+spacesizeup, positions)
+            self.maximum = max(self.data)	
+
     def distance(self,norm,lowborders,upborders):
         for direction in range(1,len(self.dimensions)+1):
 #            print "new direction"

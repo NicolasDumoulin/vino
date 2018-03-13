@@ -31,6 +31,8 @@ class ViabilityProblem(BaseEntity):
       return [fulldyn.split("=")[1] for fulldyn in self.dynamicsdescription.split(",")]
     def constraints(self):
       return self.stateconstraintdescription.split(",")
+    def definitiondomain(self):
+      return self.statedefinitiondomain.split(",")
     def admissibles(self):
       return self.admissiblecontroldescription.split(",")
     def stateabbreviation(self):
@@ -126,6 +128,22 @@ class Parameters(BaseEntity):
         eqcons = []
         desstateandcontrol = []
         descon = self.viabilityproblem.constraints()
+        j=0
+#        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
+        for thing in self.viabilityproblem.stateconstraintparameterabbreviation():
+             for i in range(len(descon)):
+                  descon[i] = descon[i].replace(thing,self.stateconstraintparametervalues.split(",")[j])
+             j = j+1
+        params= self.viabilityproblem.stateabbreviation()
+
+        for expr in descon :
+            eqcons.append(Expression(expr,params))
+        return eqcons
+
+    def definitiondomain(self):
+        eqcons = []
+        desstateandcontrol = []
+        descon = self.viabilityproblem.definitiondomain()
         j=0
 #        for thing in self.viabilityproblem.stateconstraintparameters.split(","):
         for thing in self.viabilityproblem.stateconstraintparameterabbreviation():

@@ -477,7 +477,7 @@ def ViNOView3Dancien(request,result_id,ppa):
 
     return HttpResponse("Nothing to do")
 
-def ViNODistanceView(request,result_id,ppa,permutnumber):
+def ViNODistanceView(request,result_id,ppa,permutnumber,withdefdom=1):
     ''' from the coding of permutnumber the state dimension must be strictly smaller than 10
     '''
     if request.method == 'POST':
@@ -503,15 +503,23 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
 #            print resizebargrid.permutation
 #            print permutation
             resizebargrid = resizebargrid.permute(np.dot(resizebargrid.permutation,np.transpose(permutation)))
-            distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+            
+            if (int(withdefdom) ==1):
+                distancegrid = Matrix.initFromBarGridKernelAndDefDom(resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
+            else:
+                distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+
             norm = EucNorm()
             lowborders = []
             upborders = []
             for i in range(len(distancegrid.dimensions)):
                 lowborders.append(True)
                 upborders.append(True)
+            if (int(withdefdom) ==1):
+                distancegrid.distanceWithDefDom(norm,resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
+            else:
+                distancegrid.distance(norm,lowborders,upborders)
 
-            distancegrid.distance(norm,lowborders,upborders)
             data = distancegrid.toDataPointSectionDistance()
 
             permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
@@ -522,16 +530,21 @@ def ViNODistanceView(request,result_id,ppa,permutnumber):
             perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
             data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)+list(resizebargrid.originCoords)+list(resizebargrid.oppositeCoords)]+list(data)
 
-        else :
-            distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
+        else :            
+            if (int(withdefdom) ==1):
+                distancegrid = Matrix.initFromBarGridKernelAndDefDom(resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
+            else:
+                distancegrid = Matrix.initFromBarGridKernel(resizebargrid)
             norm = EucNorm()
             lowborders = []
             upborders = []
             for i in range(len(distancegrid.dimensions)):
                 lowborders.append(True)
-                upborders.append(True)
-
-            distancegrid.distance(norm,lowborders,upborders)
+                upborders.append(True)            
+            if (int(withdefdom) ==1):
+                distancegrid.distanceWithDefDom(norm,resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
+            else:
+                distancegrid.distance(norm,lowborders,upborders)
             data = distancegrid.toDataPointDistance()
             permutOriginCoords = np.dot(resizebargrid.permutation, resizebargrid.originCoords)
             permutOppositeCoords = np.dot(resizebargrid.permutation, resizebargrid.oppositeCoords)

@@ -62,6 +62,7 @@
                  </div>
                 {% if result.parameters.viabilityproblem.statevariables.count == 2 %}
                 <button id="viewPlotlyColor" class="btn btn-primary">Update visualization</button>
+                <input type='checkbox' name='' value='' id='withdefdom' checked = 'checked' onchange='ShowWithDefDom()'/>Taking into account the definition domain
                 {% else %}
                 <button id="viewPlotlyColorSectionUpdate" class="btn btn-primary">Update visualization</button>
                 {% endif %}
@@ -195,14 +196,14 @@ ppainitial = 100;
 ppainitial = 1000;
 {% endif %}
 document.getElementById("ppa").value = ppainitial;
-ViNOVisu(ppainitial);
+//ViNOVisu(ppainitial);
 {% endif %}
 {% if result.parameters.viabilityproblem.statevariables.count == 2 %}
 
 document.getElementById("distanceppa").value = 50;
-DistanceVinoVisu(50);
+DistanceVinoVisu(50,true);
 document.getElementById("maxvalue").value = 500;
-ViNOHisto(500,50);
+//ViNOHisto(500,50);
 {% elif result.parameters.viabilityproblem.statevariables.count == 3 %}
 document.getElementById("distanceppa").value = 30;
 var tabinit = document.getElementsByName('dimension');
@@ -525,7 +526,7 @@ function ShowAxes(){
     if (j < 2) {
         document.getElementById('sectionAxes').innerHTML = 'Too many selected directions';
     } else if (j == 2){
-        document.getElementById('sectionAxes').innerHTML = ' Section axes : <input type="radio" name="dimensionsection" value="xsection" checked="checked" id="xsection" onchange="ShowSection(1)"/> <label for="xsection" name="labeldimensionsection">[' + tab2[0] + ',' + tab2[1] + ']</label><input type="radio" name="dimensionsection" value="ysection" id="ysection" onchange="ShowSection(-1)"/> <label for="ysection" name="labeldimensionsection" >[' + tab2[1] + ',' + tab2[0] + ']</label><br>';
+        document.getElementById('sectionAxes').innerHTML = ' Section axes : <input type="radio" name="dimensionsection" value="xsection" checked="checked" id="xsection" onchange="ShowSection(1)"/> <label for="xsection" name="labeldimensionsection">[' + tab2[0] + ',' + tab2[1] + ']</label><input type="radio" name="dimensionsection" value="ysection" id="ysection" onchange="ShowSection(-1)"/> <label for="ysection" name="labeldimensionsection" >[' + tab2[1] + ',' + tab2[0] + ']</label><br><input type="checkbox" name="" value="" id="withdefdom" checked = "unchecked" onchange="ShowGoodSection()"/>Taking into account the definition domain';
         ShowSection(1);
     } else {
         document.getElementById('sectionAxes').innerHTML = 'Not enough selected directions';
@@ -571,6 +572,21 @@ $("#viewPlotlyColorSection").click(function(){
     }
 })
 
+function ShowGoodSection(){
+   x=document.getElementById('xsection');
+   y=document.getElementById('ysection');
+   if (x){
+   if (x.checked) {
+        ShowSection(1);
+    }
+   else if (y.checked) {
+        ShowSection(-1);
+    }
+    }
+
+
+}
+
 function ShowSliderValues(){
     var x = document.getElementById('distanceppa').value - 1;
     var i;
@@ -609,7 +625,9 @@ function ShowSection(transpose){
     permutstring = permutstring + permutstringbis;
     var xx = document.getElementById('distanceppa').value;
     var permutnumber = parseInt(permutstring);
-    var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 'NNN' %}"
+    var url;
+    if (document.getElementById('withdefdom').checked) {url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 'NNN' 1%}"}
+    else {url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 'NNN' 0%}"}
     url = url.replace("NNN", permutnumber);
     url = url.replace("NN", parseInt(xx));
     twoDsections = [];
@@ -742,13 +760,15 @@ $("#viewPlotlyBW").click(function(){
      });
 $("#viewPlotlyBWOriginal").click(function(){ViNOVisu(0);});
 
-function DistanceVinoVisu(x){
+function DistanceVinoVisu(x,bool){
 
     var maxX = 500;
     {% if result.parameters.viabilityproblem.statevariables.count == 3 %}
         maxX = 150;
     {% endif %}
-    var url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0%}"
+    var url;
+    if (bool == true) {url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0 1%}";}
+    else {url = "{% url 'sharekernel:ViNODistanceView' result.id 'NN' 0 0%}";}
     document.getElementById('viewPanel').innerHTML = "";
     // If x is Not a Number
     if (isNaN(x) || x == "%20" || x > 500) {
@@ -816,7 +836,7 @@ $("#viewPlotlyColor").click(function(){
     if (document.getElementById("distanceppa").value >500){
          document.getElementById("distanceppa").value = 500;
     }
-    DistanceVinoVisu(document.getElementById("distanceppa").value);
+    DistanceVinoVisu(document.getElementById("distanceppa").value,document.getElementById("withdefdom").checked);
     ViNOHisto(document.getElementById("maxvalue").value,document.getElementById("distanceppa").value);
 
 });
