@@ -62,6 +62,13 @@ git push git@github.com:NicolasDumoulin/vino.git
 API Details
 ===========
 
+Tests
+-----
+You can run unit tests by running:
+```
+python manage.py test sharekernel.tests
+```
+
 Remote Access
 -------------
 
