@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import  ensure_csrf_cookie
-from sharekernel.models import Document, ViabilityProblem, Software, Parameters,Results,ResultFormat, StateSet
+from sharekernel.models import *
 from sharekernel.forms import DocumentForm, TrajForm
 from django.utils.text import slugify
 from django.http import HttpResponseRedirect, JsonResponse
@@ -503,7 +503,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber,withdefdom=1):
 #            print resizebargrid.permutation
 #            print permutation
             resizebargrid = resizebargrid.permute(np.dot(resizebargrid.permutation,np.transpose(permutation)))
-            
+
             if (int(withdefdom) ==1):
                 distancegrid = Matrix.initFromBarGridKernelAndDefDom(resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
             else:
@@ -530,7 +530,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber,withdefdom=1):
             perm = np.dot(resizebargrid.permutation,np.arange(len(resizebargrid.originCoords)))
             data = [vinokernel.getMinFrameworkBounds()+vinokernel.getMaxFrameworkBounds()+list(perm)+list(resizebargrid.originCoords)+list(resizebargrid.oppositeCoords)]+list(data)
 
-        else :            
+        else :
             if (int(withdefdom) ==1):
                 distancegrid = Matrix.initFromBarGridKernelAndDefDom(resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
             else:
@@ -540,7 +540,7 @@ def ViNODistanceView(request,result_id,ppa,permutnumber,withdefdom=1):
             upborders = []
             for i in range(len(distancegrid.dimensions)):
                 lowborders.append(True)
-                upborders.append(True)            
+                upborders.append(True)
             if (int(withdefdom) ==1):
                 distancegrid.distanceWithDefDom(norm,resizebargrid,vino.parameters.viabilityproblem.stateabbreviation(),vino.parameters.definitiondomain())
             else:
@@ -1488,10 +1488,22 @@ def kerneluploadfile(request):
                 # Result has been submitted without reference to existing problem and parameters
                 # Trying to find or create them with given metadata
                 metadataProblem = {k:v for k,v in metadata.iteritems() if k.startswith('viabilityproblem')}
+                relatedforeignkeys={}
                 problem = None
                 if metadataProblem:
+                    # Read declared variables for creating foreign keys
+                    for varType in [StateVariable, ControlVariable, DynamicsParameter, StateConstraintParameter, TargetParameter]:
+                        metadatakey = getattr(METADATA, varType.__name__.lower()+"s")
+                        if metadatakey in metadataProblem:
+                            variables=[]
+                            relatedforeignkeys[varType] = variables
+                            for v in eval(metadataProblem[metadatakey]):
+                                # put default values to ensure to have 3 elements
+                                v = v + [""]*(3-len(v))
+                                variables.append(varType(shortname=v[0], name=v[1], unit=v[2]))
+                            del metadataProblem[metadatakey]
                     # metadata are given for creating viability problem
-                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem)
+                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem, relatedforeignkeys=relatedforeignkeys)
                 metadataParameters = {k:v for k,v in metadata.iteritems() if k.startswith('parameters')}
                 if metadataParameters:
                     # metadata are given for creating parameters

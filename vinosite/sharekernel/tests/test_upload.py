@@ -40,6 +40,7 @@ class SimpleTest(TestCase):
             self.assertEqual(content['files'][0]['status'], 'success')
             self.assertEqual(Results.objects.count(), count + 1)
             self.assertEqual(ViabilityProblem.objects.count(), countVP + 1)
+            self.assertEqual(len(Results.objects.get(pk=content['files'][0]['pk']).parameters.viabilityproblem.statevariables.all()), 3)
 
     def test_uploadkdtree_withform(self):
         '''

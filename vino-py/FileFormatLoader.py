@@ -13,11 +13,11 @@ import logging
 class Loader(object):
     def __init__(self):
         self.loaders = [Hdf5Loader(), PspLoader(), PspModifiedLoader(), ViabilitreeLoader()]
-    
+
     def loadersdoc(self):
         for loader in self.loaders:
             print("{0}: {1}".format(type(loader).__name__, str(loader.__doc__)))
-    
+
     def load(self, filename):
         '''
         Load a file by trying all file loaders, and return an object of type Kernel, precisely on of its subtypes.
@@ -34,14 +34,14 @@ class FileFormatLoader(object):
     '''
     Abstract class for loaders that implements a specific format parser.
     '''
-    
+
     @abc.abstractmethod
     def readFile(self, f):
         pass
-    
+
     def read(self, filename):
         with open(filename, 'r') as f:
-            return self.readFile(f)      
+            return self.readFile(f)
 
 from overrides import overrides
 from BarGridKernel import BarGridKernel
@@ -52,10 +52,10 @@ class Hdf5Loader(FileFormatLoader):
     '''
     Loader for the Vino HDF5 file format.
     '''
-    
+
     def __init__(self, strategies=[BarGridKernel, KdTree]):
-        self.hdf5manager = HDF5Manager(strategies) 
-    
+        self.hdf5manager = HDF5Manager(strategies)
+
     @overrides
     def read(self, filename):
         return self.hdf5manager.readKernel(filename)
@@ -89,20 +89,20 @@ class ViabilitreeLoader(FileFormatLoader):
         metadata[METADATA.statedimension] = int(metadata[METADATA.statedimension])
         k = KdTree.readViabilitree(filename, metadata)
         return k
-    
+
 class PspLoader(FileFormatLoader):
     '''
     Reader for the raw output format of the software of Patrick Saint-Pierre.
-    ''' 
+    '''
     @overrides
     def readFile(self, f):
-        metadata=[]
+        metadata={}
         bgk = None
         f.readline()
         nbDim = re.match('\s*([0-9]*)\s.*',f.readline()).group(1)
-        metadata.append([METADATA.dynamicsdescription, f.readline()])
-        metadata.append([METADATA.stateconstraintdescription, f.readline()])
-        metadata.append([METADATA.targetdescription, f.readline()])
+        metadata[METADATA.dynamicsdescription] = f.readline()
+        metadata[METADATA.stateconstraintdescription] = f.readline()
+        metadata[METADATA.targetdescription] = f.readline()
         for i in range(4): f.readline()
         dimensionsSteps = list(map(int, re.findall('[0-9]+', f.readline())))
         for i in range(2): f.readline()
@@ -110,7 +110,7 @@ class PspLoader(FileFormatLoader):
         maxPoint = list(map(int, re.findall('[0-9]+', f.readline())))
         for i in range(5): f.readline()
         # ND Why? Why not opposite = maxPoint
-        opposite = origin      
+        opposite = origin
         bgk = BarGridKernel(origin, opposite, dimensionsSteps, metadata=metadata)
         # reading until some lines with 'Initxx'
         stop=False
@@ -132,13 +132,13 @@ class PspLoader(FileFormatLoader):
             bgk.addBar(coords[2:-2], coords[-2], coords[-1])
             # TODO what is done with modelMetadata and nbDim
         return bgk
-        
+
 class PspModifiedLoader(FileFormatLoader):
     '''
     Reader for the modified output format of the software of Patrick Saint-Pierre.
     By "modified", it means that the raw output file has been modified for give easy access to metadata at the begin of the file.
     '''
-    
+
     @overrides
     def readFile(self, f):
         '''
