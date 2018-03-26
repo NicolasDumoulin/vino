@@ -99,3 +99,32 @@ def postKDTree(filenameData, filenameMetadata):
 prefix='../samples/bilingual-viabilitree/Bilingual21TS05dil3'
 postKDTree(prefix+'.dat', prefix+'.txt')
 ```
+
+With a submitter : 
+
+import re, json, requests
+
+def postKDTree(filenameData, filenameMetadata):
+    session = requests.session()
+    # first request for establishing a session and retrieving the csrftoken
+    session.get("http://localhost:8000/problem/new/")
+    csrftoken = session.cookies['csrftoken']
+    with open(filenameData) as fDat:
+        data = {'callback':'fileSubmitted', 'metadata':{}, 'csrfmiddlewaretoken':csrftoken}
+        # Loading metadata
+        with open(filenameMetadata) as f:
+            myre = re.compile('^#([^:]*):(.*)$')
+            for line in f:
+                if line.startswith('#'):
+                    k, v = myre.match(line).groups()
+                    data['metadata'][k.strip()] = v.strip()
+        data['format'] = data['metadata']['resultformat.title']
+        data['metadata']['viabilityproblem.statedimension'] = int(data['metadata']['viabilityproblem.statedimension'])
+        data['metadata']['submitter'] = 'prenom.nom'
+        # serialize metadata for post request
+        data['metadata'] = json.dumps(data['metadata'])
+        response = session.post('http://localhost:8000/kerneluploadfile/', data, files={'files[]':fDat})
+        print(response.text)
+
+prefix='../samples/bilingual-viabilitree/Bilingual21TS05dil3'
+postKDTree(prefix+'.dat', prefix+'.txt')

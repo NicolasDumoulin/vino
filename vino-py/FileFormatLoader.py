@@ -77,7 +77,8 @@ class ViabilitreeLoader(FileFormatLoader):
     @overrides
     def read(self, filename):
         metadata = {}
-        myre = re.compile('^#(.*):(.*)$')
+#        myre = re.compile('^#(.*):(.*)$')
+        myre = re.compile('^#([^:]*):(.*)$')
 #        myre = re.compile('^([^:]*):(.*)$')
         with open(os.path.splitext(filename)[0]+'.txt') as f:
             for line in f:

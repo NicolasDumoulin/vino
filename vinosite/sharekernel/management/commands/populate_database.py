@@ -39,6 +39,7 @@ def addKernel(kernel, user):
     parameters = findandsaveobject(Parameters, parameters_md,
         foreignkeys={'viabilityproblem':problem}, fields={'submitter':user})
     software_md = {k:v for k,v in kernel.metadata.iteritems() if k.startswith("software")}
+#    print software_md
     software = findandsaveobject(Software,
         metadata={METADATA.software_title:software_md[METADATA.software_title]},
         fields={'submitter':user}, add_metadata=software_md)

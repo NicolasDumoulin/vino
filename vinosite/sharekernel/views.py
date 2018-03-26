@@ -26,6 +26,7 @@ import tempfile
 import logging
 import numpy as np
 import re
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -1476,8 +1477,14 @@ def kerneluploadfile(request):
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
             fields = {
                 "datafile": File(file),
-                "submissiondate": timezone.now()
+                "submissiondate": timezone.now(),
                 }
+            if metadata.has_key('submitter'):
+                if not User.objects.filter(username=metadata['submitter']).exists():
+                    user = User.objects.create_user(username=metadata['submitter'], email=None, password=None)
+                else:
+                    user = User.objects.get(username=metadata['submitter'])
+                fields['submitter'] = user
             warnings=[]
             if parameters_id and parameters_id!="None":
                 try:
@@ -1503,13 +1510,13 @@ def kerneluploadfile(request):
                                 variables.append(varType(shortname=v[0], name=v[1], unit=v[2]))
                             del metadataProblem[metadatakey]
                     # metadata are given for creating viability problem
-                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem, relatedforeignkeys=relatedforeignkeys)
+                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem, relatedforeignkeys=relatedforeignkeys,fields=fields)
                 metadataParameters = {k:v for k,v in metadata.iteritems() if k.startswith('parameters')}
                 if metadataParameters:
                     # metadata are given for creating parameters
                     fields['parameters'] = findandsaveobject(Parameters,
                         metadata=metadataParameters,
-                        foreignkeys={'viabilityproblem': problem})
+                        foreignkeys={'viabilityproblem': problem},fields=fields)
             if software_id and software_id!="None":
                 try:
                     fields["software"] = Software.objects.get(id=software_id)
@@ -1521,7 +1528,7 @@ def kerneluploadfile(request):
                 metadataSoftware = {k:v for k,v in metadata.iteritems() if k.startswith('software')}
                 if metadataSoftware:
                     # metadata are given for creating parameters
-                    fields['software'] = findandsaveobject(Software, metadata=metadataSoftware)
+                    fields['software'] = findandsaveobject(Software, metadata=metadataSoftware,fields=fields)
             if not resultFormat:
                 try:
                     resultFormat = ResultFormat.objects.get(title=metadata[METADATA.resultformat_title])
