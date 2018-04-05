@@ -1413,7 +1413,7 @@ def kerneluploadfile(request):
                     metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
             kernel=KdTree.readViabilitree(request.POST['path'], metadata)
             tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
-            hdf5manager.writeKernel(kernel, tmpfilename)
+        hdf5manager.writeKernel(kernel, tmpfilename)
     elif file:
         # in this case, we receive a file that we try to read
         try:
@@ -1476,7 +1476,8 @@ def kerneluploadfile(request):
             # for preventing bad experience if the user take time to complete useless forms
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
             fields = {
-                "datafile": File(file),
+#                "datafile": File(file),
+                "datafile": File(open(tmpfilename), name=tmpfilename),
                 "submissiondate": timezone.now(),
                 }
             if metadata.has_key('submitter'):
