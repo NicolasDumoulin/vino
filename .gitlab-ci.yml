@@ -1,0 +1,13 @@
+# This file is a template, and might need editing before it works on your project.
+# This file is a template, and might need editing before it works on your project.
+image: python:latest
+
+before_script:
+  - python -V                                   # Print out python version for debugging
+
+test:
+  script:
+  - pip install -r vino-py/pip-requires.txt
+  - pip install -r vinosite/pip-requires.txt
+  - python -m unittest discover -s vino-py -p 'test*.py'
+  

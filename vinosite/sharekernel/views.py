@@ -1413,7 +1413,7 @@ def kerneluploadfile(request):
                     metadata[METADATA.results_formatparametervalues] = ";".join(parameters)
             kernel=KdTree.readViabilitree(request.POST['path'], metadata)
             tmpfilename = os.path.splitext(request.POST['userFilename'])[0]+u'.h5'
-        hdf5manager.writeKernel(kernel, tmpfilename)
+            hdf5manager.writeKernel(kernel, tmpfilename)
     elif file:
         # in this case, we receive a file that we try to read
         try:
@@ -1475,17 +1475,19 @@ def kerneluploadfile(request):
             # we take care to not ask metadata about the results before to be sure to be able to read the file
             # for preventing bad experience if the user take time to complete useless forms
             # Version 3 Creating Result with empty foreign key and bringing editing view for this result
-            fields = {
-#                "datafile": File(file),
-                "datafile": File(open(tmpfilename), name=tmpfilename),
+            common_fields = {
                 "submissiondate": timezone.now(),
+                }
+            fields = {
+                #"datafile": File(file)
+                "datafile": File(open(tmpfilename), name=tmpfilename),
                 }
             if metadata.has_key('submitter'):
                 if not User.objects.filter(username=metadata['submitter']).exists():
                     user = User.objects.create_user(username=metadata['submitter'], email=None, password=None)
                 else:
                     user = User.objects.get(username=metadata['submitter'])
-                fields['submitter'] = user
+                common_fields['submitter'] = user
             warnings=[]
             if parameters_id and parameters_id!="None":
                 try:
@@ -1511,13 +1513,13 @@ def kerneluploadfile(request):
                                 variables.append(varType(shortname=v[0], name=v[1], unit=v[2]))
                             del metadataProblem[metadatakey]
                     # metadata are given for creating viability problem
-                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem, relatedforeignkeys=relatedforeignkeys,fields=fields)
+                    problem = findandsaveobject(ViabilityProblem, metadata=metadataProblem, relatedforeignkeys=relatedforeignkeys, fields=common_fields)
                 metadataParameters = {k:v for k,v in metadata.iteritems() if k.startswith('parameters')}
                 if metadataParameters:
                     # metadata are given for creating parameters
                     fields['parameters'] = findandsaveobject(Parameters,
                         metadata=metadataParameters,
-                        foreignkeys={'viabilityproblem': problem},fields=fields)
+                        foreignkeys={'viabilityproblem': problem}, fields=common_fields)
             if software_id and software_id!="None":
                 try:
                     fields["software"] = Software.objects.get(id=software_id)
@@ -1529,7 +1531,7 @@ def kerneluploadfile(request):
                 metadataSoftware = {k:v for k,v in metadata.iteritems() if k.startswith('software')}
                 if metadataSoftware:
                     # metadata are given for creating parameters
-                    fields['software'] = findandsaveobject(Software, metadata=metadataSoftware,fields=fields)
+                    fields['software'] = findandsaveobject(Software, metadata=metadataSoftware, fields=common_fields)
             if not resultFormat:
                 try:
                     resultFormat = ResultFormat.objects.get(title=metadata[METADATA.resultformat_title])
@@ -1537,6 +1539,7 @@ def kerneluploadfile(request):
                     # TODO log this error that should be fixed by administrators!
                     warnings.append('The format "'+metadata["resultformat.title"]+'" is unknown!')
             fields["resultformat"] = resultFormat
+            fields.update(common_fields)
             result = findandsaveobject(Results, metadata={}, add_metadata=metadata, fields=fields)
             return UploadResponse( request, {
                 'name' : os.path.basename(tmpfilename),
