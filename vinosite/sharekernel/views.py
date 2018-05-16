@@ -1479,8 +1479,7 @@ def kerneluploadfile(request):
                 "submissiondate": timezone.now(),
                 }
             fields = {
-                #"datafile": File(file)
-                "datafile": File(open(tmpfilename), name=tmpfilename),
+                "datafile": File(file)
                 }
             if metadata.has_key('submitter'):
                 if not User.objects.filter(username=metadata['submitter']).exists():
