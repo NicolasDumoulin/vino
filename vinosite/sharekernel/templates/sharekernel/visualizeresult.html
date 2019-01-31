@@ -269,7 +269,8 @@ function bargridPlot(url, x, container, colormarker, colorline, fillcolor){
         text = "Input not valid : " + x;
         container.innerHTML = text;
     } else {
-        url = url.replace("0", x);
+        url = url.replace("/0/", "/" + x + "/");
+//        url = url.replace("NN", x);
         loadAndPlot(url, function (data) {
             var items = {x:[], y:[], mode:'markers', type: 'scatter', marker: { size : 2, color: colormarker }, hoverinfo:'none' };
             var trace = [];
