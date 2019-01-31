@@ -1471,6 +1471,15 @@ def kerneluploadfile(request):
     if kernel:
             if not file:
                 file = open(tmpfilename,'r')
+                passage = "youyou"
+            else:
+                passage = "yaya"
+            #pique a populatedatabase
+            tmpfiletobesaved = tempfile.NamedTemporaryFile(prefix=slugify("youyou"),suffix=".h5")
+            filenametobesaved = tmpfiletobesaved.name
+            tmpfiletobesaved.close()
+            hdf5manager.writeKernel(kernel, filenametobesaved)
+  
             # kernel loaded, we bring the metadata to the user
             # we take care to not ask metadata about the results before to be sure to be able to read the file
             # for preventing bad experience if the user take time to complete useless forms
@@ -1479,7 +1488,8 @@ def kerneluploadfile(request):
                 "submissiondate": timezone.now(),
                 }
             fields = {
-                "datafile": File(file)
+#avant                "datafile": File(file)
+                "datafile": File(open(filenametobesaved), name=filenametobesaved),
                 }
             if metadata.has_key('submitter'):
                 if not User.objects.filter(username=metadata['submitter']).exists():
@@ -1545,6 +1555,7 @@ def kerneluploadfile(request):
                 'status': 'success',
                 # TODO displays warnings
                 'warnings': warnings,
-                'pk': result.pk
+                'pk': result.pk,
+                'passage':passage
             })
     return UploadResponse( request, {'error':'No file provided'})
