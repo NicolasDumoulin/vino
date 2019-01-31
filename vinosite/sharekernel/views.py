@@ -28,7 +28,7 @@ import numpy as np
 import re
 from django.contrib.auth.models import User
 
-# Create your views here.
+# Create your views here.you
 
 from django.http import HttpResponse
 
